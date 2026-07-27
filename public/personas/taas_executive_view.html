@@ -474,6 +474,29 @@ button{font-family:inherit;cursor:pointer;}
 .donut2-center-val{font-size:20px;font-weight:800;}
 .donut2-center-lbl{font-size:9.5px;color:var(--artifact-muted-2);font-weight:700;letter-spacing:.04em;text-transform:uppercase;}
 
+/* Power BI data view */
+.powerbi-layout{display:grid;grid-template-columns:148px minmax(0,1fr) 330px;gap:14px;align-items:start;}
+.powerbi-kpis{display:flex;flex-direction:column;gap:9px;}
+.powerbi-metric{border:1px solid var(--artifact-border);border-left:5px solid #d72858;border-radius:8px;background:var(--artifact-surface);padding:10px;text-align:center;min-height:76px;display:flex;flex-direction:column;justify-content:center;}
+.powerbi-metric .pm-label{font-size:11.5px;color:var(--artifact-text);line-height:1.15;}
+.powerbi-metric .pm-value{font-size:21px;font-weight:800;margin-top:7px;}
+.powerbi-filter-row{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px;}
+.powerbi-filter{border:1px solid var(--artifact-border);border-radius:8px;background:var(--artifact-surface);padding:8px 10px;min-width:132px;}
+.powerbi-filter .pf-label{font-size:10px;font-weight:800;color:var(--artifact-muted-2);text-transform:uppercase;letter-spacing:.04em;}
+.powerbi-filter .pf-value{font-size:12px;font-weight:700;color:var(--artifact-text);margin-top:3px;}
+.powerbi-split{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px;}
+.powerbi-course-bars{display:flex;flex-direction:column;gap:9px;}
+.powerbi-bar-row{display:grid;grid-template-columns:minmax(0,1fr) 150px;gap:10px;align-items:center;font-size:12px;}
+.powerbi-bar-label{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--artifact-muted);}
+.powerbi-bar-track{height:16px;background:var(--artifact-surface-2);border-radius:3px;position:relative;}
+.powerbi-bar-fill{height:100%;background:#d72858;border-radius:3px;}
+.powerbi-bar-value{position:absolute;left:calc(100% + 6px);top:50%;transform:translateY(-50%);font-size:10.5px;font-weight:800;color:#d72858;background:#ffe9ef;border-radius:5px;padding:2px 5px;white-space:nowrap;}
+.powerbi-table-wrap{overflow:auto;}
+.powerbi-table-wrap .audit-table{min-width:900px;}
+.powerbi-heat{border-radius:4px;padding:4px 6px;text-align:right;font-variant-numeric:tabular-nums;}
+@media (max-width:1300px){.powerbi-layout{grid-template-columns:1fr;}.powerbi-kpis{display:grid;grid-template-columns:repeat(4,1fr);}.powerbi-bar-row{grid-template-columns:minmax(0,1fr) 180px;}}
+@media (max-width:780px){.powerbi-kpis,.powerbi-split{grid-template-columns:1fr;}.powerbi-bar-row{grid-template-columns:1fr;}.powerbi-bar-value{left:auto;right:4px;color:#fff;background:transparent;}.powerbi-layout{gap:12px;}}
+
 /* funnel */
 .funnel-wrap{display:flex;flex-direction:column;gap:2px;align-items:center;}
 .funnel-stage{display:flex;flex-direction:column;align-items:center;justify-content:center;color:#fff;font-size:12.5px;font-weight:700;border-radius:6px;position:relative;transition:opacity .15s;}
@@ -643,6 +666,10 @@ button{font-family:inherit;cursor:pointer;}
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v20"/><path d="M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/></svg>
       Revenue &amp; Profitability
     </a>
+    <a class="side-item" data-view="powerbi" onclick="showView('powerbi')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="10" width="4" height="10" rx="1"/><rect x="10" y="5" width="4" height="15" rx="1"/><rect x="16" y="2" width="4" height="18" rx="1"/></svg>
+      Power BI Data
+    </a>
     <a class="side-item" data-view="growth" onclick="showView('growth')">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 6l-9.5 9.5-5-5L1 18"/><path d="M17 6h6v6"/></svg>
       Growth &amp; Demand
@@ -779,6 +806,50 @@ button{font-family:inherit;cursor:pointer;}
     <div class="card">
       <div class="card-head"><h3>Disputes &amp; Anomalies</h3></div>
       <table class="audit-table" id="disputeTable"></table>
+    </div>
+  </div>
+</div>
+
+<!-- ================= POWER BI DATA ================= -->
+<div class="view" id="view-powerbi">
+  <div class="page-title">Power BI Data</div>
+  <div class="page-sub">Sessions report representation with revenue, session mix, and course-level performance.</div>
+
+  <div class="powerbi-filter-row">
+    <div class="powerbi-filter"><div class="pf-label">Session Start Date</div><div class="pf-value">10/1/2025 - 9/30/2026</div></div>
+    <div class="powerbi-filter"><div class="pf-label">Course</div><div class="pf-value">All</div></div>
+    <div class="powerbi-filter"><div class="pf-label">Curriculum</div><div class="pf-value">All</div></div>
+    <div class="powerbi-filter"><div class="pf-label">Session Entity</div><div class="pf-value">Multiple selections</div></div>
+    <div class="powerbi-filter"><div class="pf-label">Session Type</div><div class="pf-value">Private / Public</div></div>
+  </div>
+
+  <div class="powerbi-layout">
+    <div class="powerbi-kpis" id="powerBiKpis"></div>
+    <div>
+      <div class="card" style="margin-bottom:14px;">
+        <div class="card-head"><h3>Revenue</h3><span class="tag tag-neutral">Monthly</span></div>
+        <div class="chart-svg-wrap" id="powerBiRevenueTrend"></div>
+      </div>
+      <div class="powerbi-split">
+        <div class="card">
+          <div class="card-head"><h3>Private</h3></div>
+          <div class="chart-svg-wrap" id="powerBiPrivateTrend"></div>
+        </div>
+        <div class="card">
+          <div class="card-head"><h3>Public</h3></div>
+          <div class="chart-svg-wrap" id="powerBiPublicTrend"></div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-head"><h3>Course Revenue Detail</h3></div>
+        <div class="powerbi-table-wrap">
+          <table class="audit-table" id="powerBiCourseTable"></table>
+        </div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-head"><h3>Course</h3><span class="tag tag-neutral">Top revenue</span></div>
+      <div class="powerbi-course-bars" id="powerBiCourseBars"></div>
     </div>
   </div>
 </div>
@@ -1445,10 +1516,9 @@ function renderRevenue(){
   ]);
 
   svgDonutChart('revenueByModelChart', [
-    {label:'Self-Paced', value:38, color:CHART_COLORS.accent},
-    {label:'Instructor-Led', value:29, color:CHART_COLORS.purple},
-    {label:'Enterprise / Private Cohort', value:24, color:CHART_COLORS.teal},
-    {label:'Subscription', value:9, color:CHART_COLORS.success}
+    {label:'Private sessions', value:52, color:CHART_COLORS.accent},
+    {label:'Public sessions', value:39, color:CHART_COLORS.purple},
+    {label:'Reseller', value:9, color:CHART_COLORS.success}
   ], {centerValue:'$2.66M', centerLabel:'Collected'});
 
   svgBarChart('marginByCategoryChart', ['SAFe','Scrum','DevOps','Leadership','IC Agile','PPM'],
@@ -1466,6 +1536,81 @@ function setRevenueMode(m){
   revenueMode = m;
   document.querySelectorAll('#view-revenue .range-btn').forEach(b=>b.classList.toggle('active', b.dataset.mode===m));
   renderRevenue();
+}
+
+/* ================= RENDER: POWER BI DATA ================= */
+const POWER_BI_MONTHS = ['10/01/25','11/01/25','12/01/25','01/01/26','02/01/26','03/01/26','04/01/26','05/01/26','06/01/26','07/01/26','08/01/26','09/01/26'];
+const POWER_BI_REVENUE = [425529,311298,485783,145951,279044,226410,152287,203387,255051,94801,89336,79740];
+const POWER_BI_PRIVATE = [327272,204973,107983,223491,166396,42000,38500,36400,32500,27900,42600,40500];
+const POWER_BI_PUBLIC = [98256,106325,377800,33100,112648,184410,113787,166987,222551,66901,46736,39240];
+const POWER_BI_COURSES = [
+  {course:'SAFe AI-Empowered Product Owner/Product Manager', values:[10650,21300,49299,19295,32438,10650,37931,0,4200,0,0,7496]},
+  {course:'Splunk Boot Camp', values:[17500,2914,18000,8500,9000,16400,11457,21000,23285,18400,9400,32200]},
+  {course:'Certified Scrum Product Owner (CSPO)', values:[7165,0,32120,20016,26055,9224,0,33783,19920,8525,0,0]},
+  {course:'Certified ScrumMaster (CSM)', values:[8186,8841,6487,6845,38396,8961,0,20117,23749,12100,7500,0]},
+  {course:'Microsoft Power BI Boot Camp', values:[32160,4685,27088,0,7975,0,19840,0,4735,6100,0,17650]},
+  {course:'Fidelity DE Leap Program', values:[114813,0,0,0,0,0,0,0,0,0,0,0]},
+  {course:'AI-Empowered Leading SAFe', values:[4854,7850,24051,0,15432,16295,0,4451,10300,0,0,8401]},
+  {course:'Expired Credits', values:[0,0,106291,0,0,0,0,0,0,0,0,0]}
+];
+const POWER_BI_TOP_COURSES = [
+  ['SAFe AI-Empowered Product Owner/Product Manager',192579],
+  ['Splunk Boot Camp',153556],
+  ['Certified Scrum Product Owner (CSPO)',150099],
+  ['Certified ScrumMaster (CSM)',141826],
+  ['Microsoft Power BI Boot Camp',120333],
+  ['Fidelity DE Leap Program',114813],
+  ['AI-Empowered Leading SAFe',108004],
+  ['Expired Credits',106291],
+  ['AI Custom Course',101200],
+  ['Business Analyst Boot Camp',99784],
+  ['Certified SAFe Lean Portfolio Management',87042],
+  ['Business Processes in Plant Maintenance',84000]
+];
+function powerBiMoney(v){
+  return '$' + Math.round(v).toLocaleString();
+}
+function powerBiHeat(value, max){
+  const alpha = value ? 0.16 + (value / max) * 0.46 : 0;
+  return `background:rgba(216,151,46,${alpha});`;
+}
+function renderPowerBiData(){
+  document.getElementById('powerBiKpis').innerHTML = [
+    ['Total Revenue','$2.75M'],
+    ['Total Sessions','347'],
+    ['Private Sessions','174'],
+    ['Public Sessions','173'],
+    ['Students per Session (Private)','16'],
+    ['Students per Session (Public)','6'],
+    ['Online Sessions','307'],
+    ['In Person Sessions','38']
+  ].map(([label,value])=>`<div class="powerbi-metric"><div class="pm-label">${label}</div><div class="pm-value">${value}</div></div>`).join('');
+
+  svgLineChart('powerBiRevenueTrend', POWER_BI_MONTHS, [
+    {name:'Revenue', color:'#d72858', values:POWER_BI_REVENUE}
+  ], {height:250, area:false});
+  svgLineChart('powerBiPrivateTrend', POWER_BI_MONTHS, [
+    {name:'Private revenue', color:'#d72858', values:POWER_BI_PRIVATE}
+  ], {height:210, area:false});
+  svgLineChart('powerBiPublicTrend', POWER_BI_MONTHS, [
+    {name:'Public revenue', color:'#d72858', values:POWER_BI_PUBLIC}
+  ], {height:210, area:false});
+
+  const maxCourseTotal = Math.max(...POWER_BI_TOP_COURSES.map(([,value])=>value));
+  document.getElementById('powerBiCourseBars').innerHTML = POWER_BI_TOP_COURSES.map(([course,value])=>{
+    const width = Math.max(8, (value / maxCourseTotal) * 100);
+    return `<div class="powerbi-bar-row">
+      <div class="powerbi-bar-label" title="${course}">${course}</div>
+      <div class="powerbi-bar-track"><div class="powerbi-bar-fill" style="width:${width}%;"></div><span class="powerbi-bar-value">${powerBiMoney(value)}</span></div>
+    </div>`;
+  }).join('');
+
+  const maxCell = Math.max(...POWER_BI_COURSES.flatMap(row=>row.values));
+  document.getElementById('powerBiCourseTable').innerHTML = `
+    <thead><tr><th>Course</th>${POWER_BI_MONTHS.slice(0,9).map(m=>`<th>${m}</th>`).join('')}</tr></thead>
+    <tbody>${POWER_BI_COURSES.map(row=>`
+      <tr><td>${row.course}</td>${row.values.slice(0,9).map(v=>`<td><div class="powerbi-heat" style="${powerBiHeat(v,maxCell)}">${v ? powerBiMoney(v) : ''}</div></td>`).join('')}</tr>
+    `).join('')}</tbody>`;
 }
 
 /* ================= RENDER: GROWTH & DEMAND ================= */
@@ -1764,6 +1909,7 @@ function copilotReply(text){
 document.addEventListener('DOMContentLoaded', function(){
   renderSummary();
   renderRevenue();
+  renderPowerBiData();
   renderGrowth();
   renderRollup();
   renderStrategy();
