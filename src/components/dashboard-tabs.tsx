@@ -1,31 +1,22 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useState } from "react";
 import {
   ArrowUpRight,
   BadgeCheck,
   Banknote,
-  Bell,
-  BookOpenCheck,
-  Bot,
   CalendarDays,
-  ClipboardCheck,
   Gauge,
   GraduationCap,
   Library,
   LineChart,
-  MessageCircle,
   Network,
-  Search,
-  Send,
   Settings2,
   Sparkles,
   UserRoundCheck,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
-import { ExecutiveCommandCenter } from "@/components/executive-command-center";
 import { TrainerNetwork } from "@/components/trainer-network";
-import { WorkflowLauncher } from "@/components/workflow-launcher";
 
 export type DashboardData = {
   courses: { id: string; title: string; status: string; freshness: number; sourceVersion: string }[];
@@ -35,9 +26,26 @@ export type DashboardData = {
   connected: boolean;
 };
 
+type CuratorPack = {
+  readinessSummary: string;
+  aiInputs: string[];
+  teachingStructure: { step: string; purpose: string; trainerAction: string; duration: string }[];
+  trainerNotes: string[];
+  classroomPrompts: string[];
+  materials: { name: string; use: string }[];
+  riskChecks: string[];
+  smeReviewNotice: string;
+};
+
+type CuratorResponse = {
+  mode: "openai" | "taas";
+  model: string;
+  notice?: string;
+  pack: CuratorPack;
+};
+
 type PersonaId = "admin" | "sales" | "trainer" | "learner" | "executive";
-type TrainerView = "home" | "network" | "curator" | "content" | "prep";
-type LearnerView = "discover" | "catalogue" | "generator" | "learning";
+type TrainerView = "home" | "network" | "curator" | "content";
 
 const personas: { id: PersonaId; label: string; title: string; description: string; Icon: LucideIcon }[] = [
   { id: "admin", label: "Admin", title: "Governance and Operations Console", description: "Control content freshness, role access, catalog standards, and system integrations.", Icon: Settings2 },
@@ -72,23 +80,6 @@ function MetricCard({ Icon, label, value, detail, tone }: { Icon: LucideIcon; la
     <p className="mt-1 text-2xl font-semibold tracking-tight text-slate-950">{value}</p>
     <p className="mt-1 text-xs leading-5 text-slate-500">{detail}</p>
   </Card>;
-}
-
-function PersonaHeader({ persona }: { persona: (typeof personas)[number] }) {
-  return <div className="mb-7 flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
-    <div>
-      <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-blue-100 bg-blue-50 px-3 py-1.5 text-xs font-bold uppercase tracking-[.16em] text-blue-700">
-        <persona.Icon size={15} />
-        {persona.label}
-      </div>
-      <h1 className="max-w-4xl text-3xl font-semibold tracking-tight text-slate-950 md:text-5xl">{persona.title}</h1>
-      <p className="mt-3 max-w-2xl text-sm leading-6 text-slate-500">{persona.description}</p>
-    </div>
-    <div className="flex items-center gap-3 rounded-full border border-slate-200 bg-white px-4 py-3 shadow-sm">
-      <Bell size={16} className="text-blue-600" />
-      <span className="text-xs font-bold text-slate-600">6 agents healthy</span>
-    </div>
-  </div>;
 }
 
 function PrototypeFrame({ src, title }: { src: string; title: string }) {
@@ -181,7 +172,6 @@ function TrainerShell({ activeView, onViewChange, children }: { activeView: Trai
     { id: "network", label: "Trainer Feature", Icon: Network },
     { id: "curator", label: "Course Curator", Icon: Sparkles },
     { id: "content", label: "Content Library", Icon: Library },
-    { id: "prep", label: "Session Prep", Icon: ClipboardCheck },
   ];
   return <div className="grid overflow-hidden rounded-lg border border-slate-200 bg-white shadow-sm xl:grid-cols-[240px_1fr]">
     <aside className="border-b border-slate-200 bg-slate-50 p-3 xl:border-b-0 xl:border-r">
@@ -241,78 +231,137 @@ function TrainerPersona({ data }: { data: DashboardData }) {
     {view === "network" && <div><SectionTitle eyebrow="Trainer feature" title="Trainer network and action management" description="This is the existing complete trainer feature, placed inside the Trainer persona." /><TrainerNetwork trainers={data.trainers} /></div>}
     {view === "curator" && <TrainerCourseCurator data={data} />}
     {view === "content" && <TrainerContent data={data} />}
-    {view === "prep" && <TrainerPrep />}
   </TrainerShell>;
 }
 
 function TrainerCourseCurator({ data }: { data: DashboardData }) {
   const [selectedCourseId, setSelectedCourseId] = useState(data.courses[0]?.id ?? "");
-  const [notesReady, setNotesReady] = useState(false);
+  const [isCurating, setIsCurating] = useState(false);
+  const [curatorResult, setCuratorResult] = useState<CuratorResponse | null>(null);
+  const [curatorError, setCuratorError] = useState("");
   const selectedCourse = data.courses.find((course) => course.id === selectedCourseId) ?? data.courses[0];
-  const lessonFlow = [
-    ["Opening", "Set context, learner outcomes, and real client scenario.", "10 min"],
-    ["Concepts", "Explain the core model with one visual and one business example.", "25 min"],
-    ["Demo", "Walk through the trainer-led example before learner practice.", "20 min"],
-    ["Practice", "Run breakout activity, lab, or guided discussion.", "35 min"],
-    ["Debrief", "Collect questions, correct misconceptions, and connect to certification prep.", "20 min"],
-  ];
-  const notes = [
-    "Start with the Northstar value stream story so the class sees why the topic matters.",
-    "Keep definitions short, then immediately show how the idea changes daily work.",
-    "Use the GitLab CI/CD lab as the practical anchor for DevOps learners.",
-    "Pause after every major concept and ask learners to map it to their current team.",
-  ];
-  const materials = ["Facilitator guide", "Slide deck", "Lab guide", "Timing plan", "Q&A prompts", "Assessment notes"];
+  const defaultInputs = selectedCourse ? [
+    `Approved course: ${selectedCourse.title}`,
+    `Source version: ${selectedCourse.sourceVersion}`,
+    `Freshness score: ${selectedCourse.freshness}%`,
+    "Assignment context: Northstar private cohort",
+    "Learner profile: product and platform leads",
+    "Delivery mode: blended instructor-led class",
+  ] : [];
+  const pack = curatorResult?.pack;
+
+  async function generateCuratorPack() {
+    if (!selectedCourse) return;
+    setIsCurating(true);
+    setCuratorError("");
+    try {
+      const response = await fetch("/api/curate", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          course: selectedCourse,
+          assignmentContext: "Northstar private cohort preparing for an applied delivery session",
+          learnerProfile: "Product owners, platform leads, and delivery managers with mixed agile experience",
+          deliveryMode: "Blended instructor-led",
+          classLength: "2 hours",
+        }),
+      });
+      const payload = await response.json();
+      if (!response.ok) throw new Error(payload.error ?? "Unable to generate curator pack.");
+      setCuratorResult(payload as CuratorResponse);
+    } catch (error) {
+      setCuratorError(error instanceof Error ? error.message : "Unable to generate curator pack.");
+    } finally {
+      setIsCurating(false);
+    }
+  }
 
   return <div className="space-y-5">
     <SectionTitle
-      eyebrow="Course curator"
-      title="Prepare the course before teaching"
-      description="Curate the approved content into trainer notes, lesson order, examples, timing, and classroom delivery structure."
+      eyebrow="AI course curator"
+      title="Generate the trainer delivery pack"
+      description="AI uses approved course metadata, learner context, delivery mode, content freshness, and assignment details to produce trainer notes and class structure."
     />
     <Card className="border-blue-100 bg-blue-50/70">
       <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
         <label className="block min-w-0 flex-1">
           <span className="text-xs font-bold uppercase tracking-wide text-blue-700">Course</span>
-          <select value={selectedCourseId} onChange={(event) => { setSelectedCourseId(event.target.value); setNotesReady(false); }} className="mt-2 w-full rounded-lg border border-blue-100 bg-white px-4 py-3 text-sm font-semibold text-slate-950 outline-none focus:border-blue-500">
+          <select value={selectedCourseId} onChange={(event) => { setSelectedCourseId(event.target.value); setCuratorResult(null); setCuratorError(""); }} className="mt-2 w-full rounded-lg border border-blue-100 bg-white px-4 py-3 text-sm font-semibold text-slate-950 outline-none focus:border-blue-500">
             {data.courses.map((course) => <option key={course.id} value={course.id}>{course.title}</option>)}
           </select>
         </label>
-        <button onClick={() => setNotesReady(true)} className="rounded-lg bg-slate-950 px-4 py-3 text-sm font-bold text-white">{notesReady ? "Curator pack ready" : "Prepare curator pack"}</button>
+        <button onClick={generateCuratorPack} disabled={isCurating || !selectedCourse} className="rounded-lg bg-slate-950 px-4 py-3 text-sm font-bold text-white disabled:cursor-not-allowed disabled:bg-slate-400">{isCurating ? "Generating..." : pack ? "Regenerate AI pack" : "Generate AI curator pack"}</button>
       </div>
       {selectedCourse && <p className="mt-3 text-sm leading-6 text-blue-900">Selected course: <b>{selectedCourse.title}</b>. Source v{selectedCourse.sourceVersion}, freshness {selectedCourse.freshness}%.</p>}
+      {curatorResult && <div className="mt-3 rounded-lg border border-blue-100 bg-white p-3 text-xs font-semibold text-blue-900">Generated by {curatorResult.mode === "openai" ? "OpenAI" : "TaaS fallback AI"} using {curatorResult.model}. {curatorResult.notice}</div>}
+      {curatorError && <div className="mt-3 rounded-lg border border-red-100 bg-red-50 p-3 text-sm font-semibold text-red-700">{curatorError}</div>}
     </Card>
+
+    <Card>
+      <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+        <div><h2 className="font-semibold text-slate-950">AI Inputs Used</h2><p className="mt-1 text-xs text-slate-500">Signals used to produce the trainer output.</p></div>
+        <StatusPill tone={pack ? "green" : "amber"}>{pack ? "Generated" : "Ready"}</StatusPill>
+      </div>
+      <div className="mt-5 grid gap-3 md:grid-cols-3">
+        {(pack?.aiInputs ?? defaultInputs).map((input) => <div key={input} className="rounded-lg border border-slate-100 bg-slate-50 p-4 text-sm font-semibold leading-6 text-slate-700">{input}</div>)}
+      </div>
+    </Card>
+
+    {pack?.readinessSummary && <Card className="border-emerald-100 bg-emerald-50/70">
+      <p className="text-xs font-bold uppercase tracking-[.16em] text-emerald-700">AI output summary</p>
+      <p className="mt-2 text-sm leading-6 text-emerald-900">{pack.readinessSummary}</p>
+    </Card>}
 
     <div className="grid gap-5 xl:grid-cols-[1.05fr_.95fr]">
       <Card>
-        <h2 className="font-semibold text-slate-950">Teaching Structure</h2>
+        <h2 className="font-semibold text-slate-950">AI Teaching Structure</h2>
         <div className="mt-5 space-y-3">
-          {lessonFlow.map(([step, detail, time], index) => <div key={step} className="grid gap-3 rounded-lg border border-slate-100 bg-slate-50 p-4 sm:grid-cols-[76px_1fr_70px] sm:items-center">
+          {(pack?.teachingStructure ?? []).length ? pack?.teachingStructure.map((item, index) => <div key={`${item.step}-${index}`} className="grid gap-3 rounded-lg border border-slate-100 bg-slate-50 p-4 sm:grid-cols-[76px_1fr_82px] sm:items-center">
             <div className="text-xs font-bold uppercase tracking-wide text-blue-700">Step {index + 1}</div>
-            <div><p className="text-sm font-semibold text-slate-900">{step}</p><p className="mt-1 text-xs leading-5 text-slate-500">{detail}</p></div>
-            <div className="rounded-md bg-white px-3 py-2 text-center text-xs font-bold text-slate-600">{time}</div>
-          </div>)}
+            <div><p className="text-sm font-semibold text-slate-900">{item.step}</p><p className="mt-1 text-xs leading-5 text-slate-500">{item.purpose}</p><p className="mt-1 text-xs leading-5 text-slate-600">{item.trainerAction}</p></div>
+            <div className="rounded-md bg-white px-3 py-2 text-center text-xs font-bold text-slate-600">{item.duration}</div>
+          </div>) : <div className="rounded-lg border border-dashed border-slate-200 bg-slate-50 p-5 text-sm leading-6 text-slate-500">Generate the AI curator pack to create the class sequence, timing, and trainer actions.</div>}
         </div>
       </Card>
 
       <Card>
-        <h2 className="font-semibold text-slate-950">Trainer Notes</h2>
+        <h2 className="font-semibold text-slate-950">AI Trainer Notes</h2>
         <div className="mt-5 space-y-3">
-          {notes.map((note, index) => <div key={note} className={`rounded-lg border p-3 text-sm leading-6 ${notesReady ? "border-emerald-100 bg-emerald-50 text-emerald-900" : "border-slate-100 bg-slate-50 text-slate-600"}`}>
+          {(pack?.trainerNotes ?? []).length ? pack?.trainerNotes.map((note, index) => <div key={note} className="rounded-lg border border-emerald-100 bg-emerald-50 p-3 text-sm leading-6 text-emerald-900">
             <span className="mr-2 font-bold">{index + 1}.</span>{note}
-          </div>)}
+          </div>) : <div className="rounded-lg border border-dashed border-slate-200 bg-slate-50 p-5 text-sm leading-6 text-slate-500">AI-generated teaching notes will appear here.</div>}
         </div>
       </Card>
     </div>
 
+    {pack && <div className="grid gap-5 xl:grid-cols-2">
+      <Card>
+        <h2 className="font-semibold text-slate-950">Classroom Prompts</h2>
+        <div className="mt-5 space-y-3">
+          {pack.classroomPrompts.map((prompt) => <div key={prompt} className="rounded-lg border border-slate-100 bg-slate-50 p-3 text-sm leading-6 text-slate-700">{prompt}</div>)}
+        </div>
+      </Card>
+      <Card>
+        <h2 className="font-semibold text-slate-950">Risk Checks</h2>
+        <div className="mt-5 space-y-3">
+          {pack.riskChecks.map((risk) => <div key={risk} className="rounded-lg border border-amber-100 bg-amber-50 p-3 text-sm leading-6 text-amber-900">{risk}</div>)}
+        </div>
+      </Card>
+    </div>}
+
     <Card>
       <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
-        <div><h2 className="font-semibold text-slate-950">Curator Materials</h2><p className="mt-1 text-xs text-slate-500">Everything the trainer prepares before the class starts.</p></div>
-        <StatusPill tone={notesReady ? "green" : "amber"}>{notesReady ? "Ready to teach" : "Draft"}</StatusPill>
+        <div><h2 className="font-semibold text-slate-950">AI Output Materials</h2><p className="mt-1 text-xs text-slate-500">Everything the trainer prepares before the class starts.</p></div>
+        <StatusPill tone={pack ? "green" : "amber"}>{pack ? "Ready to teach" : "Draft"}</StatusPill>
       </div>
       <div className="mt-5 grid gap-3 md:grid-cols-3">
-        {materials.map((item) => <div key={item} className={`rounded-lg border p-4 text-sm font-semibold ${notesReady ? "border-emerald-100 bg-emerald-50 text-emerald-800" : "border-slate-100 bg-slate-50 text-slate-700"}`}>{item}</div>)}
+        {(pack?.materials ?? [
+          { name: "Facilitator guide", use: "Generated after AI curation." },
+          { name: "Slide plan", use: "Generated after AI curation." },
+          { name: "Lab guide", use: "Generated after AI curation." },
+        ]).map((item) => <div key={item.name} className={`rounded-lg border p-4 text-sm leading-6 ${pack ? "border-emerald-100 bg-emerald-50 text-emerald-800" : "border-slate-100 bg-slate-50 text-slate-700"}`}><p className="font-bold">{item.name}</p><p className="mt-1 text-xs">{item.use}</p></div>)}
       </div>
+      {pack?.smeReviewNotice && <p className="mt-4 rounded-lg bg-slate-50 p-3 text-xs leading-5 text-slate-500">{pack.smeReviewNotice}</p>}
     </Card>
   </div>;
 }
@@ -334,157 +383,14 @@ function TrainerContent({ data }: { data: DashboardData }) {
   </Card>;
 }
 
-function TrainerPrep() {
-  const [notesReady, setNotesReady] = useState(false);
-  const [checked, setChecked] = useState<string[]>(["Slides finalized", "Lab environment provisioned"]);
-  const items = ["Slides finalized", "Lab environment provisioned", "Roster confirmed", "Learner background reviewed", "Kickoff call joined", "Escalation route ready"];
-  return <Card>
-    <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between"><div><h2 className="font-semibold text-slate-950">Session Prep Checklist</h2><p className="mt-1 text-xs text-slate-500">Prepare the accepted cohort using latest content and AI-generated notes.</p></div><button onClick={() => setNotesReady(true)} className="rounded-lg bg-blue-600 px-4 py-2.5 text-sm font-bold text-white">{notesReady ? "AI notes generated" : "Generate AI prep notes"}</button></div>
-    {notesReady && <div className="mt-5 rounded-lg border border-blue-100 bg-blue-50 p-4 text-sm leading-6 text-blue-900"><b>AI prep notes:</b> Northstar learners are product and platform leads. Start with value stream mapping, then run GitLab CI/CD lab, and close with certification Q&A.</div>}
-    <div className="mt-5 grid gap-3 md:grid-cols-2">
-      {items.map((item) => {
-        const active = checked.includes(item);
-        return <label key={item} className={`flex items-center gap-3 rounded-lg border p-4 text-sm font-semibold ${active ? "border-emerald-100 bg-emerald-50 text-emerald-800" : "border-slate-100 bg-slate-50 text-slate-700"}`}>
-          <input type="checkbox" checked={active} onChange={() => setChecked(active ? checked.filter((entry) => entry !== item) : [...checked, item])} className="size-4 accent-blue-600" />
-          {item}
-        </label>;
-      })}
-    </div>
-  </Card>;
-}
-
 function LearnerPersona({ data }: { data: DashboardData }) {
-  const [view, setView] = useState<LearnerView>("discover");
-  const views: { id: LearnerView; label: string; Icon: LucideIcon }[] = [
-    { id: "discover", label: "Discover", Icon: Search },
-    { id: "catalogue", label: "Catalogue", Icon: Library },
-    { id: "generator", label: "Course Generator", Icon: Sparkles },
-    { id: "learning", label: "My Learning", Icon: BookOpenCheck },
-  ];
-  return <div className="relative">
-    <div className="grid overflow-hidden rounded-lg border border-slate-200 bg-white shadow-sm xl:grid-cols-[240px_1fr]">
-      <aside className="border-b border-slate-200 bg-slate-50 p-3 xl:border-b-0 xl:border-r">
-        <nav className="flex gap-2 overflow-x-auto xl:block xl:space-y-1">
-          {views.map(({ id, label, Icon }) => <button key={id} type="button" onClick={() => setView(id)} className={`flex shrink-0 items-center gap-2 rounded-lg px-3 py-2.5 text-sm font-semibold xl:w-full ${view === id ? "bg-slate-950 text-white" : "text-slate-600 hover:bg-white"}`}><Icon size={16} />{label}</button>)}
-        </nav>
-      </aside>
-      <div className="min-w-0 bg-[#f8fafc] p-4 md:p-6">
-        {view === "discover" && <LearnerDiscover data={data} onGenerate={() => setView("generator")} />}
-        {view === "catalogue" && <LearnerCatalogue data={data} />}
-        {view === "generator" && <div><SectionTitle eyebrow="Course generator" title="Generate your learning path" description="This is the existing complete course generator, available to learners." /><section className="overflow-hidden rounded-lg bg-[#17233b] text-white shadow-xl"><WorkflowLauncher /></section></div>}
-        {view === "learning" && <LearnerLearning data={data} />}
-      </div>
-    </div>
-    <LearnerCopilot />
-  </div>;
-}
-
-function LearnerDiscover({ data, onGenerate }: { data: DashboardData; onGenerate: () => void }) {
-  const [goalGenerated, setGoalGenerated] = useState(false);
-  return <div className="space-y-5">
-    <Card className="border-violet-100 bg-violet-50/70">
-      <p className="text-xs font-bold uppercase tracking-[.16em] text-violet-700">Learner scenario</p>
-      <h2 className="mt-2 text-lg font-semibold text-slate-950">A product owner wants a guided SAFe learning path.</h2>
-      <p className="mt-1 text-sm text-slate-600">Learner gets catalogue recommendations, nudges for progress, and grounded copilot help from approved content.</p>
-    </Card>
-    <div className="grid gap-4 lg:grid-cols-[1fr_.8fr]">
-      <Card>
-        <div className="flex items-center gap-3"><div className="grid size-10 place-items-center rounded-lg bg-blue-50 text-blue-700"><Sparkles size={18} /></div><div><h2 className="font-semibold text-slate-950">Learning Objective Builder</h2><p className="text-xs text-slate-500">Tell us your goal and generate a structured path.</p></div></div>
-        <div className="mt-5 rounded-lg border border-slate-200 bg-slate-50 p-4 text-sm text-slate-500">I want to learn Scaled Agile for a Product Owner role...</div>
-        <div className="mt-4 flex flex-wrap gap-2"><StatusPill>Self-paced</StatusPill><StatusPill tone="slate">Blended</StatusPill><StatusPill tone="slate">Instructor-led</StatusPill></div>
-        {goalGenerated && <div className="mt-4 rounded-lg border border-emerald-100 bg-emerald-50 p-3 text-sm text-emerald-800">Path generated: SAFe Fundamentals, Product Owner focus, DevOps collaboration lab.</div>}
-        <button onClick={() => { setGoalGenerated(true); onGenerate(); }} className="mt-5 rounded-lg bg-blue-600 px-4 py-2.5 text-sm font-bold text-white">{goalGenerated ? "Open generated path" : "Generate my path"}</button>
-      </Card>
-      <Card>
-        <h2 className="font-semibold text-slate-950">My Progress</h2>
-        <div className="mt-5 space-y-4">
-          {[["SAFe Fundamentals", 72], ["Scrum Master Prep", 34]].map(([title, progress]) => <div key={title}>
-            <div className="flex justify-between text-sm"><span className="font-semibold text-slate-700">{title}</span><span className="font-bold text-slate-950">{progress}%</span></div>
-            <div className="mt-2 h-2 rounded-full bg-slate-100"><div className="h-full rounded-full bg-blue-600" style={{ width: `${progress}%` }} /></div>
-          </div>)}
-        </div>
-        <div className="mt-5 grid grid-cols-2 gap-3 text-sm"><div className="rounded-lg bg-slate-50 p-3"><p className="text-xs text-slate-500">Skills gained</p><p className="mt-1 font-bold text-slate-900">Agile, Scrum</p></div><div className="rounded-lg bg-slate-50 p-3"><p className="text-xs text-slate-500">Certificates</p><p className="mt-1 font-bold text-slate-900">1 earned</p></div></div>
-      </Card>
-    </div>
-    <div className="grid gap-4 md:grid-cols-3">
-      {data.courses.map((course, index) => <Card key={course.id}>
-        <h3 className="font-semibold text-slate-950">{course.title}</h3>
-        <p className="mt-2 text-xs leading-5 text-slate-500">Self-paced - {index + 4} modules - source v{course.sourceVersion}</p>
-        <div className="mt-4"><StatusPill tone={index === 0 ? "green" : "slate"}>{index === 0 ? "Recommended" : course.status}</StatusPill></div>
-      </Card>)}
-    </div>
-  </div>;
-}
-
-function LearnerLearning({ data }: { data: DashboardData }) {
-  const [continued, setContinued] = useState<string | null>(null);
-  return <Card>
-    <h2 className="font-semibold text-slate-950">My Learning</h2>
-    <div className="mt-4 rounded-lg border border-amber-100 bg-amber-50 p-4 text-sm text-amber-800">
-      <p className="font-bold">Nudge: continue in-progress courses</p>
-      <p className="mt-1 text-xs leading-5">You have 2 active courses. Complete one module this week to stay on track for your learning goal.</p>
-    </div>
-    <div className="mt-5 space-y-3">
-      {data.courses.slice(0, 3).map((course, index) => <div key={course.id} className="rounded-lg border border-slate-100 bg-slate-50 p-4">
-        <div className="flex items-start justify-between gap-3"><div><p className="text-sm font-semibold text-slate-900">{course.title}</p><p className="mt-1 text-xs text-slate-500">{index === 0 ? "72" : index === 1 ? "34" : "12"}% complete</p></div><StatusPill tone={index < 2 ? "amber" : "slate"}>{index < 2 ? "In progress" : "Not started"}</StatusPill></div>
-        <div className="mt-3 h-2 rounded-full bg-white"><div className="h-full rounded-full bg-blue-600" style={{ width: `${index === 0 ? 72 : index === 1 ? 34 : 12}%` }} /></div>
-        <div className="mt-4 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between"><p className="text-xs text-slate-500">{index === 0 ? "Next: PI Planning simulation" : index === 1 ? "Next: servant leadership quiz" : "Suggested start: 20 min overview"}</p><button onClick={() => setContinued(course.id)} className={`rounded-lg px-3 py-2 text-xs font-bold text-white ${continued === course.id ? "bg-emerald-600" : "bg-blue-600"}`}>{continued === course.id ? "Nudge accepted" : index < 2 ? "Continue" : "Start"}</button></div>
-      </div>)}
-    </div>
-    <div className="mt-5 grid gap-3 md:grid-cols-3"><div className="rounded-lg bg-slate-50 p-4"><p className="text-xs text-slate-500">Weekly streak</p><p className="mt-1 text-xl font-bold text-slate-950">4 days</p></div><div className="rounded-lg bg-slate-50 p-4"><p className="text-xs text-slate-500">Certificates earned</p><p className="mt-1 text-xl font-bold text-slate-950">1</p></div><div className="rounded-lg bg-slate-50 p-4"><p className="text-xs text-slate-500">Skills added</p><p className="mt-1 text-xl font-bold text-slate-950">5</p></div></div>
-  </Card>;
-}
-
-function LearnerCatalogue({ data }: { data: DashboardData }) {
-  const [filter, setFilter] = useState("All");
-  const [enrolled, setEnrolled] = useState<string[]>([]);
-  const categories = ["All", "Agile", "DevOps", "Cloud", "Product"];
-  const visible = data.courses.filter((_, index) => filter === "All" || index % categories.length === categories.indexOf(filter) % categories.length || filter === "Agile");
-  return <div className="space-y-5">
-    <SectionTitle eyebrow="Catalogue" title="All courses and recommendations" description="Browse the full catalogue with recommendations based on skills, courses taken, and stated interests." />
-    <div className="flex flex-wrap gap-2">{categories.map((item) => <button key={item} onClick={() => setFilter(item)} className={`rounded-lg px-3 py-2 text-xs font-bold ${filter === item ? "bg-slate-950 text-white" : "bg-white text-slate-600"}`}>{item}</button>)}</div>
-    <div className="grid gap-4 md:grid-cols-3">
-      {visible.map((course, index) => {
-        const active = enrolled.includes(course.id);
-        return <Card key={course.id}>
-          <div className="flex items-start justify-between gap-3"><h3 className="font-semibold text-slate-950">{course.title}</h3><StatusPill tone={active ? "green" : index === 0 ? "green" : "blue"}>{active ? "Enrolled" : index === 0 ? "Recommended" : "Catalogue"}</StatusPill></div>
-          <p className="mt-2 text-xs leading-5 text-slate-500">Recommended from your agile interest profile, completed modules, and target Product Owner role.</p>
-          <div className="mt-4 flex flex-wrap gap-2 text-[11px] font-semibold text-slate-600"><span className="rounded-md bg-slate-100 px-2 py-1">Beginner</span><span className="rounded-md bg-slate-100 px-2 py-1">{index + 4} modules</span><span className="rounded-md bg-slate-100 px-2 py-1">Self-paced</span></div>
-          <button onClick={() => setEnrolled(active ? enrolled : [...enrolled, course.id])} className={`mt-4 rounded-lg px-3 py-2 text-xs font-bold text-white ${active ? "bg-emerald-600" : "bg-blue-600"}`}>{active ? "Added to My Learning" : "Enroll"}</button>
-        </Card>;
-      })}
-    </div>
-  </div>;
-}
-
-function LearnerCopilot() {
-  const [open, setOpen] = useState(false);
-  const [question, setQuestion] = useState("");
-  const [messages, setMessages] = useState<{ role: "bot" | "user"; text: string }[]>([
-    { role: "bot", text: "Ask me about your current module, lab, or recommended next step." },
-  ]);
-  function ask() {
-    const trimmed = question.trim();
-    if (!trimmed) return;
-    setMessages([...messages, { role: "user", text: trimmed }, { role: "bot", text: `Here is a guided explanation for "${trimmed}". Review the related module, then try the practical lab to reinforce the concept.` }]);
-    setQuestion("");
-  }
-  function prompt(text: string) {
-    setQuestion(text);
-  }
-  return <div className="fixed bottom-5 right-5 z-40">
-    {open && <div className="mb-3 w-[min(390px,calc(100vw-2rem))] rounded-lg border border-slate-200 bg-white p-4 shadow-2xl">
-      <div className="flex items-center justify-between"><div className="flex items-center gap-2"><div className="grid size-9 place-items-center rounded-lg bg-violet-100 text-violet-700"><Bot size={17} /></div><div><p className="text-sm font-bold text-slate-950">Learner Copilot</p><p className="text-xs text-slate-500">Grounded in approved content</p></div></div><button onClick={() => setOpen(false)} className="text-slate-400">X</button></div>
-      <div className="mt-4 max-h-72 space-y-2 overflow-y-auto rounded-lg bg-slate-50 p-3 text-sm leading-6 text-slate-600">{messages.map((message, index) => <div key={index} className={`rounded-lg px-3 py-2 ${message.role === "user" ? "ml-8 bg-blue-600 text-white" : "mr-8 bg-white text-slate-700"}`}>{message.text}</div>)}</div>
-      <div className="mt-3 flex flex-wrap gap-2">{["Explain PI Planning", "Give quiz questions", "Summarize my next lesson"].map((item) => <button key={item} onClick={() => prompt(item)} className="rounded-full bg-slate-100 px-3 py-1.5 text-[11px] font-bold text-slate-600">{item}</button>)}</div>
-      <div className="mt-3 flex gap-2"><input value={question} onChange={(event) => setQuestion(event.target.value)} onKeyDown={(event) => { if (event.key === "Enter") ask(); }} className="min-w-0 flex-1 rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none focus:border-blue-500" placeholder="Ask copilot" /><button onClick={ask} className="grid size-10 place-items-center rounded-lg bg-blue-600 text-white"><Send size={16} /></button></div>
-    </div>}
-    <button onClick={() => setOpen(!open)} className="flex items-center gap-2 rounded-full bg-slate-950 px-4 py-3 text-sm font-bold text-white shadow-xl"><MessageCircle size={18} />Copilot</button>
-  </div>;
+  void data;
+  return <PrototypeFrame src="/personas/taas_learner_view.html" title="Learner console" />;
 }
 
 function ExecutivePersona({ data }: { data: DashboardData }) {
-  return <ExecutiveCommandCenter connected={data.connected} />;
+  void data;
+  return <PrototypeFrame src="/personas/taas_executive_view.html" title="Executive console" />;
 }
 
 function SectionTitle({ eyebrow, title, description }: { eyebrow: string; title: string; description: string }) {
@@ -497,23 +403,13 @@ function SectionTitle({ eyebrow, title, description }: { eyebrow: string; title:
 
 export function DashboardTabs({ data }: { data: DashboardData }) {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [allowedPersona, setAllowedPersona] = useState<PersonaId>("admin");
   const [activePersona, setActivePersona] = useState<PersonaId>(() => {
     if (typeof window === "undefined") return "admin";
     const hash = window.location.hash.replace("#", "");
     return personas.some((persona) => persona.id === hash) ? hash as PersonaId : "admin";
   });
-  const active = useMemo(() => personas.find((persona) => persona.id === activePersona) ?? personas[0], [activePersona]);
-  const visiblePersonas = useMemo(() => personas.filter((persona) => persona.id === allowedPersona), [allowedPersona]);
-
-  function selectPersona(persona: PersonaId) {
-    setActivePersona(persona);
-    window.history.replaceState(null, "", `#${persona}`);
-    window.scrollTo({ top: 0, behavior: "smooth" });
-  }
 
   function loginAs(persona: PersonaId) {
-    setAllowedPersona(persona);
     setActivePersona(persona);
     window.history.replaceState(null, "", `#${persona}`);
     setIsAuthenticated(true);
@@ -522,28 +418,7 @@ export function DashboardTabs({ data }: { data: DashboardData }) {
   if (!isAuthenticated) return <LoginScreen onLogin={loginAs} />;
 
   return <main className="min-h-screen bg-[#f5f7fb] text-[#17233b]">
-    <section className="mx-auto max-w-[1520px] px-4 py-6 md:px-8 md:py-8">
-      <div className="mb-6 flex flex-col gap-4 rounded-lg border border-slate-200 bg-white p-4 shadow-sm md:flex-row md:items-center md:justify-between">
-        <div className="flex items-center gap-3">
-          <div className="grid size-11 place-items-center rounded-lg bg-[#ff5b49] text-white"><Sparkles size={21} /></div>
-          <div><p className="text-lg font-bold tracking-tight text-slate-950">Cprime TaaS</p><p className="text-[10px] font-bold uppercase tracking-[.2em] text-slate-400">Persona platform</p></div>
-        </div>
-        <div className="flex items-center gap-2">
-          <span className={`rounded-full px-3 py-2 text-xs font-bold ${data.connected ? "bg-emerald-50 text-emerald-700" : "bg-amber-50 text-amber-700"}`}>{data.connected ? "Live data" : "Demo data"}</span>
-          <span className="hidden rounded-full bg-slate-100 px-3 py-2 text-xs font-bold text-slate-600 sm:inline">Postgres + pgvector</span>
-        </div>
-      </div>
-
-      <nav aria-label="Personas" className="sticky top-4 z-20 mb-10 rounded-full border border-slate-200 bg-white/95 p-2 shadow-lg shadow-slate-200/70 backdrop-blur">
-        <div className="grid grid-cols-1 gap-2">
-          {visiblePersonas.map(({ id, label, Icon }) => <button key={id} type="button" onClick={() => selectPersona(id)} className={`flex items-center justify-center gap-2 rounded-full px-4 py-3 text-sm font-bold transition ${activePersona === id ? "bg-slate-950 text-white" : "text-slate-500 hover:bg-slate-100 hover:text-slate-950"}`}>
-            <Icon size={16} />
-            {label}
-          </button>)}
-        </div>
-      </nav>
-
-      {activePersona !== "admin" && activePersona !== "sales" && <PersonaHeader persona={active} />}
+    <section className="mx-auto max-w-[1520px] px-4 py-4 md:px-6 md:py-6">
       {activePersona === "admin" && <AdminPersona data={data} />}
       {activePersona === "sales" && <SalesPersona data={data} />}
       {activePersona === "trainer" && <TrainerPersona data={data} />}

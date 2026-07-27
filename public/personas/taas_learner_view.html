@@ -1,0 +1,1107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TaaS Learner Console</title>
+<style>
+:root{
+  --bg:#f5f7fa; --surface:#ffffff; --surface-2:#f8fafc; --border:#e2e8f0;
+  --text:#0f172a; --text-dim:#64748b; --text-mute:#94a3b8;
+  --accent:#2563eb; --accent-dim:#dbeafe; --accent-2:#4f46e5;
+  --success:#16a34a; --success-dim:#dcfce7;
+  --warning:#d97706; --warning-dim:#fef3c7;
+  --danger:#dc2626; --danger-dim:#fee2e2;
+  --radius:12px; --radius-sm:8px;
+  --shadow:0 1px 2px rgba(15,23,42,.04),0 1px 12px rgba(15,23,42,.05);
+  --font:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+}
+[data-theme="dark"]{
+  --bg:#0b1220; --surface:#111a2c; --surface-2:#0f1729; --border:#22304a;
+  --text:#e8edf7; --text-dim:#94a3b8; --text-mute:#64748b;
+  --accent:#3b82f6; --accent-dim:#1e3a5f; --accent-2:#6366f1;
+  --success:#22c55e; --success-dim:#14321f;
+  --warning:#f59e0b; --warning-dim:#3a2a0f;
+  --danger:#ef4444; --danger-dim:#3a1618;
+  --shadow:0 1px 2px rgba(0,0,0,.3),0 1px 12px rgba(0,0,0,.35);
+}
+*{box-sizing:border-box;}
+body{margin:0;font-family:var(--font);background:var(--bg);color:var(--text);font-size:14px;-webkit-font-smoothing:antialiased;}
+a{color:inherit;text-decoration:none;}
+button{font-family:var(--font);cursor:pointer;}
+::-webkit-scrollbar{width:8px;height:8px;}
+::-webkit-scrollbar-thumb{background:var(--border);border-radius:8px;}
+
+.app{display:flex;min-height:100vh;}
+
+/* Topbar */
+.topbar{position:fixed;top:0;left:0;right:0;height:60px;background:var(--surface);border-bottom:1px solid var(--border);
+  display:flex;align-items:center;justify-content:space-between;padding:0 20px;z-index:100;}
+.brand{display:flex;align-items:center;gap:10px;font-weight:700;font-size:15px;width:220px;}
+.brand-mark{width:30px;height:30px;border-radius:8px;background:linear-gradient(135deg,var(--accent),var(--accent-2));
+  display:flex;align-items:center;justify-content:center;color:#fff;font-size:13px;font-weight:800;}
+.top-actions{display:flex;align-items:center;gap:14px;}
+.icon-btn{width:36px;height:36px;border-radius:50%;border:1px solid var(--border);background:var(--surface-2);
+  display:flex;align-items:center;justify-content:center;position:relative;color:var(--text-dim);transition:.15s;}
+.icon-btn:hover{background:var(--accent-dim);color:var(--accent);}
+.badge-dot{position:absolute;top:-2px;right:-2px;background:var(--danger);color:#fff;font-size:10px;font-weight:700;
+  min-width:16px;height:16px;border-radius:50%;display:flex;align-items:center;justify-content:center;padding:0 3px;}
+.theme-toggle{width:36px;height:36px;border-radius:50%;border:1px solid var(--border);background:var(--surface-2);
+  display:flex;align-items:center;justify-content:center;color:var(--text-dim);}
+.profile-chip{display:flex;align-items:center;gap:8px;padding:5px 10px 5px 5px;border-radius:24px;border:1px solid var(--border);
+  background:var(--surface-2);cursor:pointer;}
+.avatar{width:28px;height:28px;border-radius:50%;background:linear-gradient(135deg,#f59e0b,#ef4444);color:#fff;
+  display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;}
+.profile-meta{line-height:1.2;text-align:left;}
+.profile-meta .name{font-size:12.5px;font-weight:600;}
+.profile-meta .role{font-size:10.5px;color:var(--text-dim);}
+.chevron{color:var(--text-mute);font-size:10px;margin-left:2px;}
+
+.dropdown{position:absolute;top:52px;right:0;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);
+  box-shadow:var(--shadow);width:280px;display:none;overflow:hidden;z-index:200;}
+.dropdown.open{display:block;}
+.dropdown-header{padding:14px 16px;border-bottom:1px solid var(--border);}
+.dropdown-header .name{font-weight:700;font-size:13.5px;}
+.dropdown-header .role{font-size:11.5px;color:var(--text-dim);margin-top:2px;}
+.dropdown-item{padding:10px 16px;font-size:13px;display:flex;align-items:center;gap:10px;color:var(--text);border-bottom:1px solid transparent;}
+.dropdown-item:hover{background:var(--surface-2);}
+.dropdown-item.danger{color:var(--danger);}
+.notif-panel{position:absolute;top:52px;right:0;width:340px;background:var(--surface);border:1px solid var(--border);
+  border-radius:var(--radius);box-shadow:var(--shadow);display:none;z-index:200;max-height:420px;overflow:auto;}
+.notif-panel.open{display:block;}
+.notif-head{padding:12px 16px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;
+  font-weight:700;font-size:13px;}
+.notif-head span.link{font-weight:500;font-size:11.5px;color:var(--accent);cursor:pointer;}
+.notif-item{padding:12px 16px;border-bottom:1px solid var(--border);display:flex;gap:10px;}
+.notif-item:last-child{border-bottom:none;}
+.notif-icon{width:30px;height:30px;border-radius:50%;background:var(--accent-dim);color:var(--accent);flex-shrink:0;
+  display:flex;align-items:center;justify-content:center;font-size:14px;}
+.notif-text{font-size:12.5px;line-height:1.4;}
+.notif-text .t{font-weight:600;}
+.notif-time{font-size:10.5px;color:var(--text-mute);margin-top:2px;}
+
+/* Sidebar */
+.sidebar{position:fixed;top:60px;left:0;bottom:0;width:220px;background:var(--surface);border-right:1px solid var(--border);
+  padding:16px 10px;overflow-y:auto;}
+.nav-section-label{font-size:10.5px;text-transform:uppercase;letter-spacing:.06em;color:var(--text-mute);
+  padding:10px 10px 6px;font-weight:700;}
+.nav-item{display:flex;align-items:center;gap:10px;padding:9px 12px;border-radius:var(--radius-sm);color:var(--text-dim);
+  font-size:13px;font-weight:500;cursor:pointer;margin-bottom:2px;transition:.15s;}
+.nav-item svg{width:17px;height:17px;flex-shrink:0;}
+.nav-item:hover{background:var(--surface-2);color:var(--text);}
+.nav-item.active{background:var(--accent-dim);color:var(--accent);font-weight:700;}
+.persona-switch{margin-top:14px;padding:10px;border-top:1px solid var(--border);}
+.persona-pill{font-size:10.5px;color:var(--text-mute);padding:6px 10px;border-radius:8px;background:var(--surface-2);
+  display:block;text-align:center;}
+
+/* Main */
+.main{margin-left:220px;margin-top:60px;padding:24px 28px;width:calc(100% - 220px);min-height:calc(100vh - 60px);}
+.view{display:none;}
+.view.active{display:block;animation:fadeIn .25s ease;}
+@keyframes fadeIn{from{opacity:0;transform:translateY(4px);}to{opacity:1;transform:translateY(0);}}
+
+.view-head{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:20px;flex-wrap:wrap;gap:12px;}
+.view-title{font-size:20px;font-weight:800;margin:0 0 4px;}
+.view-sub{font-size:13px;color:var(--text-dim);margin:0;}
+
+.btn{border:1px solid var(--border);background:var(--surface);color:var(--text);padding:8px 14px;border-radius:var(--radius-sm);
+  font-size:12.5px;font-weight:600;display:inline-flex;align-items:center;gap:6px;transition:.15s;}
+.btn:hover{background:var(--surface-2);}
+.btn-primary{background:var(--accent);border-color:var(--accent);color:#fff;}
+.btn-primary:hover{background:#1d4ed8;}
+.btn-ghost{background:transparent;border-color:transparent;}
+.btn-ghost:hover{background:var(--surface-2);}
+.btn-sm{padding:5px 10px;font-size:11.5px;}
+.btn-danger{background:var(--danger-dim);border-color:var(--danger-dim);color:var(--danger);}
+.btn-success{background:var(--success-dim);border-color:var(--success-dim);color:var(--success);}
+
+.grid{display:grid;gap:16px;}
+.grid-6{grid-template-columns:repeat(6,1fr);}
+.grid-4{grid-template-columns:repeat(4,1fr);}
+.grid-3{grid-template-columns:repeat(3,1fr);}
+.grid-2{grid-template-columns:repeat(2,1fr);}
+@media(max-width:1200px){.grid-6{grid-template-columns:repeat(3,1fr);}.grid-4{grid-template-columns:repeat(2,1fr);}}
+
+.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:18px;box-shadow:var(--shadow);}
+.card-title{font-size:13.5px;font-weight:700;margin:0 0 12px;display:flex;justify-content:space-between;align-items:center;}
+.card-title .link{font-size:11.5px;color:var(--accent);font-weight:600;cursor:pointer;}
+
+.kpi-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:16px;box-shadow:var(--shadow);
+  cursor:pointer;transition:.15s;}
+.kpi-card:hover{transform:translateY(-2px);box-shadow:0 4px 16px rgba(15,23,42,.08);}
+.kpi-icon{width:32px;height:32px;border-radius:9px;display:flex;align-items:center;justify-content:center;margin-bottom:10px;}
+.kpi-value{font-size:22px;font-weight:800;}
+.kpi-label{font-size:11.5px;color:var(--text-dim);font-weight:600;margin-top:2px;}
+.kpi-foot{font-size:10.5px;color:var(--text-mute);margin-top:6px;}
+
+.tag{display:inline-flex;align-items:center;gap:4px;font-size:10.5px;font-weight:700;padding:3px 9px;border-radius:20px;}
+.tag-blue{background:var(--accent-dim);color:var(--accent);}
+.tag-green{background:var(--success-dim);color:var(--success);}
+.tag-amber{background:var(--warning-dim);color:var(--warning);}
+.tag-red{background:var(--danger-dim);color:var(--danger);}
+.tag-gray{background:var(--surface-2);color:var(--text-dim);border:1px solid var(--border);}
+
+.progress-track{height:8px;background:var(--surface-2);border-radius:20px;overflow:hidden;border:1px solid var(--border);}
+.progress-fill{height:100%;background:linear-gradient(90deg,var(--accent),var(--accent-2));border-radius:20px;transition:.3s;}
+
+.divider{border:none;border-top:1px solid var(--border);margin:16px 0;}
+
+table{width:100%;border-collapse:collapse;font-size:12.5px;}
+th{text-align:left;padding:9px 10px;color:var(--text-mute);font-weight:700;font-size:11px;text-transform:uppercase;
+  letter-spacing:.03em;border-bottom:1px solid var(--border);}
+td{padding:10px 10px;border-bottom:1px solid var(--border);}
+tr:last-child td{border-bottom:none;}
+tr:hover td{background:var(--surface-2);}
+
+.list-row{display:flex;align-items:center;gap:12px;padding:11px 0;border-bottom:1px solid var(--border);}
+.list-row:last-child{border-bottom:none;}
+.list-row .ic{width:34px;height:34px;border-radius:9px;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+
+.course-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;
+  box-shadow:var(--shadow);cursor:pointer;transition:.15s;}
+.course-card:hover{transform:translateY(-2px);box-shadow:0 4px 16px rgba(15,23,42,.08);}
+.course-cover{height:82px;background:linear-gradient(135deg,var(--accent),var(--accent-2));display:flex;align-items:center;
+  justify-content:center;color:#fff;font-size:26px;}
+.course-body{padding:14px;}
+.course-body h4{margin:0 0 6px;font-size:13.5px;}
+.course-meta{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px;font-size:10.5px;color:var(--text-dim);}
+
+input[type=text],input[type=number],input[type=search],select,textarea{
+  width:100%;padding:9px 12px;border:1px solid var(--border);border-radius:var(--radius-sm);background:var(--surface);
+  color:var(--text);font-size:13px;font-family:var(--font);}
+textarea{resize:vertical;}
+label{font-size:11.5px;font-weight:700;color:var(--text-dim);display:block;margin-bottom:5px;}
+.field{margin-bottom:14px;}
+
+.chip-select{display:flex;gap:8px;flex-wrap:wrap;}
+.chip-opt{padding:8px 14px;border:1px solid var(--border);border-radius:20px;font-size:12px;font-weight:600;color:var(--text-dim);
+  cursor:pointer;transition:.15s;}
+.chip-opt.selected{background:var(--accent);border-color:var(--accent);color:#fff;}
+.chip-opt:hover:not(.selected){background:var(--surface-2);}
+
+.timeline{position:relative;padding-left:26px;}
+.timeline::before{content:'';position:absolute;left:8px;top:6px;bottom:6px;width:2px;background:var(--border);}
+.tl-step{position:relative;padding-bottom:20px;}
+.tl-step:last-child{padding-bottom:0;}
+.tl-dot{position:absolute;left:-26px;top:2px;width:16px;height:16px;border-radius:50%;background:var(--surface);
+  border:2px solid var(--border);}
+.tl-step.done .tl-dot{background:var(--success);border-color:var(--success);}
+.tl-step.current .tl-dot{background:var(--accent);border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-dim);}
+
+.modal-overlay{position:fixed;inset:0;background:rgba(15,23,42,.55);display:none;align-items:center;justify-content:center;z-index:500;}
+.modal-overlay.open{display:flex;}
+.modal-box{background:var(--surface);border-radius:var(--radius);max-width:560px;width:92%;max-height:86vh;overflow:auto;
+  box-shadow:0 20px 60px rgba(0,0,0,.3);}
+.modal-head{padding:18px 20px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;}
+.modal-head h3{margin:0;font-size:15px;}
+.modal-body{padding:20px;}
+.modal-close{cursor:pointer;color:var(--text-mute);font-size:18px;background:none;border:none;}
+
+.toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(20px);background:var(--text);color:var(--bg);
+  padding:11px 20px;border-radius:10px;font-size:12.5px;font-weight:600;opacity:0;transition:.3s;z-index:600;}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+
+/* Copilot */
+.copilot-fab{position:fixed;bottom:24px;right:24px;width:56px;height:56px;border-radius:50%;
+  background:linear-gradient(135deg,var(--accent),var(--accent-2));color:#fff;display:flex;align-items:center;
+  justify-content:center;box-shadow:0 6px 20px rgba(37,99,235,.4);cursor:pointer;z-index:400;border:none;}
+.copilot-panel{position:fixed;bottom:92px;right:24px;width:340px;height:440px;background:var(--surface);
+  border:1px solid var(--border);border-radius:var(--radius);box-shadow:0 12px 40px rgba(0,0,0,.2);display:none;
+  flex-direction:column;overflow:hidden;z-index:400;}
+.copilot-panel.open{display:flex;}
+.copilot-head{padding:14px 16px;background:linear-gradient(135deg,var(--accent),var(--accent-2));color:#fff;
+  display:flex;justify-content:space-between;align-items:center;}
+.copilot-head .t{font-weight:700;font-size:13px;}
+.copilot-head .s{font-size:10.5px;opacity:.85;}
+.copilot-body{flex:1;overflow-y:auto;padding:14px;display:flex;flex-direction:column;gap:10px;}
+.msg{max-width:85%;padding:9px 12px;border-radius:12px;font-size:12.5px;line-height:1.45;}
+.msg.bot{background:var(--surface-2);align-self:flex-start;border:1px solid var(--border);}
+.msg.user{background:var(--accent);color:#fff;align-self:flex-end;}
+.copilot-input{display:flex;gap:8px;padding:10px;border-top:1px solid var(--border);}
+.copilot-input input{flex:1;}
+.copilot-quick{display:flex;gap:6px;flex-wrap:wrap;padding:0 14px 10px;}
+.qbtn{font-size:10.5px;padding:5px 10px;border-radius:14px;background:var(--surface-2);border:1px solid var(--border);
+  color:var(--text-dim);cursor:pointer;}
+
+.gen-progress{display:flex;flex-direction:column;gap:10px;margin:16px 0;}
+.gen-step{display:flex;align-items:center;gap:10px;font-size:12.5px;color:var(--text-mute);}
+.gen-step .dot{width:18px;height:18px;border-radius:50%;border:2px solid var(--border);flex-shrink:0;display:flex;
+  align-items:center;justify-content:center;font-size:10px;}
+.gen-step.active{color:var(--text);font-weight:600;}
+.gen-step.active .dot{border-color:var(--accent);background:var(--accent-dim);color:var(--accent);}
+.gen-step.done .dot{border-color:var(--success);background:var(--success);color:#fff;}
+
+.export-toolbar{display:flex;justify-content:flex-end;gap:8px;margin-bottom:14px;}
+@media print{.sidebar,.topbar,.copilot-fab,.copilot-panel,.export-toolbar,.modal-overlay{display:none !important;}
+  .main{margin:0;width:100%;}
+  .view{display:none !important;}
+  .view.print-active{display:block !important;}
+}
+</style>
+</head>
+<body data-theme="light">
+<div class="app">
+  <div class="topbar">
+    <div class="brand"><div class="brand-mark">Cp</div> Cprime TaaS</div>
+    <div class="top-actions">
+      <button class="theme-toggle" onclick="toggleTheme()" id="themeIcon" title="Toggle theme">🌙</button>
+      <div style="position:relative;">
+        <button class="icon-btn" onclick="toggleNotif()" title="Notifications">
+          🔔<span class="badge-dot" id="notifCount">3</span>
+        </button>
+        <div class="notif-panel" id="notifPanel">
+          <div class="notif-head">Notifications <span class="link" onclick="markAllRead()">Mark all read</span></div>
+          <div id="notifList"></div>
+        </div>
+      </div>
+      <div style="position:relative;">
+        <div class="profile-chip" onclick="toggleProfile()">
+          <div class="avatar">RM</div>
+          <div class="profile-meta"><div class="name">Riya Mehta</div><div class="role">Learner · Product Analyst</div></div>
+          <span class="chevron">▾</span>
+        </div>
+        <div class="dropdown" id="profileDropdown">
+          <div class="dropdown-header"><div class="name">Riya Mehta</div><div class="role">Learner · Role: Learner</div></div>
+          <div class="dropdown-item" onclick="openModal('profileModal')">👤 Update Profile</div>
+          <div class="dropdown-item" onclick="openModal('settingsModal')">⚙️ Settings</div>
+          <div class="dropdown-item danger" onclick="showToast('Logged out (demo)')">🚪 Log Out</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="sidebar">
+    <div class="nav-section-label">Learning</div>
+    <div class="nav-item active" data-view="dashboard" onclick="nav('dashboard')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="9" rx="1.5"/><rect x="14" y="3" width="7" height="5" rx="1.5"/><rect x="14" y="12" width="7" height="9" rx="1.5"/><rect x="3" y="16" width="7" height="5" rx="1.5"/></svg>
+      Dashboard
+    </div>
+    <div class="nav-item" data-view="mylearning" onclick="nav('mylearning')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
+      My Learning
+    </div>
+    <div class="nav-item" data-view="creator" onclick="nav('creator')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3v18M3 12h18"/><circle cx="12" cy="12" r="9"/></svg>
+      Course Generator
+    </div>
+    <div class="nav-item" data-view="catalog" onclick="nav('catalog')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>
+      Browse Catalog
+    </div>
+    <div class="nav-item" data-view="schedule" onclick="nav('schedule')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="17" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>
+      My Schedule
+    </div>
+    <div class="nav-item" data-view="certs" onclick="nav('certs')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="6"/><path d="M9 14l-2 7 5-3 5 3-2-7"/></svg>
+      Certifications & Achievements
+    </div>
+    <div class="nav-item" data-view="billing" onclick="nav('billing')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="5" width="20" height="14" rx="2"/><path d="M2 10h20"/></svg>
+      Billing & Purchases
+    </div>
+    <div class="persona-switch"><span class="persona-pill">Logged in as Learner</span></div>
+  </div>
+
+  <div class="main">
+    <!-- DASHBOARD -->
+    <div class="view active" id="view-dashboard">
+      <div class="view-head">
+        <div><h1 class="view-title">Good morning, Riya 👋</h1><p class="view-sub">You're 68% through your Q3 learning goal. Here's what's next.</p></div>
+        <button class="btn btn-primary" onclick="nav('creator')">✨ Create a course</button>
+      </div>
+      <div id="dashboard-content"></div>
+    </div>
+
+    <!-- MY LEARNING -->
+    <div class="view" id="view-mylearning">
+      <div class="view-head">
+        <div><h1 class="view-title">My Learning</h1><p class="view-sub">Courses in progress, completed, and saved for later.</p></div>
+      </div>
+      <div id="mylearning-content"></div>
+    </div>
+
+    <!-- COURSE GENERATOR -->
+    <div class="view" id="view-creator">
+      <div class="view-head">
+        <div><h1 class="view-title">Course Generator</h1><p class="view-sub">Describe what you want to learn — the generator builds a curriculum, timeline, and delivery plan around it.</p></div>
+      </div>
+      <div id="creator-content"></div>
+    </div>
+
+    <!-- CATALOG -->
+    <div class="view" id="view-catalog">
+      <div class="view-head">
+        <div><h1 class="view-title">Browse Catalog</h1><p class="view-sub">Explore accredited courses, subscriptions, and cohorts.</p></div>
+      </div>
+      <div id="catalog-content"></div>
+    </div>
+
+    <!-- SCHEDULE -->
+    <div class="view" id="view-schedule">
+      <div class="view-head">
+        <div><h1 class="view-title">My Schedule</h1><p class="view-sub">Upcoming live sessions and self-paced deadlines.</p></div>
+      </div>
+      <div id="schedule-content"></div>
+    </div>
+
+    <!-- CERTS -->
+    <div class="view" id="view-certs">
+      <div class="view-head">
+        <div><h1 class="view-title">Certifications & Achievements</h1><p class="view-sub">Track earned credentials and progress toward your next one.</p></div>
+      </div>
+      <div id="certs-content"></div>
+    </div>
+
+    <!-- BILLING -->
+    <div class="view" id="view-billing">
+      <div class="view-head">
+        <div><h1 class="view-title">Billing & Purchases</h1><p class="view-sub">Manage your subscription, payment methods, and receipts.</p></div>
+      </div>
+      <div id="billing-content"></div>
+    </div>
+
+  </div>
+</div>
+
+<!-- Copilot -->
+<button class="copilot-fab" onclick="toggleCopilot()" title="Ask Copilot">💬</button>
+<div class="copilot-panel" id="copilotPanel">
+  <div class="copilot-head">
+    <div><div class="t">Learner Copilot</div><div class="s">Here to help with any question</div></div>
+    <button class="modal-close" style="color:#fff" onclick="toggleCopilot()">✕</button>
+  </div>
+  <div class="copilot-body" id="copilotBody"></div>
+  <div class="copilot-quick">
+    <div class="qbtn" onclick="askCopilot('What should I learn next?')">What should I learn next?</div>
+    <div class="qbtn" onclick="askCopilot('Explain my current module')">Explain my module</div>
+  </div>
+  <div class="copilot-input">
+    <input type="text" id="copilotInput" placeholder="Ask about your courses, deadlines, or a concept..." onkeydown="if(event.key==='Enter')sendCopilot()">
+    <button class="btn btn-primary btn-sm" onclick="sendCopilot()">Send</button>
+  </div>
+</div>
+
+<!-- Modals -->
+<div class="modal-overlay" id="courseDetailModal" onclick="if(event.target===this)closeModal('courseDetailModal')">
+  <div class="modal-box"><div class="modal-head"><h3 id="courseDetailTitle">Course</h3><button class="modal-close" onclick="closeModal('courseDetailModal')">✕</button></div>
+  <div class="modal-body" id="courseDetailBody"></div></div>
+</div>
+
+<div class="modal-overlay" id="profileModal" onclick="if(event.target===this)closeModal('profileModal')">
+  <div class="modal-box"><div class="modal-head"><h3>Update Profile</h3><button class="modal-close" onclick="closeModal('profileModal')">✕</button></div>
+  <div class="modal-body">
+    <div class="field"><label>Full Name</label><input type="text" value="Riya Mehta"></div>
+    <div class="field"><label>Email</label><input type="text" value="riya.mehta@cprime.com"></div>
+    <div class="field"><label>Job Title</label><input type="text" value="Product Analyst"></div>
+    <div class="field"><label>Learning Goal</label><select><option>Career growth</option><option selected>Certification prep</option><option>Team upskilling</option></select></div>
+    <button class="btn btn-primary" onclick="closeModal('profileModal');showToast('Profile updated')">Save Changes</button>
+  </div></div>
+</div>
+
+<div class="modal-overlay" id="settingsModal" onclick="if(event.target===this)closeModal('settingsModal')">
+  <div class="modal-box"><div class="modal-head"><h3>Settings</h3><button class="modal-close" onclick="closeModal('settingsModal')">✕</button></div>
+  <div class="modal-body">
+    <div class="field"><label>Email notifications</label><select><option>All updates</option><option selected>Important only</option><option>Off</option></select></div>
+    <div class="field"><label>Weekly learning reminder</label><select><option selected>Monday 9:00 AM</option><option>Friday 4:00 PM</option><option>Off</option></select></div>
+    <div class="field"><label>Preferred content format</label><select><option>Video-first</option><option selected>Balanced</option><option>Reading-first</option></select></div>
+    <button class="btn btn-primary" onclick="closeModal('settingsModal');showToast('Settings saved')">Save Settings</button>
+  </div></div>
+</div>
+
+<div class="toast" id="toast"></div>
+<script>
+/* ============ DATA ============ */
+const DATA = {
+  user:{name:'Riya Mehta', role:'Learner', title:'Product Analyst', initials:'RM'},
+  kpis:[
+    {label:'Courses In Progress', value:'3', foot:'2 self-paced, 1 live cohort', icon:'📘', tone:'blue', view:'mylearning'},
+    {label:'Certifications Earned', value:'2', foot:'CSPO, ICP-ACC', icon:'🏆', tone:'green', view:'certs'},
+    {label:'Learning Streak', value:'12 days', foot:'Personal best: 19 days', icon:'🔥', tone:'amber', view:'mylearning'},
+    {label:'Hours This Month', value:'8.5 hrs', foot:'Goal: 12 hrs/mo', icon:'⏱️', tone:'blue', view:'mylearning'},
+    {label:'Upcoming Live Sessions', value:'2', foot:'Next: Fri, Jul 25', icon:'📅', tone:'green', view:'schedule'},
+    {label:'AI Courses Created', value:'1', foot:'FinOps Fundamentals (in progress)', icon:'✨', tone:'amber', view:'creator'},
+  ],
+  continueLearning:[
+    {title:'Certified Scrum Product Owner (CSPO)', pct:64, next:'Module 4: Backlog Refinement Techniques', mode:'Self-paced', due:'Aug 2'},
+    {title:'AI Product Management Foundations', pct:38, next:'Module 2: Prompt-Driven Feature Discovery', mode:'Self-paced', due:'Aug 10'},
+    {title:'Platform Engineering for Product Teams', pct:15, next:'Live Session: Kickoff & Golden Paths', mode:'Instructor-led', due:'Jul 25'},
+  ],
+  recommended:[
+    {title:'ICAgile Product Ownership (ICP-APO)', reason:'Builds on your CSPO progress', level:'Intermediate', dur:'6 hrs'},
+    {title:'FinOps Fundamentals', reason:'Trending in your org this month', level:'Beginner', dur:'4 hrs'},
+    {title:'Data Storytelling for PMs', reason:'Matches your stated goal: certification prep', level:'Beginner', dur:'3 hrs'},
+  ],
+  upcomingSessions:[
+    {title:'Platform Engineering — Kickoff & Golden Paths', trainer:'Elena Torres', date:'Fri, Jul 25', time:'10:00–12:00 IST'},
+    {title:'CSPO Live Q&A Clinic', trainer:'Maya Chen', date:'Wed, Jul 30', time:'6:00–7:00 PM IST'},
+  ],
+  achievements:[
+    {title:'Certified Scrum Product Owner', date:'Earned Mar 2026', icon:'🥇'},
+    {title:'ICAgile Certified Professional — Agile Coaching', date:'Earned Nov 2025', icon:'🥈'},
+    {title:'12-Day Learning Streak', date:'In progress', icon:'🔥'},
+  ],
+  myLearning:{
+    inProgress:[
+      {title:'Certified Scrum Product Owner (CSPO)', pct:64, mode:'Self-paced', modules:'4 of 8 modules', due:'Aug 2, 2026'},
+      {title:'AI Product Management Foundations', pct:38, mode:'Self-paced', modules:'2 of 6 modules', due:'Aug 10, 2026'},
+      {title:'Platform Engineering for Product Teams', pct:15, mode:'Instructor-led · Cohort B', modules:'1 of 7 modules', due:'Sep 5, 2026'},
+    ],
+    completed:[
+      {title:'Certified ScrumMaster (CSM)', date:'Completed Jan 2026', score:'92%'},
+      {title:'ICAgile Agile Coaching (ICP-ACC)', date:'Completed Nov 2025', score:'88%'},
+    ],
+    saved:[
+      {title:'FinOps Fundamentals', dur:'4 hrs · Self-paced'},
+      {title:'Data Storytelling for PMs', dur:'3 hrs · Self-paced'},
+    ]
+  },
+  catalog:[
+    {title:'Certified Scrum Product Owner (CSPO)', cat:'Scrum & Agile', level:'Intermediate', dur:'8 hrs', mode:'Self-paced', price:'$399', enrolled:true},
+    {title:'AI Product Management Foundations', cat:'AI & Product', level:'Beginner', dur:'6 hrs', mode:'Self-paced', price:'$299', enrolled:true},
+    {title:'Platform Engineering for Product Teams', cat:'DevOps & Platform', level:'Intermediate', dur:'10 hrs', mode:'Instructor-led', price:'$899', enrolled:true},
+    {title:'ICAgile Product Ownership (ICP-APO)', cat:'Scrum & Agile', level:'Intermediate', dur:'6 hrs', mode:'Blended', price:'$449', enrolled:false},
+    {title:'FinOps Fundamentals', cat:'Cloud & Finance', level:'Beginner', dur:'4 hrs', mode:'Self-paced', price:'$249', enrolled:false},
+    {title:'SAFe DevOps Practitioner', cat:'DevOps & Platform', level:'Advanced', dur:'16 hrs', mode:'Instructor-led', price:'$1,290', enrolled:false},
+    {title:'Data Storytelling for PMs', cat:'AI & Product', level:'Beginner', dur:'3 hrs', mode:'Self-paced', price:'$199', enrolled:false},
+    {title:'GitLab CI/CD Essentials', cat:'DevOps & Platform', level:'Beginner', dur:'5 hrs', mode:'Self-paced', price:'$279', enrolled:false},
+  ],
+  schedule:{
+    live:[
+      {title:'Platform Engineering — Kickoff & Golden Paths', date:'Fri, Jul 25', time:'10:00–12:00 IST', trainer:'Elena Torres', status:'Confirmed'},
+      {title:'CSPO Live Q&A Clinic', date:'Wed, Jul 30', time:'6:00–7:00 PM IST', trainer:'Maya Chen', status:'Confirmed'},
+    ],
+    deadlines:[
+      {title:'CSPO — Module 4 Assessment', date:'Aug 2, 2026', type:'Self-paced deadline'},
+      {title:'AI PM Foundations — Module 2 Lab', date:'Aug 10, 2026', type:'Self-paced deadline'},
+      {title:'Platform Engineering — Module 1 Reading', date:'Jul 28, 2026', type:'Self-paced deadline'},
+    ]
+  },
+  certifications:{
+    earned:[
+      {name:'Certified Scrum Product Owner (CSPO)', body:'Scrum Alliance', date:'Mar 15, 2026', expiry:'Mar 2028'},
+      {name:'ICAgile Certified Professional — Agile Coaching (ICP-ACC)', body:'ICAgile', date:'Nov 2, 2025', expiry:'No expiry'},
+      {name:'Certified ScrumMaster (CSM)', body:'Scrum Alliance', date:'Jan 20, 2026', expiry:'Jan 2028'},
+    ],
+    inProgress:[
+      {name:'ICAgile Product Ownership (ICP-APO)', progress:64, course:'via CSPO course path'},
+    ],
+    badges:[
+      {name:'12-Day Streak', icon:'🔥'}, {name:'Fast Finisher', icon:'⚡'}, {name:'Top 10% Quiz Score', icon:'🎯'}, {name:'Community Helper', icon:'🤝'}
+    ]
+  },
+  billing:{
+    plan:'Individual Learner Plan — Pay-as-you-go',
+    method:'Visa •••• 4471',
+    purchases:[
+      {item:'Certified Scrum Product Owner (CSPO)', date:'Jun 2, 2026', amount:'$399', status:'Paid'},
+      {item:'AI Product Management Foundations', date:'Jun 18, 2026', amount:'$299', status:'Paid'},
+      {item:'Platform Engineering for Product Teams (Cohort B)', date:'Jul 10, 2026', amount:'$899', status:'Paid'},
+    ]
+  },
+  notifications:[
+    {icon:'📅', title:'Live session tomorrow', text:'Platform Engineering kickoff starts Fri 10:00 AM IST', time:'2h ago'},
+    {icon:'✨', title:'Your AI-created course is ready', text:'FinOps Fundamentals curriculum has been generated', time:'5h ago'},
+    {icon:'🏆', title:'New certification unlocked', text:'You qualify to pursue ICP-APO based on CSPO progress', time:'1d ago'},
+  ]
+};
+
+let creatorState = {step:'form', config:{}, modules:[]};
+
+/* ============ NAV ============ */
+function nav(view){
+  document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
+  document.getElementById('view-'+view).classList.add('active');
+  document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
+  const item = document.querySelector('.nav-item[data-view="'+view+'"]');
+  if(item) item.classList.add('active');
+  closeAllPopovers();
+  render(view);
+  window.scrollTo(0,0);
+}
+function render(view){
+  if(view==='dashboard') renderDashboard();
+  if(view==='mylearning') renderMyLearning();
+  if(view==='creator') renderCreator();
+  if(view==='catalog') renderCatalog();
+  if(view==='schedule') renderSchedule();
+  if(view==='certs') renderCerts();
+  if(view==='billing') renderBilling();
+}
+
+/* ============ THEME ============ */
+function toggleTheme(){
+  const b=document.body; const cur=b.getAttribute('data-theme');
+  const next = cur==='dark' ? 'light':'dark';
+  b.setAttribute('data-theme', next);
+  document.getElementById('themeIcon').textContent = next==='dark' ? '☀️':'🌙';
+}
+
+/* ============ POPOVERS ============ */
+function toggleNotif(){
+  document.getElementById('notifPanel').classList.toggle('open');
+  document.getElementById('profileDropdown').classList.remove('open');
+}
+function toggleProfile(){
+  document.getElementById('profileDropdown').classList.toggle('open');
+  document.getElementById('notifPanel').classList.remove('open');
+}
+function closeAllPopovers(){
+  document.getElementById('notifPanel').classList.remove('open');
+  document.getElementById('profileDropdown').classList.remove('open');
+}
+function markAllRead(){
+  document.getElementById('notifCount').style.display='none';
+  showToast('All notifications marked as read');
+}
+document.addEventListener('click', function(e){
+  if(!e.target.closest('.icon-btn') && !e.target.closest('.notif-panel')) document.getElementById('notifPanel').classList.remove('open');
+  if(!e.target.closest('.profile-chip') && !e.target.closest('.dropdown')) document.getElementById('profileDropdown').classList.remove('open');
+});
+function renderNotifications(){
+  document.getElementById('notifList').innerHTML = DATA.notifications.map(n=>`
+    <div class="notif-item"><div class="notif-icon">${n.icon}</div>
+      <div class="notif-text"><span class="t">${n.title}</span><div>${n.text}</div><div class="notif-time">${n.time}</div></div>
+    </div>`).join('');
+}
+
+/* ============ MODALS / TOAST ============ */
+function openModal(id){ document.getElementById(id).classList.add('open'); }
+function closeModal(id){ document.getElementById(id).classList.remove('open'); }
+function showToast(msg){
+  const t=document.getElementById('toast'); t.textContent=msg; t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'), 2600);
+}
+
+/* ============ COPILOT ============ */
+function toggleCopilot(){
+  const p=document.getElementById('copilotPanel');
+  p.classList.toggle('open');
+  if(p.classList.contains('open') && document.getElementById('copilotBody').children.length===0){
+    addCopilotMsg('bot', "Hi Riya! I'm your Learner Copilot. I can help explain concepts, recommend next steps, or answer questions about your courses and deadlines. What do you need?");
+  }
+}
+function addCopilotMsg(role, text){
+  const body=document.getElementById('copilotBody');
+  const div=document.createElement('div'); div.className='msg '+role; div.textContent=text;
+  body.appendChild(div); body.scrollTop = body.scrollHeight;
+}
+function askCopilot(q){ document.getElementById('copilotInput').value=q; sendCopilot(); }
+function sendCopilot(){
+  const input=document.getElementById('copilotInput'); const q=input.value.trim();
+  if(!q) return;
+  addCopilotMsg('user', q); input.value='';
+  setTimeout(()=>{
+    let reply = "Based on your current progress, I'd recommend continuing Module 4 of CSPO — you're 64% through and it directly builds toward your certification prep goal.";
+    const ql = q.toLowerCase();
+    if(ql.includes('next')) reply = "You're closest to finishing CSPO (64%). After that, ICP-APO is a natural next step since it builds directly on what you've already learned.";
+    else if(ql.includes('module') || ql.includes('explain')) reply = "Your current module — Backlog Refinement Techniques — covers prioritization frameworks like WSJF and MoSCoW. Want a short summary or a practice scenario?";
+    else if(ql.includes('deadline') || ql.includes('due')) reply = "Your nearest deadline is the CSPO Module 4 Assessment on Aug 2, and your Platform Engineering kickoff session is this Friday at 10:00 AM IST.";
+    else if(ql.includes('cert')) reply = "You've earned CSPO, CSM, and ICP-ACC so far. Based on your progress, you're on track to qualify for ICP-APO next.";
+    addCopilotMsg('bot', reply);
+  }, 500);
+}
+</script>
+<script>
+function toneColor(t){
+  return {blue:['var(--accent-dim)','var(--accent)'], green:['var(--success-dim)','var(--success)'],
+          amber:['var(--warning-dim)','var(--warning)'], red:['var(--danger-dim)','var(--danger)']}[t] || ['var(--accent-dim)','var(--accent)'];
+}
+function renderDashboard(){
+  const kpis = DATA.kpis.map(k=>{
+    const [bg,fg]=toneColor(k.tone);
+    return `<div class="kpi-card" onclick="nav('${k.view}')">
+      <div class="kpi-icon" style="background:${bg};color:${fg};font-size:16px;">${k.icon}</div>
+      <div class="kpi-value">${k.value}</div><div class="kpi-label">${k.label}</div>
+      <div class="kpi-foot">${k.foot}</div></div>`;
+  }).join('');
+
+  const continueCards = DATA.continueLearning.map(c=>`
+    <div class="list-row">
+      <div class="ic" style="background:var(--accent-dim);color:var(--accent);">📘</div>
+      <div style="flex:1;">
+        <div style="font-weight:700;font-size:12.5px;">${c.title}</div>
+        <div style="font-size:11px;color:var(--text-dim);margin:2px 0 6px;">${c.next} · <span class="tag tag-gray">${c.mode}</span> · Due ${c.due}</div>
+        <div class="progress-track"><div class="progress-fill" style="width:${c.pct}%;"></div></div>
+      </div>
+      <button class="btn btn-primary btn-sm" onclick="nav('mylearning')">Resume</button>
+    </div>`).join('');
+
+  const recCards = DATA.recommended.map(r=>`
+    <div class="course-card" onclick="showToast('Opening ${r.title}...')">
+      <div class="course-cover">🎓</div>
+      <div class="course-body">
+        <h4>${r.title}</h4>
+        <div style="font-size:11px;color:var(--text-dim);">${r.reason}</div>
+        <div class="course-meta"><span class="tag tag-blue">${r.level}</span><span class="tag tag-gray">${r.dur}</span></div>
+      </div>
+    </div>`).join('');
+
+  const sessions = DATA.upcomingSessions.map(s=>`
+    <div class="list-row">
+      <div class="ic" style="background:var(--success-dim);color:var(--success);">📅</div>
+      <div style="flex:1;">
+        <div style="font-weight:700;font-size:12.5px;">${s.title}</div>
+        <div style="font-size:11px;color:var(--text-dim);">with ${s.trainer} · ${s.date}, ${s.time}</div>
+      </div>
+      <span class="tag tag-green">Confirmed</span>
+    </div>`).join('');
+
+  const badges = DATA.achievements.map(a=>`
+    <div style="text-align:center;padding:10px;">
+      <div style="font-size:26px;">${a.icon}</div>
+      <div style="font-size:11px;font-weight:700;margin-top:4px;">${a.title}</div>
+      <div style="font-size:10px;color:var(--text-mute);">${a.date}</div>
+    </div>`).join('');
+
+  document.getElementById('dashboard-content').innerHTML = `
+    <div class="grid grid-6" style="margin-bottom:18px;">${kpis}</div>
+    <div class="grid grid-2" style="align-items:start;">
+      <div class="card"><div class="card-title">Continue Learning <span class="link" onclick="nav('mylearning')">View all</span></div>${continueCards}</div>
+      <div class="card"><div class="card-title">Upcoming Live Sessions <span class="link" onclick="nav('schedule')">View schedule</span></div>${sessions}
+        <hr class="divider"><div class="card-title" style="margin-bottom:8px;">Recent Achievements</div>
+        <div class="grid grid-3">${badges}</div>
+      </div>
+    </div>
+    <div class="card" style="margin-top:16px;">
+      <div class="card-title">Recommended For You <span class="link" onclick="nav('catalog')">Browse full catalog</span></div>
+      <div class="grid grid-3">${recCards}</div>
+    </div>`;
+}
+</script>
+<script>
+function renderMyLearning(){
+  const inProg = DATA.myLearning.inProgress.map(c=>`
+    <div class="list-row">
+      <div class="ic" style="background:var(--accent-dim);color:var(--accent);">📘</div>
+      <div style="flex:1;">
+        <div style="font-weight:700;font-size:13px;">${c.title}</div>
+        <div style="font-size:11px;color:var(--text-dim);margin:2px 0 6px;">${c.modules} · <span class="tag tag-gray">${c.mode}</span> · Due ${c.due}</div>
+        <div class="progress-track"><div class="progress-fill" style="width:${c.pct}%;"></div></div>
+      </div>
+      <div style="font-weight:700;font-size:13px;width:40px;text-align:right;">${c.pct}%</div>
+      <button class="btn btn-primary btn-sm" onclick="showToast('Resuming ${c.title}...')">Resume</button>
+    </div>`).join('');
+
+  const completed = DATA.myLearning.completed.map(c=>`
+    <div class="list-row">
+      <div class="ic" style="background:var(--success-dim);color:var(--success);">✅</div>
+      <div style="flex:1;"><div style="font-weight:700;font-size:12.5px;">${c.title}</div>
+      <div style="font-size:11px;color:var(--text-dim);">${c.date} · Score: ${c.score}</div></div>
+      <button class="btn btn-ghost btn-sm" onclick="showToast('Downloading certificate...')">Certificate ⬇</button>
+    </div>`).join('');
+
+  const saved = DATA.myLearning.saved.map(c=>`
+    <div class="list-row"><div class="ic" style="background:var(--warning-dim);color:var(--warning);">🔖</div>
+    <div style="flex:1;"><div style="font-weight:700;font-size:12.5px;">${c.title}</div><div style="font-size:11px;color:var(--text-dim);">${c.dur}</div></div>
+    <button class="btn btn-primary btn-sm" onclick="showToast('Enrolling in ${c.title}...')">Enroll</button></div>`).join('');
+
+  document.getElementById('mylearning-content').innerHTML = `
+    <div class="grid grid-2" style="align-items:start;">
+      <div class="card"><div class="card-title">In Progress (3)</div>${inProg}</div>
+      <div>
+        <div class="card" style="margin-bottom:16px;"><div class="card-title">Completed (2)</div>${completed}</div>
+        <div class="card"><div class="card-title">Saved for Later (2)</div>${saved}</div>
+      </div>
+    </div>`;
+}
+
+function renderCatalog(){
+  const cats = [...new Set(DATA.catalog.map(c=>c.cat))];
+  const filterChips = ['All', ...cats].map(c=>`<div class="chip-opt ${c==='All'?'selected':''}" onclick="filterCatalog('${c}', this)">${c}</div>`).join('');
+  const recCards = DATA.recommended.map(r=>{
+    const match = DATA.catalog.find(c=>c.title===r.title);
+    const clickTitle = (match ? match.title : r.title).replace(/'/g,"\\'");
+    return `
+    <div class="course-card" onclick="openCourseDetail('${clickTitle}')">
+      <div class="course-cover">✨</div>
+      <div class="course-body">
+        <h4>${r.title}</h4>
+        <div style="font-size:11px;color:var(--accent);font-weight:600;">Why recommended: ${r.reason}</div>
+        <div class="course-meta"><span class="tag tag-blue">${r.level}</span><span class="tag tag-gray">${r.dur}</span>${match&&match.enrolled?'<span class="tag tag-green">Enrolled</span>':''}</div>
+      </div>
+    </div>`;
+  }).join('');
+  document.getElementById('catalog-content').innerHTML = `
+    <div class="card" style="margin-bottom:16px;">
+      <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-bottom:12px;">
+        <div class="card-title" style="margin:0;">✨ Recommended for You</div>
+        <span style="font-size:11px;color:var(--text-dim);">Personalized by the AI based on your progress, certifications, and org trends</span>
+      </div>
+      <div class="grid grid-3">${recCards}</div>
+    </div>
+    <div class="card" style="margin-bottom:16px;">
+      <div style="display:flex;gap:12px;align-items:center;flex-wrap:wrap;">
+        <input type="search" placeholder="Search courses..." style="max-width:260px;" oninput="searchCatalog(this.value)">
+        <div class="chip-select" id="catFilters">${filterChips}</div>
+      </div>
+    </div>
+    <div class="card-title" style="margin-bottom:10px;">All Courses</div>
+    <div class="grid grid-4" id="catalogGrid"></div>`;
+  renderCatalogGrid(DATA.catalog);
+}
+let catalogFilterCat='All', catalogSearch='';
+function renderCatalogGrid(items){
+  document.getElementById('catalogGrid').innerHTML = items.map(c=>`
+    <div class="course-card" onclick="openCourseDetail('${c.title.replace(/'/g,"\\'")}')">
+      <div class="course-cover">${c.mode==='Instructor-led'?'🧑‍🏫':c.mode==='Blended'?'🔀':'🎓'}</div>
+      <div class="course-body">
+        <h4>${c.title}</h4>
+        <div style="font-size:11px;color:var(--text-dim);">${c.cat}</div>
+        <div class="course-meta">
+          <span class="tag tag-blue">${c.level}</span><span class="tag tag-gray">${c.dur}</span>
+          ${c.enrolled?'<span class="tag tag-green">Enrolled</span>':`<span class="tag tag-amber">${c.price}</span>`}
+        </div>
+      </div>
+    </div>`).join('') || `<div class="card" style="text-align:center;color:var(--text-dim);">No courses match your search.</div>`;
+}
+function filterCatalog(cat, el){
+  catalogFilterCat = cat;
+  document.querySelectorAll('#catFilters .chip-opt').forEach(c=>c.classList.remove('selected'));
+  el.classList.add('selected');
+  applyCatalogFilters();
+}
+function searchCatalog(v){ catalogSearch = v.toLowerCase(); applyCatalogFilters(); }
+function applyCatalogFilters(){
+  let items = DATA.catalog;
+  if(catalogFilterCat!=='All') items = items.filter(c=>c.cat===catalogFilterCat);
+  if(catalogSearch) items = items.filter(c=>c.title.toLowerCase().includes(catalogSearch));
+  renderCatalogGrid(items);
+}
+function openCourseDetail(title){
+  const c = DATA.catalog.find(x=>x.title===title);
+  if(!c) return;
+  document.getElementById('courseDetailTitle').textContent = c.title;
+  document.getElementById('courseDetailBody').innerHTML = `
+    <div style="display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap;">
+      <span class="tag tag-blue">${c.level}</span><span class="tag tag-gray">${c.dur}</span><span class="tag tag-gray">${c.mode}</span>
+    </div>
+    <p style="font-size:13px;color:var(--text-dim);">Category: <strong style="color:var(--text);">${c.cat}</strong></p>
+    <p style="font-size:13px;color:var(--text-dim);">This course includes AI-curated modules, hands-on labs, and a certification-aligned assessment. ${c.mode==='Instructor-led'?'Delivered live by a matched trainer with cohort scheduling.':'Learn at your own pace with 24/7 Copilot support.'}</p>
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-top:16px;">
+      <div style="font-size:18px;font-weight:800;">${c.enrolled?'Enrolled':c.price}</div>
+      <button class="btn btn-primary" onclick="closeModal('courseDetailModal');showToast('${c.enrolled?'Resuming course...':'Enrolled in '+c.title+'!'}')">${c.enrolled?'Resume Course':'Enroll Now'}</button>
+    </div>`;
+  openModal('courseDetailModal');
+}
+</script>
+<script>
+function renderCreator(){
+  if(creatorState.step==='form') renderCreatorForm();
+  else if(creatorState.step==='generating') renderCreatorGenerating();
+  else if(creatorState.step==='result') renderCreatorResult();
+}
+
+function renderCreatorForm(){
+  document.getElementById('creator-content').innerHTML = `
+    <div class="grid grid-2" style="align-items:start;">
+      <div class="card">
+        <div class="card-title">Describe what you want to learn</div>
+        <div class="field">
+          <label>Your learning goal (prompt)</label>
+          <textarea id="cr-prompt" rows="4" placeholder="e.g. I want to learn FinOps fundamentals so I can help my team manage cloud costs, with hands-on budgeting exercises">${creatorState.config.prompt||''}</textarea>
+        </div>
+        <div class="field">
+          <label>Delivery preference</label>
+          <div class="chip-select" id="cr-mode">
+            ${['Self-paced','Instructor-led','Blended (both)'].map(m=>`<div class="chip-opt ${(creatorState.config.mode||'Self-paced')===m?'selected':''}" onclick="selectChip('cr-mode', this, '${m}')">${m}</div>`).join('')}
+          </div>
+        </div>
+        <div class="grid grid-2">
+          <div class="field">
+            <label>Skill level</label>
+            <select id="cr-level">
+              <option ${creatorState.config.level==='Beginner'?'selected':''}>Beginner</option>
+              <option ${!creatorState.config.level || creatorState.config.level==='Intermediate'?'selected':''}>Intermediate</option>
+              <option ${creatorState.config.level==='Advanced'?'selected':''}>Advanced</option>
+            </select>
+          </div>
+          <div class="field">
+            <label>Target timeline</label>
+            <select id="cr-timeline">
+              <option>Finish in 1 week</option>
+              <option selected>Finish in 2-3 weeks</option>
+              <option>Finish in 4-6 weeks</option>
+              <option>No deadline — go at my own pace</option>
+            </select>
+          </div>
+        </div>
+        <div class="field">
+          <label>Weekly time commitment</label>
+          <div class="chip-select" id="cr-time">
+            ${['1-2 hrs/wk','3-5 hrs/wk','6+ hrs/wk'].map(m=>`<div class="chip-opt ${(creatorState.config.time||'3-5 hrs/wk')===m?'selected':''}" onclick="selectChip('cr-time', this, '${m}')">${m}</div>`).join('')}
+          </div>
+        </div>
+        <div class="field">
+          <label>Certification alignment (optional)</label>
+          <select id="cr-cert">
+            <option>No specific certification — just skill building</option>
+            <option>Align to FinOps Certified Practitioner</option>
+            <option>Align to AI Product Manager credential</option>
+            <option>Align to a certification I'll specify to Copilot</option>
+          </select>
+        </div>
+        <button class="btn btn-primary" style="margin-top:6px;" onclick="startGeneration()">✨ Generate My Course</button>
+      </div>
+      <div class="card" style="background:var(--surface-2);">
+        <div class="card-title">How this works</div>
+        <div class="timeline">
+          <div class="tl-step done"><div class="tl-dot"></div><strong>1. You describe the goal</strong><div style="font-size:12px;color:var(--text-dim);">In your own words — topic, why you need it, and how you learn best.</div></div>
+          <div class="tl-step done"><div class="tl-dot"></div><strong>2. AI builds the curriculum</strong><div style="font-size:12px;color:var(--text-dim);">Modules, objectives, labs, and assessments are generated to match your level and timeline.</div></div>
+          <div class="tl-step done"><div class="tl-dot"></div><strong>3. Delivery model is recommended</strong><div style="font-size:12px;color:var(--text-dim);">Self-paced if you want flexibility, or matched to a live trainer if you chose instructor-led.</div></div>
+          <div class="tl-step current"><div class="tl-dot"></div><strong>4. You review & start</strong><div style="font-size:12px;color:var(--text-dim);">Edit any module, then start learning immediately or request a trainer session.</div></div>
+        </div>
+        <hr class="divider">
+        <div style="font-size:12px;color:var(--text-dim);">💡 Tip: mention specific tools, real work scenarios, or a deadline — the more context you give, the more tailored your course will be.</div>
+      </div>
+    </div>`;
+}
+function selectChip(groupId, el, val){
+  document.querySelectorAll('#'+groupId+' .chip-opt').forEach(c=>c.classList.remove('selected'));
+  el.classList.add('selected');
+  if(groupId==='cr-mode') creatorState.config.mode = val;
+  if(groupId==='cr-time') creatorState.config.time = val;
+}
+
+function startGeneration(){
+  const prompt = document.getElementById('cr-prompt').value.trim();
+  if(!prompt){ showToast('Please describe what you want to learn first'); return; }
+  creatorState.config.prompt = prompt;
+  creatorState.config.level = document.getElementById('cr-level').value;
+  creatorState.config.timeline = document.getElementById('cr-timeline').value;
+  creatorState.config.cert = document.getElementById('cr-cert').value;
+  creatorState.step = 'generating';
+  render('creator');
+  const steps = ['Analyzing your learning goal...','Structuring modules & objectives...','Building labs & assessments...',
+    'Matching a delivery timeline...','Evaluating self-paced vs. instructor-led fit...','Finalizing your course plan...'];
+  let i=0;
+  function tick(){
+    document.querySelectorAll('.gen-step').forEach((el,idx)=>{
+      el.classList.remove('active');
+      if(idx<i) el.classList.add('done');
+    });
+    if(i<steps.length){
+      const el=document.getElementById('gen-step-'+i);
+      if(el) el.classList.add('active');
+      i++;
+      setTimeout(tick, 750);
+    } else {
+      setTimeout(()=>{ generateResult(); creatorState.step='result'; render('creator'); }, 500);
+    }
+  }
+  setTimeout(tick, 300);
+}
+function renderCreatorGenerating(){
+  const steps = ['Analyzing your learning goal...','Structuring modules & objectives...','Building labs & assessments...',
+    'Matching a delivery timeline...','Evaluating self-paced vs. instructor-led fit...','Finalizing your course plan...'];
+  document.getElementById('creator-content').innerHTML = `
+    <div class="card" style="max-width:520px;margin:0 auto;text-align:center;padding:40px;">
+      <div style="font-size:34px;">✨</div>
+      <h3 style="margin:10px 0 4px;">Building your course...</h3>
+      <p style="font-size:12.5px;color:var(--text-dim);margin-bottom:6px;">"${creatorState.config.prompt}"</p>
+      <div class="gen-progress" style="text-align:left;margin-top:20px;">
+        ${steps.map((s,i)=>`<div class="gen-step" id="gen-step-${i}"><div class="dot">${i+1}</div>${s}</div>`).join('')}
+      </div>
+    </div>`;
+}
+function generateResult(){
+  const p = creatorState.config.prompt.toLowerCase();
+  let topic = 'Custom Learning Path';
+  if(p.includes('finops') || p.includes('cloud cost')) topic='FinOps Fundamentals for Practitioners';
+  else if(p.includes('ai') && p.includes('product')) topic='AI-Driven Product Management';
+  else if(p.includes('platform') || p.includes('devops')) topic='Platform Engineering Essentials';
+  else if(p.includes('scrum') || p.includes('agile')) topic='Applied Agile & Scrum Practices';
+  else if(p.includes('data')) topic='Data Storytelling for Decision Makers';
+
+  const mode = creatorState.config.mode || 'Self-paced';
+  const recommendedMode = mode==='Blended (both)' ? 'Blended — self-paced modules + 1 live lab session' : mode;
+
+  creatorState.modules = [
+    {title:'Module 1: Foundations & Terminology', dur:'45 min', type:'Reading + Video'},
+    {title:'Module 2: Core Concepts in Practice', dur:'1 hr 15 min', type:'Video + Hands-on Lab'},
+    {title:'Module 3: Applying It to Real Scenarios', dur:'1 hr', type:'Case Study + Exercise'},
+    {title:'Module 4: Tools & Workflows', dur:'50 min', type:'Interactive Walkthrough'},
+    {title:'Module 5: Assessment & Certification Prep', dur:'40 min', type:'Quiz + Practice Exam'},
+  ];
+  if(mode!=='Self-paced'){
+    creatorState.modules.push({title:'Live Session: Instructor-Led Deep Dive & Q&A', dur:'90 min', type:'Live with matched trainer'});
+  }
+  creatorState.result = {
+    topic, recommendedMode,
+    level: creatorState.config.level,
+    timeline: creatorState.config.timeline,
+    totalDur: mode==='Self-paced' ? '4 hrs 30 min self-paced' : '4 hrs 30 min self-paced + 90 min live session',
+    cert: creatorState.config.cert
+  };
+}
+function renderCreatorResult(){
+  const r = creatorState.result;
+  const modules = creatorState.modules.map((m,i)=>`
+    <div class="list-row">
+      <div class="ic" style="background:var(--accent-dim);color:var(--accent);">${i+1}</div>
+      <div style="flex:1;"><div style="font-weight:700;font-size:12.5px;">${m.title}</div>
+      <div style="font-size:11px;color:var(--text-dim);">${m.type} · ${m.dur}</div></div>
+      <button class="btn btn-ghost btn-sm" onclick="showToast('Regenerating ${m.title.replace(/'/g,"")}...')">↻ Regenerate</button>
+    </div>`).join('');
+
+  document.getElementById('creator-content').innerHTML = `
+    <div class="card" style="margin-bottom:16px;background:linear-gradient(135deg,var(--accent-dim),var(--surface));border-color:var(--accent);">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:10px;">
+        <div>
+          <div class="tag tag-blue" style="margin-bottom:8px;">✨ AI-Generated Course Plan</div>
+          <h2 style="margin:0 0 4px;">${r.topic}</h2>
+          <div style="font-size:12.5px;color:var(--text-dim);">"${creatorState.config.prompt}"</div>
+        </div>
+        <button class="btn btn-ghost btn-sm" onclick="creatorState.step='form';render('creator')">↻ Start Over</button>
+      </div>
+      <div class="grid grid-4" style="margin-top:16px;">
+        <div><div style="font-size:11px;color:var(--text-dim);">Delivery Model</div><div style="font-weight:700;font-size:13px;">${r.recommendedMode}</div></div>
+        <div><div style="font-size:11px;color:var(--text-dim);">Skill Level</div><div style="font-weight:700;font-size:13px;">${r.level}</div></div>
+        <div><div style="font-size:11px;color:var(--text-dim);">Target Timeline</div><div style="font-weight:700;font-size:13px;">${r.timeline}</div></div>
+        <div><div style="font-size:11px;color:var(--text-dim);">Total Duration</div><div style="font-weight:700;font-size:13px;">${r.totalDur}</div></div>
+      </div>
+    </div>
+    <div class="grid grid-2" style="align-items:start;">
+      <div class="card"><div class="card-title">Curriculum (${creatorState.modules.length} modules)</div>${modules}</div>
+      <div>
+        <div class="card" style="margin-bottom:16px;">
+          <div class="card-title">Certification Alignment</div>
+          <p style="font-size:12.5px;color:var(--text-dim);">${r.cert}</p>
+          <hr class="divider">
+          <div class="card-title" style="margin-bottom:8px;">Suggested Timeline</div>
+          <div class="timeline">
+            <div class="tl-step current"><div class="tl-dot"></div><strong>Week 1</strong><div style="font-size:12px;color:var(--text-dim);">Modules 1-2 · Foundations & core concepts</div></div>
+            <div class="tl-step"><div class="tl-dot"></div><strong>Week 2</strong><div style="font-size:12px;color:var(--text-dim);">Modules 3-4 · Applied practice & tools</div></div>
+            <div class="tl-step"><div class="tl-dot"></div><strong>Week 3</strong><div style="font-size:12px;color:var(--text-dim);">Module 5 + assessment · Certification prep</div></div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-title">Ready to begin?</div>
+          <p style="font-size:12px;color:var(--text-dim);margin-bottom:12px;">Start now self-paced, or request a live trainer session if you'd like guided instruction.</p>
+          <button class="btn btn-primary" style="width:100%;margin-bottom:8px;" onclick="showToast('Course added to My Learning — start anytime!');nav('mylearning')">▶ Start Self-Paced Now</button>
+          <button class="btn" style="width:100%;" onclick="showToast('Trainer matching request sent — you will be notified once scheduled')">🧑‍🏫 Request a Trainer Session</button>
+        </div>
+      </div>
+    </div>`;
+}
+</script>
+<script>
+function renderSchedule(){
+  const live = DATA.schedule.live.map(s=>`
+    <div class="list-row">
+      <div class="ic" style="background:var(--success-dim);color:var(--success);">📅</div>
+      <div style="flex:1;"><div style="font-weight:700;font-size:12.5px;">${s.title}</div>
+      <div style="font-size:11px;color:var(--text-dim);">with ${s.trainer} · ${s.date}, ${s.time}</div></div>
+      <span class="tag tag-green">${s.status}</span>
+    </div>`).join('');
+  const deadlines = DATA.schedule.deadlines.map(d=>`
+    <div class="list-row">
+      <div class="ic" style="background:var(--warning-dim);color:var(--warning);">⏳</div>
+      <div style="flex:1;"><div style="font-weight:700;font-size:12.5px;">${d.title}</div>
+      <div style="font-size:11px;color:var(--text-dim);">${d.type}</div></div>
+      <span class="tag tag-amber">${d.date}</span>
+    </div>`).join('');
+
+  document.getElementById('schedule-content').innerHTML = `
+    <div class="grid grid-2" style="align-items:start;">
+      <div class="card"><div class="card-title">Upcoming Live Sessions</div>${live}</div>
+      <div class="card"><div class="card-title">Self-Paced Deadlines</div>${deadlines}</div>
+    </div>
+    <div class="card" style="margin-top:16px;">
+      <div class="card-title">July 2026</div>
+      <div style="display:grid;grid-template-columns:repeat(7,1fr);gap:6px;font-size:11px;">
+        ${['S','M','T','W','T','F','S'].map(d=>`<div style="text-align:center;color:var(--text-mute);font-weight:700;">${d}</div>`).join('')}
+        ${Array.from({length:31},(_,i)=>{
+          const day=i+1; let cls='surface-2'; let mark='';
+          if(day===25){cls='var(--success-dim)'; mark='📅';}
+          if(day===28){cls='var(--warning-dim)'; mark='⏳';}
+          if(day===30){cls='var(--success-dim)'; mark='📅';}
+          return `<div style="text-align:center;padding:8px 2px;border-radius:8px;background:${cls==='surface-2'?'var(--surface-2)':cls};border:1px solid var(--border);">${day}<div style="font-size:10px;">${mark}</div></div>`;
+        }).join('')}
+      </div>
+    </div>`;
+}
+
+function renderCerts(){
+  const earned = DATA.certifications.earned.map(c=>`
+    <div class="list-row">
+      <div class="ic" style="background:var(--success-dim);color:var(--success);">🏆</div>
+      <div style="flex:1;"><div style="font-weight:700;font-size:12.5px;">${c.name}</div>
+      <div style="font-size:11px;color:var(--text-dim);">${c.body} · Earned ${c.date} · Expires: ${c.expiry}</div></div>
+      <button class="btn btn-ghost btn-sm" onclick="showToast('Downloading certificate PDF...')">⬇ Download</button>
+    </div>`).join('');
+  const inProg = DATA.certifications.inProgress.map(c=>`
+    <div class="list-row">
+      <div class="ic" style="background:var(--accent-dim);color:var(--accent);">📘</div>
+      <div style="flex:1;"><div style="font-weight:700;font-size:12.5px;">${c.name}</div>
+      <div style="font-size:11px;color:var(--text-dim);margin-bottom:6px;">${c.course}</div>
+      <div class="progress-track"><div class="progress-fill" style="width:${c.progress}%;"></div></div></div>
+      <div style="font-weight:700;font-size:13px;">${c.progress}%</div>
+    </div>`).join('');
+  const badges = DATA.certifications.badges.map(b=>`
+    <div style="text-align:center;padding:14px;border:1px solid var(--border);border-radius:var(--radius-sm);">
+      <div style="font-size:28px;">${b.icon}</div><div style="font-size:11px;font-weight:700;margin-top:6px;">${b.name}</div>
+    </div>`).join('');
+
+  document.getElementById('certs-content').innerHTML = `
+    <div class="grid grid-2" style="align-items:start;">
+      <div class="card"><div class="card-title">Earned Certifications (${DATA.certifications.earned.length})</div>${earned}</div>
+      <div>
+        <div class="card" style="margin-bottom:16px;"><div class="card-title">In Progress</div>${inProg}</div>
+        <div class="card"><div class="card-title">Achievement Badges</div><div class="grid grid-2">${badges}</div></div>
+      </div>
+    </div>`;
+}
+
+function renderBilling(){
+  const purchases = DATA.billing.purchases.map(p=>`
+    <tr><td>${p.item}</td><td>${p.date}</td><td>${p.amount}</td><td><span class="tag tag-green">${p.status}</span></td>
+    <td><button class="btn btn-ghost btn-sm" onclick="showToast('Downloading receipt...')">Receipt</button></td></tr>`).join('');
+
+  document.getElementById('billing-content').innerHTML = `
+    <div class="grid grid-2" style="margin-bottom:16px;">
+      <div class="card">
+        <div class="card-title">Current Plan</div>
+        <div style="font-weight:700;font-size:14px;">${DATA.billing.plan}</div>
+        <p style="font-size:12px;color:var(--text-dim);margin:6px 0 12px;">You're billed per course/cohort as you enroll — no recurring subscription fee.</p>
+        <button class="btn btn-primary btn-sm" onclick="showToast('Redirecting to subscription plans...')">Explore Subscription Plans</button>
+      </div>
+      <div class="card">
+        <div class="card-title">Payment Method</div>
+        <div style="font-weight:700;font-size:14px;">💳 ${DATA.billing.method}</div>
+        <p style="font-size:12px;color:var(--text-dim);margin:6px 0 12px;">Default payment method for course purchases.</p>
+        <button class="btn btn-sm" onclick="showToast('Opening payment method editor...')">Update Payment Method</button>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-title">Purchase History</div>
+      <table><thead><tr><th>Item</th><th>Date</th><th>Amount</th><th>Status</th><th></th></tr></thead>
+      <tbody>${purchases}</tbody></table>
+    </div>`;
+}
+</script>
+<script>
+/* Keep the prototype learner shell, but use the app's real course roadmap generator. */
+renderCreator = function(){
+  const host = document.getElementById('creator-content');
+  if (!host) return;
+  host.innerHTML = `
+    <div class="card" style="padding:0;overflow:hidden;border-color:var(--border);">
+      <iframe
+        title="Course Generator"
+        src="/learner-generator"
+        style="display:block;width:100%;height:1120px;border:0;background:#17233b;"
+      ></iframe>
+    </div>`;
+};
+</script>
+<script>
+/* ============ INIT ============ */
+document.addEventListener('DOMContentLoaded', function(){
+  renderNotifications();
+  renderDashboard();
+});
+</script>
+</body>
+</html>
+
