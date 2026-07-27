@@ -1,0 +1,1758 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Cprime TaaS — Admin Console</title>
+<style>
+:root{
+  --artifact-bg:#f4f6fa;
+  --artifact-surface:#ffffff;
+  --artifact-surface-2:#f8fafc;
+  --artifact-border:#e6e9f0;
+  --artifact-text:#0f172a;
+  --artifact-muted:#64748b;
+  --artifact-muted-2:#94a3b8;
+  --artifact-accent:#2f5fef;
+  --artifact-accent-soft:#eaf0ff;
+  --artifact-success:#16a35a;
+  --artifact-success-soft:#e7f7ee;
+  --artifact-warning:#d9820a;
+  --artifact-warning-soft:#fdf1de;
+  --artifact-danger:#dc3545;
+  --artifact-danger-soft:#fdeaec;
+  --artifact-purple:#7c5cf0;
+  --artifact-purple-soft:#f1edfd;
+  --artifact-teal:#0ea5a5;
+  --artifact-teal-soft:#e3f7f7;
+  --artifact-shadow:0 1px 2px rgba(15,23,42,0.04),0 8px 24px -12px rgba(15,23,42,0.10);
+  --artifact-radius:14px;
+  --artifact-radius-sm:10px;
+  --font-ui:-apple-system,BlinkMacSystemFont,"Segoe UI",Inter,Roboto,Helvetica,Arial,sans-serif;
+  --font-mono:"SF Mono",ui-monospace,"Cascadia Code",Consolas,monospace;
+}
+html[data-theme='dark']{
+  --artifact-bg:#0b1020;
+  --artifact-surface:#121a2e;
+  --artifact-surface-2:#0f1626;
+  --artifact-border:#232d45;
+  --artifact-text:#eef1f8;
+  --artifact-muted:#9aa5c0;
+  --artifact-muted-2:#6c7796;
+  --artifact-accent:#5b82ff;
+  --artifact-accent-soft:#1a2140;
+  --artifact-success:#34c37c;
+  --artifact-success-soft:#122a20;
+  --artifact-warning:#e8a13a;
+  --artifact-warning-soft:#2c2213;
+  --artifact-danger:#f16a76;
+  --artifact-danger-soft:#2c1518;
+  --artifact-purple:#9c85f7;
+  --artifact-purple-soft:#211c3a;
+  --artifact-teal:#3fd0d0;
+  --artifact-teal-soft:#0f2626;
+  --artifact-shadow:0 1px 2px rgba(0,0,0,0.3),0 8px 24px -12px rgba(0,0,0,0.5);
+}
+*{box-sizing:border-box;}
+body{margin:0;font-family:var(--font-ui);background:var(--artifact-bg);color:var(--artifact-text);-webkit-font-smoothing:antialiased;}
+a{color:inherit;text-decoration:none;}
+button{font-family:inherit;cursor:pointer;}
+.shell{min-height:100vh;display:flex;flex-direction:column;}
+
+/* ---------- Topbar ---------- */
+.topbar{display:flex;align-items:center;justify-content:space-between;padding:12px 24px;background:var(--artifact-surface);border-bottom:1px solid var(--artifact-border);position:sticky;top:0;z-index:50;}
+.brand{display:flex;align-items:center;gap:10px;}
+.brand-mark{width:34px;height:34px;border-radius:10px;background:linear-gradient(135deg,#ff6b4a,#ff8a5c);display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:15px;flex-shrink:0;}
+.brand-text .name{font-size:14.5px;font-weight:700;letter-spacing:-.01em;line-height:1.2;}
+.brand-text .sub{font-size:10px;letter-spacing:.08em;color:var(--artifact-muted-2);font-weight:600;}
+.topbar-right{display:flex;align-items:center;gap:10px;}
+.badge-pill{font-size:11.5px;font-weight:600;padding:5px 10px;border-radius:999px;background:var(--artifact-warning-soft);color:var(--artifact-warning);border:1px solid transparent;}
+.badge-pill.blue{background:var(--artifact-accent-soft);color:var(--artifact-accent);}
+.badge-pill.admin-tag{background:var(--artifact-purple-soft);color:var(--artifact-purple);}
+
+.icon-btn{position:relative;width:38px;height:38px;border-radius:10px;border:1px solid var(--artifact-border);background:var(--artifact-surface);display:flex;align-items:center;justify-content:center;color:var(--artifact-muted);transition:background .15s;}
+.icon-btn:hover{background:var(--artifact-surface-2);}
+.icon-btn svg{width:18px;height:18px;}
+.notif-dot{position:absolute;top:-5px;right:-5px;min-width:17px;height:17px;padding:0 4px;border-radius:999px;background:var(--artifact-danger);color:#fff;font-size:10px;font-weight:700;display:flex;align-items:center;justify-content:center;border:2px solid var(--artifact-surface);}
+
+.profile-chip{display:flex;align-items:center;gap:9px;padding:5px 10px 5px 6px;border-radius:999px;border:1px solid var(--artifact-border);background:var(--artifact-surface);}
+.profile-chip:hover{background:var(--artifact-surface-2);}
+.avatar{width:30px;height:30px;border-radius:50%;background:var(--artifact-accent);color:#fff;font-size:12.5px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.profile-meta{text-align:left;line-height:1.2;}
+.profile-meta .pname{font-size:12.5px;font-weight:700;}
+.profile-meta .prole{font-size:10.5px;color:var(--artifact-muted-2);font-weight:600;}
+.chip-caret{width:14px;height:14px;color:var(--artifact-muted-2);}
+
+/* dropdown */
+.dropdown-panel{position:absolute;top:calc(100% + 8px);right:0;background:var(--artifact-surface);border:1px solid var(--artifact-border);border-radius:var(--artifact-radius);box-shadow:var(--artifact-shadow);min-width:270px;z-index:200;opacity:0;visibility:hidden;transform:translateY(-6px);transition:all .15s ease;overflow:hidden;}
+.dropdown-panel.open{opacity:1;visibility:visible;transform:translateY(0);}
+.dropdown-wrap{position:relative;}
+.dd-header{padding:14px 16px;border-bottom:1px solid var(--artifact-border);}
+.dd-header .dname{font-size:13.5px;font-weight:700;}
+.dd-header .demail{font-size:11.5px;color:var(--artifact-muted);margin-top:1px;}
+.dd-item{display:flex;align-items:center;gap:10px;padding:11px 16px;font-size:13px;font-weight:600;color:var(--artifact-text);}
+.dd-item:hover{background:var(--artifact-surface-2);}
+.dd-item svg{width:16px;height:16px;color:var(--artifact-muted);}
+.dd-item.danger{color:var(--artifact-danger);}
+.dd-item.danger svg{color:var(--artifact-danger);}
+.dd-sep{height:1px;background:var(--artifact-border);margin:4px 0;}
+
+.notif-panel{width:360px;max-height:440px;display:flex;flex-direction:column;}
+.notif-list{overflow-y:auto;max-height:340px;}
+.notif-row{display:flex;gap:10px;padding:12px 16px;border-bottom:1px solid var(--artifact-border);}
+.notif-row:last-child{border-bottom:none;}
+.notif-dotcolor{width:8px;height:8px;border-radius:50%;margin-top:5px;flex-shrink:0;}
+.notif-row .ntitle{font-size:12.5px;font-weight:600;line-height:1.35;}
+.notif-row .ntime{font-size:11px;color:var(--artifact-muted-2);margin-top:2px;}
+.notif-footer{padding:10px 16px;border-top:1px solid var(--artifact-border);display:flex;justify-content:space-between;align-items:center;}
+.link-btn{font-size:12px;font-weight:700;color:var(--artifact-accent);background:none;border:none;padding:0;}
+
+/* ---------- Layout: sidebar + main ---------- */
+.layout{display:flex;flex:1;min-height:0;}
+.sidebar{width:236px;flex-shrink:0;background:var(--artifact-surface);border-right:1px solid var(--artifact-border);padding:16px 12px;position:sticky;top:61px;align-self:flex-start;height:calc(100vh - 61px);overflow-y:auto;}
+.side-item{display:flex;align-items:center;gap:11px;padding:10px 12px;border-radius:10px;font-size:13.5px;font-weight:600;color:var(--artifact-muted);margin-bottom:2px;transition:background .15s,color .15s;}
+.side-item svg{width:17px;height:17px;flex-shrink:0;}
+.side-item:hover{background:var(--artifact-surface-2);color:var(--artifact-text);}
+.side-item.active{background:var(--artifact-accent-soft);color:var(--artifact-accent);}
+.side-label{font-size:10.5px;font-weight:700;letter-spacing:.07em;color:var(--artifact-muted-2);padding:14px 12px 6px;}
+
+.main{flex:1;min-width:0;padding:22px 26px 60px;}
+.view{display:none;animation:fadeIn .25s ease;}
+.view.active{display:block;}
+@keyframes fadeIn{from{opacity:0;transform:translateY(4px);}to{opacity:1;transform:translateY(0);}}
+
+.page-title{font-size:20px;font-weight:800;letter-spacing:-.01em;margin:0 0 3px;}
+.page-sub{font-size:13px;color:var(--artifact-muted);margin:0 0 18px;}
+.eyebrow{font-size:10.5px;font-weight:700;letter-spacing:.09em;color:var(--artifact-muted-2);margin:0 0 10px;}
+
+/* search row */
+.search-row{display:flex;gap:12px;align-items:center;margin-bottom:18px;}
+.search-box{flex:1;display:flex;align-items:center;gap:10px;background:var(--artifact-surface);border:1px solid var(--artifact-border);border-radius:11px;padding:10px 14px;}
+.search-box svg{width:17px;height:17px;color:var(--artifact-muted-2);flex-shrink:0;}
+.search-box input{border:none;outline:none;background:none;font-size:13.5px;width:100%;color:var(--artifact-text);font-family:inherit;}
+.search-box input::placeholder{color:var(--artifact-muted-2);}
+
+/* grid helpers */
+.grid{display:grid;gap:14px;}
+.g6{grid-template-columns:repeat(6,1fr);}
+.g5{grid-template-columns:repeat(5,1fr);}
+.g4{grid-template-columns:repeat(4,1fr);}
+.g3{grid-template-columns:repeat(3,1fr);}
+.g2{grid-template-columns:repeat(2,1fr);}
+.g-31{grid-template-columns:1.6fr 1fr 1fr;}
+.g-211{grid-template-columns:1.3fr 1fr 1fr;}
+@media (max-width:1200px){.g6{grid-template-columns:repeat(3,1fr);}.g5{grid-template-columns:repeat(3,1fr);}.g4{grid-template-columns:repeat(2,1fr);}.g-31,.g-211{grid-template-columns:1fr;}}
+
+.card{background:var(--artifact-surface);border:1px solid var(--artifact-border);border-radius:var(--artifact-radius);padding:17px 18px;}
+.card-flat{background:var(--artifact-surface-2);border:1px solid var(--artifact-border);border-radius:var(--artifact-radius-sm);padding:14px;}
+
+/* KPI card */
+.kpi{display:flex;flex-direction:column;gap:10px;}
+.kpi-top{display:flex;align-items:center;gap:9px;}
+.kpi-icon{width:32px;height:32px;border-radius:9px;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.kpi-icon svg{width:16px;height:16px;}
+.kpi-label{font-size:12px;color:var(--artifact-muted);font-weight:600;}
+.kpi-value{font-size:26px;font-weight:800;letter-spacing:-.02em;}
+.kpi-delta{font-size:11.5px;font-weight:700;display:flex;align-items:center;gap:4px;}
+.kpi-delta.up{color:var(--artifact-success);}
+.kpi-delta.down{color:var(--artifact-danger);}
+.kpi-delta span.ctx{color:var(--artifact-muted-2);font-weight:500;}
+
+.card-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;}
+.card-head h3{font-size:14.5px;font-weight:700;margin:0;}
+
+.tag{font-size:10.5px;font-weight:700;padding:3px 9px;border-radius:999px;white-space:nowrap;}
+.tag-high{background:var(--artifact-danger-soft);color:var(--artifact-danger);}
+.tag-medium{background:var(--artifact-warning-soft);color:var(--artifact-warning);}
+.tag-low{background:var(--artifact-accent-soft);color:var(--artifact-accent);}
+.tag-approved{background:var(--artifact-success-soft);color:var(--artifact-success);}
+.tag-review{background:var(--artifact-warning-soft);color:var(--artifact-warning);}
+.tag-new{background:var(--artifact-purple-soft);color:var(--artifact-purple);}
+.tag-rejected{background:var(--artifact-danger-soft);color:var(--artifact-danger);}
+.tag-neutral{background:var(--artifact-surface-2);color:var(--artifact-muted);border:1px solid var(--artifact-border);}
+
+.list-row{display:flex;align-items:flex-start;justify-content:space-between;gap:10px;padding:10px 0;border-bottom:1px solid var(--artifact-border);}
+.list-row:last-child{border-bottom:none;}
+.list-row .lr-title{font-size:13px;font-weight:700;}
+.list-row .lr-sub{font-size:11.5px;color:var(--artifact-muted);margin-top:2px;}
+.list-row .lr-right{display:flex;flex-direction:column;align-items:flex-end;gap:6px;flex-shrink:0;}
+
+.btn{display:inline-flex;align-items:center;gap:6px;font-size:12.5px;font-weight:700;padding:8px 14px;border-radius:9px;border:1px solid var(--artifact-border);background:var(--artifact-surface);color:var(--artifact-text);}
+.btn:hover{background:var(--artifact-surface-2);}
+.btn.primary{background:var(--artifact-accent);color:#fff;border-color:var(--artifact-accent);}
+.btn.primary:hover{opacity:.92;}
+.btn.success{background:var(--artifact-success);color:#fff;border-color:var(--artifact-success);}
+.btn.danger-outline{color:var(--artifact-danger);border-color:var(--artifact-danger-soft);background:var(--artifact-danger-soft);}
+.btn.sm{padding:6px 11px;font-size:11.5px;}
+.btn svg{width:14px;height:14px;}
+.btn:disabled{opacity:.5;cursor:not-allowed;}
+
+.avatar-sm{width:34px;height:34px;border-radius:50%;background:var(--artifact-accent-soft);color:var(--artifact-accent);font-size:11.5px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+</style>
+</head>
+<body>
+<div class="shell">
+
+<!-- ================= TOP BAR ================= -->
+<div class="topbar">
+  <div class="brand">
+    <div class="brand-mark">C</div>
+    <div class="brand-text">
+      <div class="name">Cprime TaaS</div>
+      <div class="sub">ADMIN CONSOLE</div>
+    </div>
+  </div>
+  <div class="topbar-right">
+    <span class="badge-pill">Demo data</span>
+    <span class="badge-pill blue">Postgres + pgvector</span>
+    <span class="badge-pill admin-tag">Admin session</span>
+
+    <div class="dropdown-wrap" id="notifWrap">
+      <button class="icon-btn" onclick="toggleDropdown('notifPanel')" aria-label="Notifications">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8a6 6 0 10-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 01-3.46 0"/></svg>
+        <span class="notif-dot" id="notifCount">6</span>
+      </button>
+      <div class="dropdown-panel notif-panel" id="notifPanel">
+        <div class="dd-header" style="display:flex;align-items:center;justify-content:space-between;">
+          <div class="dname">Notifications</div>
+          <button class="link-btn" onclick="markAllRead()">Mark all read</button>
+        </div>
+        <div class="notif-list" id="notifList"></div>
+        <div class="notif-footer">
+          <span style="font-size:11px;color:var(--artifact-muted-2);">Updated just now</span>
+          <button class="link-btn" onclick="closeAllDropdowns()">Close</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="dropdown-wrap" id="profileWrap">
+      <button class="profile-chip" onclick="toggleDropdown('profilePanel')">
+        <span class="avatar">JR</span>
+        <span class="profile-meta">
+          <div class="pname">Jordan Reyes</div>
+          <div class="prole">Platform Admin</div>
+        </span>
+        <svg class="chip-caret" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M6 9l6 6 6-6"/></svg>
+      </button>
+      <div class="dropdown-panel" id="profilePanel" style="min-width:230px;">
+        <div class="dd-header">
+          <div class="dname">Jordan Reyes</div>
+          <div class="demail">jordan.reyes@cprime.com · Platform Admin</div>
+        </div>
+        <a class="dd-item" onclick="openModal('profileModal')">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 4-6 8-6s8 2 8 6"/></svg>
+          Update profile
+        </a>
+        <a class="dd-item" onclick="openModal('settingsModal')">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 00.3 1.9l.1.1a2 2 0 11-2.8 2.8l-.1-.1a1.7 1.7 0 00-1.9-.3 1.7 1.7 0 00-1 1.5V21a2 2 0 11-4 0v-.1a1.7 1.7 0 00-1-1.6 1.7 1.7 0 00-1.9.3l-.1.1a2 2 0 11-2.8-2.8l.1-.1a1.7 1.7 0 00.3-1.9 1.7 1.7 0 00-1.5-1H3a2 2 0 110-4h.1a1.7 1.7 0 001.5-1 1.7 1.7 0 00-.3-1.9l-.1-.1a2 2 0 112.8-2.8l.1.1a1.7 1.7 0 001.9.3h0a1.7 1.7 0 001-1.5V3a2 2 0 114 0v.1a1.7 1.7 0 001 1.5 1.7 1.7 0 001.9-.3l.1-.1a2 2 0 112.8 2.8l-.1.1a1.7 1.7 0 00-.3 1.9v0a1.7 1.7 0 001.5 1H21a2 2 0 110 4h-.1a1.7 1.7 0 00-1.5 1z"/></svg>
+          Settings
+        </a>
+        <div class="dd-sep"></div>
+        <a class="dd-item danger" onclick="doLogout()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/><path d="M16 17l5-5-5-5"/><path d="M21 12H9"/></svg>
+          Log out
+        </a>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ================= LAYOUT ================= -->
+<div class="layout">
+  <div class="sidebar">
+    <a class="side-item active" data-view="dashboard" onclick="showView('dashboard')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="9" rx="1.5"/><rect x="14" y="3" width="7" height="5" rx="1.5"/><rect x="14" y="12" width="7" height="9" rx="1.5"/><rect x="3" y="16" width="7" height="5" rx="1.5"/></svg>
+      Dashboard
+    </a>
+    <a class="side-item" data-view="usermgmt" onclick="showView('usermgmt')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/></svg>
+      User Management
+    </a>
+    <a class="side-item" data-view="repository" onclick="showView('repository')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5A2.5 2.5 0 016.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 014 19.5v-15A2.5 2.5 0 016.5 2z"/></svg>
+      Repository
+    </a>
+    <a class="side-item" data-view="contentreview" onclick="showView('contentreview')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.1 2.1 0 013 3L12 15l-4 1 1-4z"/></svg>
+      Content Review
+    </a>
+    <a class="side-item" data-view="auditlogs" onclick="showView('auditlogs')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><path d="M14 2v6h6"/><path d="M9 15h6"/><path d="M9 11h6"/></svg>
+      Audit Logs &amp; Reports
+    </a>
+    <div class="side-label">CONFIGURATION</div>
+    <a class="side-item" data-view="sysconfig" onclick="showView('sysconfig')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 00.3 1.9l.1.1a2 2 0 11-2.8 2.8l-.1-.1a1.7 1.7 0 00-1.9-.3 1.7 1.7 0 00-1 1.5V21a2 2 0 11-4 0v-.1a1.7 1.7 0 00-1-1.6 1.7 1.7 0 00-1.9.3l-.1.1a2 2 0 11-2.8-2.8l.1-.1a1.7 1.7 0 00.3-1.9 1.7 1.7 0 00-1.5-1H3a2 2 0 110-4h.1a1.7 1.7 0 001.5-1 1.7 1.7 0 00-.3-1.9l-.1-.1a2 2 0 112.8-2.8l.1.1a1.7 1.7 0 001.9.3h0a1.7 1.7 0 001-1.5V3a2 2 0 114 0v.1a1.7 1.7 0 001 1.5 1.7 1.7 0 001.9-.3l.1-.1a2 2 0 112.8 2.8l-.1.1a1.7 1.7 0 00-.3 1.9v0a1.7 1.7 0 001.5 1H21a2 2 0 110 4h-.1a1.7 1.7 0 00-1.5 1z"/></svg>
+      System Config
+    </a>
+  </div>
+
+  <div class="main">
+
+<style>
+/* Dashboard specific */
+.sparkline-card{display:flex;flex-direction:column;gap:8px;}
+.sparkline-card .sc-label{font-size:11.5px;color:var(--artifact-muted);font-weight:600;}
+.sparkline-card .sc-value{font-size:18px;font-weight:800;display:flex;align-items:center;gap:8px;}
+.sc-status{font-size:10.5px;font-weight:700;padding:2px 8px;border-radius:999px;}
+.donut-wrap{display:flex;align-items:center;gap:18px;}
+.donut-legend{display:flex;flex-direction:column;gap:8px;flex:1;}
+.donut-legend .dl-row{display:flex;align-items:center;justify-content:space-between;font-size:12px;}
+.donut-legend .dl-row .dl-left{display:flex;align-items:center;gap:7px;color:var(--artifact-muted);font-weight:600;}
+.dl-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;}
+.dl-row .dl-val{font-weight:800;}
+.qa-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:12px;}
+@media (max-width:1200px){.qa-grid{grid-template-columns:repeat(2,1fr);}}
+.qa-card{display:flex;flex-direction:column;gap:10px;padding:16px;border:1px solid var(--artifact-border);border-radius:var(--artifact-radius-sm);background:var(--artifact-surface);transition:box-shadow .15s,transform .15s;}
+.qa-card:hover{box-shadow:var(--artifact-shadow);transform:translateY(-1px);}
+.qa-icon{width:34px;height:34px;border-radius:9px;background:var(--artifact-accent-soft);color:var(--artifact-accent);display:flex;align-items:center;justify-content:center;}
+.qa-icon svg{width:17px;height:17px;}
+.qa-title{font-size:13px;font-weight:700;}
+.qa-sub{font-size:11px;color:var(--artifact-muted-2);}
+.alert-row{display:flex;align-items:flex-start;gap:9px;padding:9px 0;border-bottom:1px solid var(--artifact-border);}
+.alert-row:last-child{border-bottom:none;}
+.alert-dot{width:7px;height:7px;border-radius:50%;margin-top:6px;flex-shrink:0;}
+.alert-row .a-title{font-size:12.5px;font-weight:600;}
+.alert-row .a-time{font-size:11px;color:var(--artifact-muted-2);margin-top:1px;}
+.event-row{display:flex;gap:10px;padding:9px 0;border-bottom:1px solid var(--artifact-border);}
+.event-row:last-child{border-bottom:none;}
+.event-icon{width:30px;height:30px;border-radius:8px;background:var(--artifact-accent-soft);color:var(--artifact-accent);display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.event-icon svg{width:14px;height:14px;}
+.event-row .e-title{font-size:12.5px;font-weight:700;}
+.event-row .e-time{font-size:11px;color:var(--artifact-muted-2);margin-top:1px;}
+</style>
+
+<!-- ================= DASHBOARD VIEW ================= -->
+<div class="view active" id="view-dashboard">
+  <div class="page-title">Good morning, Jordan</div>
+  <div class="page-sub">Here's what's happening across the TaaS platform today, July 23 2026.</div>
+
+  <div class="search-row">
+    <div class="search-box">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.3-4.3"/></svg>
+      <input type="text" id="globalSearch" placeholder="Search trainers, courses, content, audit log entries...">
+    </div>
+  </div>
+
+  <div class="eyebrow">ADMIN OVERVIEW</div>
+  <div class="grid g6" style="margin-bottom:18px;" id="kpiGrid"></div>
+
+  <div class="grid g-31" style="margin-bottom:18px;">
+    <div class="card">
+      <div class="card-head"><h3>Content Review Queue</h3><a class="link-btn" onclick="showView('contentreview')">View all</a></div>
+      <div id="dashReviewQueue"></div>
+    </div>
+    <div class="card">
+      <div class="card-head"><h3>Trainer Network Overview</h3><a class="link-btn" onclick="showView('usermgmt')">View all</a></div>
+      <div id="dashTrainerDonut"></div>
+    </div>
+    <div class="card">
+      <div class="card-head"><h3>Recent Trainer Activity</h3><a class="link-btn" onclick="showView('auditlogs')">View all</a></div>
+      <div id="dashTrainerActivity"></div>
+    </div>
+  </div>
+
+  <div class="grid g-31" style="margin-bottom:18px;">
+    <div class="card">
+      <div class="card-head"><h3>Recent System Alerts</h3><a class="link-btn" onclick="showView('auditlogs')">View all</a></div>
+      <div id="dashAlerts"></div>
+    </div>
+    <div class="card">
+      <div class="card-head"><h3>Upcoming Events</h3><a class="link-btn" onclick="showView('usermgmt')">View calendar</a></div>
+      <div id="dashEvents"></div>
+    </div>
+    <div class="card">
+      <div class="card-head"><h3>Top Content Categories</h3></div>
+      <div id="dashCategoryDonut"></div>
+    </div>
+  </div>
+
+  <div class="card" style="margin-bottom:18px;">
+    <div class="card-head"><h3>Platform Health &amp; Activity</h3><a class="link-btn" onclick="showView('sysconfig')">System config</a></div>
+    <div class="grid g5" id="dashSparklines"></div>
+  </div>
+
+  <div class="card">
+    <div class="card-head"><h3>Quick Actions</h3></div>
+    <div class="qa-grid" id="dashQuickActions"></div>
+  </div>
+</div>
+
+<style>
+.tabs-row{display:flex;gap:6px;background:var(--artifact-surface-2);border:1px solid var(--artifact-border);border-radius:11px;padding:4px;width:fit-content;margin-bottom:16px;}
+.tab-btn{padding:8px 16px;font-size:12.5px;font-weight:700;border-radius:8px;border:none;background:none;color:var(--artifact-muted);}
+.tab-btn.active{background:var(--artifact-surface);color:var(--artifact-text);box-shadow:var(--artifact-shadow);}
+.subtab-panel{display:none;}
+.subtab-panel.active{display:block;}
+
+.role-summary-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:18px;}
+@media (max-width:1100px){.role-summary-grid{grid-template-columns:repeat(2,1fr);}}
+.role-card{display:flex;align-items:center;gap:12px;padding:16px;border:1px solid var(--artifact-border);border-radius:var(--artifact-radius-sm);background:var(--artifact-surface);}
+.role-ic{width:38px;height:38px;border-radius:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.role-ic svg{width:18px;height:18px;}
+.role-name{font-size:13px;font-weight:700;}
+.role-count{font-size:19px;font-weight:800;}
+.role-sub{font-size:11px;color:var(--artifact-muted-2);}
+
+.users-table{width:100%;border-collapse:collapse;font-size:12.8px;}
+.users-table th{text-align:left;font-size:11px;letter-spacing:.04em;color:var(--artifact-muted-2);font-weight:700;padding:9px 10px;border-bottom:1px solid var(--artifact-border);}
+.users-table td{padding:11px 10px;border-bottom:1px solid var(--artifact-border);}
+.users-table tr:last-child td{border-bottom:none;}
+.u-name-cell{display:flex;align-items:center;gap:9px;font-weight:700;}
+.status-dot-inline{width:7px;height:7px;border-radius:50%;display:inline-block;margin-right:6px;}
+
+.viewtoggle{display:flex;gap:6px;background:var(--artifact-surface-2);border:1px solid var(--artifact-border);border-radius:10px;padding:3px;}
+.viewtoggle button{padding:6px 13px;font-size:12px;font-weight:700;border-radius:7px;border:none;background:none;color:var(--artifact-muted);display:flex;align-items:center;gap:6px;}
+.viewtoggle button.active{background:var(--artifact-surface);color:var(--artifact-accent);box-shadow:var(--artifact-shadow);}
+.viewtoggle svg{width:14px;height:14px;}
+
+.tn-toolbar{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:16px;flex-wrap:wrap;}
+.chip-filter{display:flex;gap:6px;flex-wrap:wrap;}
+.chip{padding:6px 12px;font-size:12px;font-weight:700;border-radius:999px;border:1px solid var(--artifact-border);background:var(--artifact-surface);color:var(--artifact-muted);}
+.chip.active{background:var(--artifact-accent);color:#fff;border-color:var(--artifact-accent);}
+
+.trainer-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;}
+@media (max-width:1200px){.trainer-grid{grid-template-columns:repeat(2,1fr);}}
+.trainer-card{border:1px solid var(--artifact-border);border-radius:var(--artifact-radius);padding:16px;background:var(--artifact-surface);cursor:pointer;transition:box-shadow .15s,transform .15s;}
+.trainer-card:hover{box-shadow:var(--artifact-shadow);transform:translateY(-2px);}
+.tc-head{display:flex;align-items:center;gap:11px;margin-bottom:12px;}
+.tc-name{font-size:13.5px;font-weight:700;}
+.tc-role{font-size:11.5px;color:var(--artifact-muted);}
+.tc-stats{display:flex;gap:14px;margin:10px 0;}
+.tc-stat{flex:1;}
+.tc-stat .v{font-size:15px;font-weight:800;}
+.tc-stat .l{font-size:10px;color:var(--artifact-muted-2);font-weight:600;}
+.tc-actions{font-size:11.5px;font-weight:700;color:var(--artifact-warning);display:flex;align-items:center;gap:5px;margin-top:8px;}
+.tc-skills{display:flex;gap:5px;flex-wrap:wrap;margin-top:8px;}
+.skill-chip{font-size:10.5px;font-weight:600;padding:3px 8px;border-radius:999px;background:var(--artifact-surface-2);border:1px solid var(--artifact-border);color:var(--artifact-muted);}
+
+.map-wrap{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:16px;}
+@media (max-width:1100px){.map-wrap{grid-template-columns:repeat(2,1fr);}}
+.region-card{border:1px solid var(--artifact-border);border-radius:var(--artifact-radius);padding:18px;text-align:center;cursor:pointer;background:var(--artifact-surface);transition:border-color .15s,transform .15s;}
+.region-card:hover{transform:translateY(-2px);}
+.region-card.active{border-color:var(--artifact-accent);background:var(--artifact-accent-soft);}
+.region-flag{font-size:26px;margin-bottom:6px;}
+.region-name{font-size:13.5px;font-weight:800;}
+.region-count{font-size:22px;font-weight:800;color:var(--artifact-accent);margin:4px 0;}
+.region-sub{font-size:11px;color:var(--artifact-muted-2);}
+
+/* Slideover profile */
+.overlay-mask{position:fixed;inset:0;background:rgba(15,23,42,0.35);z-index:300;opacity:0;visibility:hidden;transition:opacity .2s;}
+.overlay-mask.open{opacity:1;visibility:visible;}
+.slideover{position:fixed;top:0;right:0;height:100%;width:440px;max-width:92vw;background:var(--artifact-surface);z-index:301;box-shadow:-8px 0 30px rgba(15,23,42,0.12);transform:translateX(100%);transition:transform .25s ease;overflow-y:auto;}
+.slideover.open{transform:translateX(0);}
+.slideover-banner{background:linear-gradient(135deg,#1e2a4a,#334874);color:#fff;padding:24px;}
+.slideover-close{position:absolute;top:16px;right:16px;width:32px;height:32px;border-radius:9px;background:rgba(255,255,255,0.12);color:#fff;border:none;display:flex;align-items:center;justify-content:center;}
+.so-avatar{width:54px;height:54px;border-radius:50%;background:rgba(255,255,255,0.16);display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:800;margin-bottom:10px;}
+.so-name{font-size:17px;font-weight:800;}
+.so-role{font-size:12.5px;opacity:.85;margin-top:2px;}
+.so-stats{display:flex;gap:0;margin-top:16px;border-top:1px solid rgba(255,255,255,0.18);padding-top:14px;}
+.so-stat{flex:1;}
+.so-stat .v{font-size:17px;font-weight:800;}
+.so-stat .l{font-size:10.5px;opacity:.8;}
+.so-body{padding:20px;}
+.so-tabs{display:flex;gap:4px;background:var(--artifact-surface-2);border:1px solid var(--artifact-border);border-radius:10px;padding:3px;margin-bottom:18px;}
+.so-tab{flex:1;text-align:center;padding:8px;font-size:12.5px;font-weight:700;border-radius:8px;color:var(--artifact-muted);}
+.so-tab.active{background:var(--artifact-surface);color:var(--artifact-accent);box-shadow:var(--artifact-shadow);}
+.so-section-title{font-size:11.5px;font-weight:800;letter-spacing:.05em;color:var(--artifact-muted-2);margin:18px 0 9px;}
+.todo-row{display:flex;align-items:flex-start;justify-content:space-between;gap:8px;padding:9px 0;border-bottom:1px solid var(--artifact-border);}
+.todo-row:last-child{border-bottom:none;}
+.todo-text{font-size:12.5px;font-weight:600;}
+
+.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;margin-bottom:14px;}
+.cal-dow{font-size:10px;font-weight:700;color:var(--artifact-muted-2);text-align:center;padding-bottom:4px;}
+.cal-day{aspect-ratio:1;border-radius:8px;font-size:11.5px;font-weight:700;display:flex;align-items:center;justify-content:center;border:1px solid var(--artifact-border);cursor:pointer;background:var(--artifact-surface);color:var(--artifact-text);}
+.cal-day.empty{visibility:hidden;}
+.cal-day.available{background:var(--artifact-success-soft);color:var(--artifact-success);border-color:transparent;}
+.cal-day.booked{background:var(--artifact-accent-soft);color:var(--artifact-accent);border-color:transparent;}
+.cal-day.blocked{background:var(--artifact-surface-2);color:var(--artifact-muted-2);border-color:transparent;cursor:not-allowed;}
+.cal-day.selected{outline:2px solid var(--artifact-accent);}
+.cal-legend{display:flex;gap:14px;font-size:11px;color:var(--artifact-muted);margin-bottom:14px;flex-wrap:wrap;}
+.cal-legend span{display:flex;align-items:center;gap:5px;}
+.cal-legend .dot{width:8px;height:8px;border-radius:50%;}
+.slot-list{display:flex;flex-direction:column;gap:8px;}
+.slot-row{display:flex;align-items:center;justify-content:space-between;padding:10px 12px;border:1px solid var(--artifact-border);border-radius:9px;font-size:12.5px;font-weight:600;}
+.slot-row.taken{opacity:.5;}
+.booking-confirm{display:none;margin-top:12px;padding:12px;border-radius:10px;background:var(--artifact-success-soft);color:var(--artifact-success);font-size:12.5px;font-weight:700;}
+</style>
+
+<!-- ================= USER MANAGEMENT VIEW ================= -->
+<div class="view" id="view-usermgmt">
+  <div class="page-title">User Management</div>
+  <div class="page-sub">Manage every platform account and the trainer network — profiles, availability, and scheduling in one place.</div>
+
+  <div class="tabs-row">
+    <button class="tab-btn active" data-subtab="allusers" onclick="showSubtab('um', 'allusers')">All Users</button>
+    <button class="tab-btn" data-subtab="trainernetwork" onclick="showSubtab('um', 'trainernetwork')">Trainer Network</button>
+  </div>
+
+  <!-- All Users subtab -->
+  <div class="subtab-panel active" id="um-allusers">
+    <div class="role-summary-grid" id="roleSummaryGrid"></div>
+    <div class="card">
+      <div class="card-head"><h3>All Platform Accounts</h3>
+        <div class="search-box" style="width:240px;padding:6px 12px;">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.3-4.3"/></svg>
+          <input type="text" placeholder="Search users..." oninput="filterUsersTable(this.value)">
+        </div>
+      </div>
+      <table class="users-table">
+        <thead><tr><th>Name</th><th>Role</th><th>Department / Region</th><th>Status</th><th>Last active</th></tr></thead>
+        <tbody id="usersTableBody"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Trainer Network subtab -->
+  <div class="subtab-panel" id="um-trainernetwork">
+    <div class="grid g4" style="margin-bottom:16px;" id="tnKpiGrid"></div>
+
+    <div class="tn-toolbar">
+      <div class="chip-filter" id="tnRegionChips"></div>
+      <div class="viewtoggle">
+        <button class="active" id="tnViewListBtn" onclick="setTrainerView('list')">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01"/></svg>List
+        </button>
+        <button id="tnViewMapBtn" onclick="setTrainerView('map')">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 6v16l7-4 8 4 7-4V2l-7 4-8-4z"/><path d="M8 2v16M16 6v16"/></svg>Global Map
+        </button>
+      </div>
+    </div>
+
+    <div id="tnListView">
+      <div class="trainer-grid" id="trainerGrid"></div>
+    </div>
+    <div id="tnMapView" style="display:none;">
+      <div class="map-wrap" id="regionMapGrid"></div>
+      <div class="card">
+        <div class="card-head"><h3 id="regionListTitle">All Regions — Trainers</h3></div>
+        <div class="trainer-grid" id="regionTrainerGrid"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ============ Trainer profile slideover ============ -->
+<div class="overlay-mask" id="trainerMask" onclick="closeSlideover()"></div>
+<div class="slideover" id="trainerSlideover">
+  <div class="slideover-banner">
+    <button class="slideover-close" onclick="closeSlideover()">✕</button>
+    <div class="so-avatar" id="soAvatar"></div>
+    <div class="so-name" id="soName"></div>
+    <div class="so-role" id="soRole"></div>
+    <div class="so-stats">
+      <div class="so-stat"><div class="v" id="soUtil"></div><div class="l">Utilization</div></div>
+      <div class="so-stat"><div class="v" id="soRate"></div><div class="l">Day rate</div></div>
+      <div class="so-stat"><div class="v" id="soAvail"></div><div class="l">Available</div></div>
+    </div>
+  </div>
+  <div class="so-body">
+    <div class="so-tabs">
+      <button class="so-tab active" onclick="setSlideoverTab('profile')">Profile</button>
+      <button class="so-tab" onclick="setSlideoverTab('calendar')">Calendar &amp; Booking</button>
+    </div>
+    <div id="soTab-profile"></div>
+    <div id="soTab-calendar" style="display:none;"></div>
+  </div>
+</div>
+
+<style>
+.repo-summary{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:18px;}
+@media (max-width:1100px){.repo-summary{grid-template-columns:repeat(2,1fr);}}
+.category-card{border:1px solid var(--artifact-border);border-radius:var(--artifact-radius);margin-bottom:12px;background:var(--artifact-surface);overflow:hidden;}
+.category-head{display:flex;align-items:center;justify-content:space-between;padding:15px 18px;cursor:pointer;}
+.category-head:hover{background:var(--artifact-surface-2);}
+.cat-left{display:flex;align-items:center;gap:12px;}
+.cat-icon{width:38px;height:38px;border-radius:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.cat-icon svg{width:18px;height:18px;}
+.cat-name{font-size:14px;font-weight:700;}
+.cat-sub{font-size:11.5px;color:var(--artifact-muted-2);}
+.cat-chevron{width:16px;height:16px;color:var(--artifact-muted-2);transition:transform .2s;}
+.category-card.expanded .cat-chevron{transform:rotate(180deg);}
+.category-body{display:none;padding:0 18px 16px;}
+.category-card.expanded .category-body{display:block;}
+.course-row{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:11px 0;border-top:1px solid var(--artifact-border);}
+.course-row .cr-title{font-size:12.8px;font-weight:700;}
+.course-row .cr-meta{font-size:11px;color:var(--artifact-muted-2);margin-top:2px;}
+.course-row .cr-right{display:flex;align-items:center;gap:10px;flex-shrink:0;}
+
+.review-toolbar{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;flex-wrap:wrap;gap:10px;}
+.review-item{border:1px solid var(--artifact-border);border-radius:var(--artifact-radius-sm);padding:14px 16px;margin-bottom:10px;}
+.ri-top{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;}
+.ri-title{font-size:13.2px;font-weight:700;}
+.ri-meta{font-size:11.5px;color:var(--artifact-muted-2);margin-top:3px;}
+.ri-actions{display:flex;gap:8px;}
+.ri-detail{display:none;margin-top:12px;padding-top:12px;border-top:1px solid var(--artifact-border);font-size:12.3px;color:var(--artifact-muted);}
+.review-item.expanded .ri-detail{display:block;}
+.diff-box{display:flex;gap:10px;margin-top:8px;}
+.diff-col{flex:1;padding:10px;border-radius:8px;font-size:11.8px;font-family:var(--font-mono);}
+.diff-col.old{background:var(--artifact-danger-soft);color:var(--artifact-danger);}
+.diff-col.new{background:var(--artifact-success-soft);color:var(--artifact-success);}
+.sync-status-row{display:flex;align-items:center;gap:8px;margin-top:10px;font-size:12px;font-weight:700;}
+.sync-progress{width:100%;height:6px;background:var(--artifact-surface-2);border-radius:99px;overflow:hidden;margin-top:8px;display:none;}
+.sync-progress-bar{height:100%;background:var(--artifact-accent);width:0%;transition:width 1.2s ease;}
+
+.sync-info-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;}
+@media (max-width:1100px){.sync-info-grid{grid-template-columns:repeat(2,1fr);}}
+</style>
+
+<!-- ================= REPOSITORY VIEW ================= -->
+<div class="view" id="view-repository">
+  <div class="page-title">Content Repository</div>
+  <div class="page-sub">Governed source of truth for every course, organized by category with version and sync status.</div>
+
+  <div class="repo-summary" id="repoSummaryGrid"></div>
+
+  <div class="search-row">
+    <div class="search-box">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.3-4.3"/></svg>
+      <input type="text" placeholder="Search courses by title, category, or version..." oninput="filterRepository(this.value)">
+    </div>
+  </div>
+
+  <div id="categoryList"></div>
+</div>
+
+<!-- ================= CONTENT REVIEW VIEW ================= -->
+<div class="view" id="view-contentreview">
+  <div class="page-title">Content Review</div>
+  <div class="page-sub">Vendor-detected updates and existing items awaiting approval, with official-source sync tracking.</div>
+
+  <div class="grid g4" style="margin-bottom:18px;" id="crKpiGrid"></div>
+
+  <div class="card" style="margin-bottom:18px;">
+    <div class="card-head"><h3>Sync Information</h3></div>
+    <div class="sync-info-grid" id="syncInfoGrid"></div>
+  </div>
+
+  <div class="tabs-row">
+    <button class="tab-btn active" data-subtab="newupdates" onclick="showSubtab('cr', 'newupdates')">New Updates (<span id="newUpdatesCount"></span>)</button>
+    <button class="tab-btn" data-subtab="reviewed" onclick="showSubtab('cr', 'reviewed')">Reviewed / Approved</button>
+  </div>
+
+  <div class="subtab-panel active" id="cr-newupdates">
+    <div class="review-toolbar">
+      <div class="eyebrow" style="margin:0;">ITEMS DETECTED FROM VENDOR / OFFICIAL SOURCES</div>
+      <button class="btn sm" onclick="openModal('uploadDiffModal')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><path d="M17 8l-5-5-5 5"/><path d="M12 3v12"/></svg>
+        Upload PDF diff
+      </button>
+    </div>
+    <div id="newUpdatesList"></div>
+  </div>
+
+  <div class="subtab-panel" id="cr-reviewed">
+    <div class="eyebrow">APPROVAL &amp; SYNC HISTORY</div>
+    <div id="reviewedList"></div>
+  </div>
+</div>
+
+<style>
+.audit-toolbar{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:16px;flex-wrap:wrap;}
+.audit-filters{display:flex;gap:8px;flex-wrap:wrap;}
+.select-sm{font-size:12px;font-weight:600;padding:8px 10px;border-radius:9px;border:1px solid var(--artifact-border);background:var(--artifact-surface);color:var(--artifact-text);}
+.audit-table{width:100%;border-collapse:collapse;font-size:12.5px;}
+.audit-table th{text-align:left;font-size:10.8px;letter-spacing:.04em;color:var(--artifact-muted-2);font-weight:700;padding:9px 10px;border-bottom:1px solid var(--artifact-border);white-space:nowrap;}
+.audit-table td{padding:10px 10px;border-bottom:1px solid var(--artifact-border);vertical-align:top;}
+.audit-table tr:last-child td{border-bottom:none;}
+.audit-time{color:var(--artifact-muted-2);font-size:11.5px;white-space:nowrap;}
+.cat-pill{font-size:10.5px;font-weight:700;padding:3px 9px;border-radius:999px;white-space:nowrap;}
+
+.report-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:18px;}
+@media (max-width:1100px){.report-grid{grid-template-columns:repeat(1,1fr);}}
+.report-card{border:1px solid var(--artifact-border);border-radius:var(--artifact-radius-sm);padding:15px;display:flex;flex-direction:column;gap:8px;}
+.report-card .rc-title{font-size:13px;font-weight:700;}
+.report-card .rc-sub{font-size:11.5px;color:var(--artifact-muted-2);}
+
+.integration-row{display:flex;align-items:center;justify-content:space-between;padding:13px 0;border-bottom:1px solid var(--artifact-border);gap:10px;flex-wrap:wrap;}
+.integration-row:last-child{border-bottom:none;}
+.int-left{display:flex;align-items:center;gap:11px;}
+.int-icon{width:36px;height:36px;border-radius:9px;background:var(--artifact-surface-2);border:1px solid var(--artifact-border);display:flex;align-items:center;justify-content:center;font-size:15px;flex-shrink:0;}
+.int-name{font-size:13px;font-weight:700;}
+.int-meta{font-size:11px;color:var(--artifact-muted-2);}
+.perm-table{width:100%;border-collapse:collapse;font-size:12px;}
+.perm-table th,.perm-table td{padding:8px 6px;text-align:center;border-bottom:1px solid var(--artifact-border);}
+.perm-table th:first-child,.perm-table td:first-child{text-align:left;}
+.perm-table th{font-size:10.5px;color:var(--artifact-muted-2);font-weight:700;}
+.perm-check{width:16px;height:16px;color:var(--artifact-success);}
+.perm-cross{width:16px;height:16px;color:var(--artifact-muted-2);opacity:.4;}
+.env-row{display:flex;justify-content:space-between;padding:9px 0;border-bottom:1px solid var(--artifact-border);font-size:12.5px;}
+.env-row:last-child{border-bottom:none;}
+.env-row .el{color:var(--artifact-muted);font-weight:600;}
+.env-row .ev{font-weight:700;font-family:var(--font-mono);font-size:11.8px;}
+</style>
+
+<!-- ================= AUDIT LOGS & REPORTS VIEW ================= -->
+<div class="view" id="view-auditlogs">
+  <div class="page-title">Audit Logs &amp; Reports</div>
+  <div class="page-sub">Full accountability trail across the platform, with report generation and export.</div>
+
+  <div class="grid g4" style="margin-bottom:18px;" id="auditKpiGrid"></div>
+
+  <div class="card" style="margin-bottom:18px;">
+    <div class="card-head"><h3>Generate a Report</h3></div>
+    <div class="report-grid">
+      <div class="report-card">
+        <div class="rc-title">Content Governance Report</div>
+        <div class="rc-sub">Review approvals, rejections &amp; sync activity for a date range.</div>
+        <button class="btn sm primary" style="margin-top:4px;" onclick="generateReport('Content Governance')">Generate</button>
+      </div>
+      <div class="report-card">
+        <div class="rc-title">Trainer Network Report</div>
+        <div class="rc-sub">Utilization, certifications &amp; onboarding activity.</div>
+        <button class="btn sm primary" style="margin-top:4px;" onclick="generateReport('Trainer Network')">Generate</button>
+      </div>
+      <div class="report-card">
+        <div class="rc-title">Full Platform Audit Report</div>
+        <div class="rc-sub">Every logged action across all categories.</div>
+        <button class="btn sm primary" style="margin-top:4px;" onclick="generateReport('Full Platform Audit')">Generate</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="audit-toolbar">
+      <h3 style="margin:0;font-size:14.5px;">Event Log</h3>
+      <div class="audit-filters">
+        <select class="select-sm" id="auditCategoryFilter" onchange="filterAuditLog()">
+          <option value="all">All categories</option>
+          <option value="Content Review">Content Review</option>
+          <option value="Trainer">Trainer Network</option>
+          <option value="User Management">User Management</option>
+          <option value="System">System</option>
+          <option value="Config">Configuration</option>
+        </select>
+        <select class="select-sm" id="auditRangeFilter" onchange="filterAuditLog()">
+          <option value="30">Last 30 days</option>
+          <option value="7">Last 7 days</option>
+          <option value="1">Today</option>
+        </select>
+        <button class="btn sm" onclick="exportAuditLog('csv')">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><path d="M7 10l5 5 5-5"/><path d="M12 15V3"/></svg>
+          Export CSV
+        </button>
+        <button class="btn sm" onclick="exportAuditLog('pdf')">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><path d="M7 10l5 5 5-5"/><path d="M12 15V3"/></svg>
+          Export PDF
+        </button>
+      </div>
+    </div>
+    <div style="overflow-x:auto;">
+      <table class="audit-table">
+        <thead><tr><th>Timestamp</th><th>Actor</th><th>Category</th><th>Action</th><th>Details</th></tr></thead>
+        <tbody id="auditTableBody"></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- ================= SYSTEM CONFIG VIEW ================= -->
+<div class="view" id="view-sysconfig">
+  <div class="page-title">System Config</div>
+  <div class="page-sub">Roles, integrations, and platform environment settings admins need to keep TaaS running smoothly.</div>
+
+  <div class="grid g2" style="margin-bottom:18px;">
+    <div class="card">
+      <div class="card-head"><h3>Roles &amp; Access</h3></div>
+      <table class="perm-table">
+        <thead><tr><th>Permission</th><th>Admin</th><th>Sales</th><th>Trainer</th><th>Learner</th></tr></thead>
+        <tbody id="permTableBody"></tbody>
+      </table>
+    </div>
+    <div class="card">
+      <div class="card-head"><h3>Platform Environment</h3></div>
+      <div id="envList"></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-head"><h3>System Integrations</h3></div>
+    <div id="integrationList"></div>
+  </div>
+</div>
+
+<style>
+.copilot-fab{position:fixed;bottom:24px;right:24px;width:56px;height:56px;border-radius:50%;background:var(--artifact-accent);color:#fff;display:flex;align-items:center;justify-content:center;box-shadow:0 8px 24px -6px rgba(47,95,239,0.5);z-index:400;border:none;transition:transform .15s;}
+.copilot-fab:hover{transform:scale(1.06);}
+.copilot-fab svg{width:24px;height:24px;}
+.copilot-panel{position:fixed;bottom:92px;right:24px;width:360px;max-width:92vw;height:490px;background:var(--artifact-surface);border:1px solid var(--artifact-border);border-radius:var(--artifact-radius);box-shadow:var(--artifact-shadow);z-index:401;display:flex;flex-direction:column;overflow:hidden;opacity:0;visibility:hidden;transform:translateY(10px) scale(.98);transition:all .18s ease;}
+.copilot-panel.open{opacity:1;visibility:visible;transform:translateY(0) scale(1);}
+.cp-head{display:flex;align-items:center;justify-content:space-between;padding:14px 16px;border-bottom:1px solid var(--artifact-border);background:linear-gradient(135deg,var(--artifact-accent-soft),var(--artifact-surface));}
+.cp-head-title{display:flex;align-items:center;gap:9px;font-size:13.5px;font-weight:800;}
+.cp-head-title .cp-dot{width:8px;height:8px;border-radius:50%;background:var(--artifact-success);}
+.cp-close{width:26px;height:26px;border-radius:7px;border:none;background:none;color:var(--artifact-muted);display:flex;align-items:center;justify-content:center;}
+.cp-body{flex:1;overflow-y:auto;padding:14px 16px;display:flex;flex-direction:column;gap:10px;}
+.cp-msg{max-width:85%;font-size:12.6px;line-height:1.45;padding:9px 12px;border-radius:12px;}
+.cp-msg.bot{background:var(--artifact-surface-2);align-self:flex-start;border:1px solid var(--artifact-border);}
+.cp-msg.user{background:var(--artifact-accent);color:#fff;align-self:flex-end;}
+.cp-suggestions{display:flex;flex-direction:column;gap:6px;margin-top:4px;}
+.cp-sugg-btn{text-align:left;font-size:12px;font-weight:600;padding:8px 11px;border-radius:9px;border:1px solid var(--artifact-border);background:var(--artifact-surface);color:var(--artifact-accent);}
+.cp-sugg-btn:hover{background:var(--artifact-accent-soft);}
+.cp-input-row{display:flex;gap:8px;padding:12px 14px;border-top:1px solid var(--artifact-border);}
+.cp-input-row input{flex:1;border:1px solid var(--artifact-border);border-radius:9px;padding:9px 12px;font-size:12.5px;outline:none;background:var(--artifact-surface-2);color:var(--artifact-text);font-family:inherit;}
+.cp-send{width:36px;height:36px;border-radius:9px;background:var(--artifact-accent);color:#fff;border:none;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.cp-send svg{width:16px;height:16px;}
+
+.modal-mask{position:fixed;inset:0;background:rgba(15,23,42,0.4);z-index:500;display:flex;align-items:center;justify-content:center;opacity:0;visibility:hidden;transition:opacity .15s;}
+.modal-mask.open{opacity:1;visibility:visible;}
+.modal-box{background:var(--artifact-surface);border-radius:var(--artifact-radius);width:420px;max-width:92vw;max-height:85vh;overflow-y:auto;box-shadow:var(--artifact-shadow);}
+.modal-head{display:flex;align-items:center;justify-content:space-between;padding:16px 18px;border-bottom:1px solid var(--artifact-border);}
+.modal-head h3{margin:0;font-size:14.5px;}
+.modal-close{width:28px;height:28px;border-radius:8px;border:none;background:var(--artifact-surface-2);display:flex;align-items:center;justify-content:center;color:var(--artifact-muted);}
+.modal-body{padding:18px;}
+.form-row{margin-bottom:12px;}
+.form-row label{display:block;font-size:11.5px;font-weight:700;color:var(--artifact-muted);margin-bottom:5px;}
+.form-row input,.form-row select{width:100%;padding:9px 11px;border-radius:9px;border:1px solid var(--artifact-border);font-size:12.8px;font-family:inherit;background:var(--artifact-surface-2);color:var(--artifact-text);}
+.modal-footer{padding:14px 18px;border-top:1px solid var(--artifact-border);display:flex;justify-content:flex-end;gap:8px;}
+
+.toast-wrap{position:fixed;bottom:24px;left:24px;z-index:600;display:flex;flex-direction:column;gap:8px;}
+.toast{background:var(--artifact-text);color:var(--artifact-surface);font-size:12.5px;font-weight:600;padding:11px 16px;border-radius:10px;box-shadow:var(--artifact-shadow);opacity:0;transform:translateY(8px);transition:all .2s;}
+.toast.show{opacity:1;transform:translateY(0);}
+</style>
+
+<!-- ================= COPILOT ================= -->
+<button class="copilot-fab" onclick="toggleCopilot()" aria-label="TaaS Copilot">
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2a4 4 0 014 4v2a4 4 0 01-8 0V6a4 4 0 014-4z"/><path d="M5 21v-1a7 7 0 0114 0v1"/><circle cx="9" cy="8" r=".5"/><circle cx="15" cy="8" r=".5"/></svg>
+</button>
+<div class="copilot-panel" id="copilotPanel">
+  <div class="cp-head">
+    <div class="cp-head-title"><span class="cp-dot"></span> TaaS Copilot</div>
+    <button class="cp-close" onclick="toggleCopilot()">✕</button>
+  </div>
+  <div class="cp-body" id="cpBody">
+    <div class="cp-msg bot">Hi Jordan 👋 I'm your Admin Copilot. Ask me anything about content review, trainers, repository health, or the audit log — I can pull it up right here.</div>
+    <div class="cp-suggestions" id="cpSuggestions"></div>
+  </div>
+  <div class="cp-input-row">
+    <input type="text" id="cpInput" placeholder="Ask Copilot..." onkeydown="if(event.key==='Enter')sendCopilotMessage()">
+    <button class="cp-send" onclick="sendCopilotMessage()">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 2L11 13"/><path d="M22 2l-7 20-4-9-9-4z"/></svg>
+    </button>
+  </div>
+</div>
+
+<!-- ================= MODALS ================= -->
+<div class="modal-mask" id="profileModal">
+  <div class="modal-box">
+    <div class="modal-head"><h3>Update Profile</h3><button class="modal-close" onclick="closeModal('profileModal')">✕</button></div>
+    <div class="modal-body">
+      <div class="form-row"><label>Full name</label><input type="text" value="Jordan Reyes"></div>
+      <div class="form-row"><label>Email</label><input type="text" value="jordan.reyes@cprime.com"></div>
+      <div class="form-row"><label>Role</label><input type="text" value="Platform Admin" disabled></div>
+      <div class="form-row"><label>Time zone</label><select><option>IST (UTC+5:30)</option><option>EST (UTC-5)</option><option>PST (UTC-8)</option></select></div>
+    </div>
+    <div class="modal-footer"><button class="btn" onclick="closeModal('profileModal')">Cancel</button><button class="btn primary" onclick="saveDemo('profileModal','Profile updated')">Save changes</button></div>
+  </div>
+</div>
+
+<div class="modal-mask" id="settingsModal">
+  <div class="modal-box">
+    <div class="modal-head"><h3>Settings</h3><button class="modal-close" onclick="closeModal('settingsModal')">✕</button></div>
+    <div class="modal-body">
+      <div class="form-row"><label>Email notifications</label><select><option>All activity</option><option>High priority only</option><option>Off</option></select></div>
+      <div class="form-row"><label>Default landing screen</label><select><option>Dashboard</option><option>Content Review</option><option>Audit Logs</option></select></div>
+      <div class="form-row"><label>Theme</label><select><option>Light</option><option>Dark</option><option>System</option></select></div>
+    </div>
+    <div class="modal-footer"><button class="btn" onclick="closeModal('settingsModal')">Cancel</button><button class="btn primary" onclick="saveDemo('settingsModal','Settings saved')">Save changes</button></div>
+  </div>
+</div>
+
+<div class="modal-mask" id="uploadDiffModal">
+  <div class="modal-box">
+    <div class="modal-head"><h3>Upload PDF Diff</h3><button class="modal-close" onclick="closeModal('uploadDiffModal')">✕</button></div>
+    <div class="modal-body">
+      <div class="form-row"><label>Certification source</label><select><option>SAFe</option><option>Scrum.org</option><option>GitLab</option><option>ICAgile</option><option>Partner source</option></select></div>
+      <div class="form-row"><label>Affected course</label><input type="text" placeholder="e.g. SAFe DevOps Practitioner"></div>
+      <div class="form-row"><label>Old version PDF</label><input type="file"></div>
+      <div class="form-row"><label>New version PDF</label><input type="file"></div>
+    </div>
+    <div class="modal-footer"><button class="btn" onclick="closeModal('uploadDiffModal')">Cancel</button><button class="btn primary" onclick="saveDemo('uploadDiffModal','Diff uploaded — added to New Updates queue')">Upload &amp; queue for review</button></div>
+  </div>
+</div>
+
+<div class="modal-mask" id="reportModal">
+  <div class="modal-box">
+    <div class="modal-head"><h3 id="reportModalTitle">Report</h3><button class="modal-close" onclick="closeModal('reportModal')">✕</button></div>
+    <div class="modal-body">
+      <div class="form-row"><label>Date range</label><select><option>Last 30 days</option><option>Last 7 days</option><option>This quarter</option></select></div>
+      <div class="form-row"><label>Format</label><select><option>PDF</option><option>CSV</option><option>XLSX</option></select></div>
+      <p style="font-size:12px;color:var(--artifact-muted);margin:0;">This will compile the selected report using current audit log and platform data.</p>
+    </div>
+    <div class="modal-footer"><button class="btn" onclick="closeModal('reportModal')">Cancel</button><button class="btn primary" onclick="finishReport()">Generate report</button></div>
+  </div>
+</div>
+
+<div class="toast-wrap" id="toastWrap"></div>
+  </div>
+</div>
+</div>
+
+<script>
+/* ================= ICONS ================= */
+const ICONS = {
+  trainers:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/></svg>',
+  courses:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5A2.5 2.5 0 016.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 014 19.5v-15A2.5 2.5 0 016.5 2z"/></svg>',
+  learners:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c3 2 9 2 12 0v-5"/></svg>',
+  health:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><path d="M22 4L12 14.01l-3-3"/></svg>',
+  actions:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>',
+  util:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3v18h18"/><path d="M18.7 8l-5.3 5.3-3-3L4 16.7"/></svg>',
+  review:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.1 2.1 0 013 3L12 15l-4 1 1-4z"/></svg>',
+  repo:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5A2.5 2.5 0 016.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 014 19.5v-15A2.5 2.5 0 016.5 2z"/></svg>',
+  branding:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 19l7-7 3 3-7 7-3-3z"/><path d="M18 13l-1.5-7.5L2 2l3.5 14.5L13 18z"/><path d="M2 2l7.586 7.586"/><circle cx="11" cy="11" r="2"/></svg>',
+  export:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><path d="M17 8l-5-5-5 5"/><path d="M12 3v12"/></svg>',
+  addtrainer:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="8.5" cy="7" r="4"/><path d="M20 8v6M23 11h-6"/></svg>',
+  createcourse:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 013 3L7 19l-4 1 1-4z"/></svg>',
+  cfg:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 00.3 1.9l.1.1a2 2 0 11-2.8 2.8l-.1-.1a1.7 1.7 0 00-1.9-.3 1.7 1.7 0 00-1 1.5V21a2 2 0 11-4 0v-.1a1.7 1.7 0 00-1-1.6 1.7 1.7 0 00-1.9.3l-.1.1a2 2 0 11-2.8-2.8l.1-.1a1.7 1.7 0 00.3-1.9 1.7 1.7 0 00-1.5-1H3a2 2 0 110-4h.1a1.7 1.7 0 001.5-1 1.7 1.7 0 00-.3-1.9l-.1-.1a2 2 0 112.8-2.8l.1.1a1.7 1.7 0 001.9.3h0a1.7 1.7 0 001-1.5V3a2 2 0 114 0v.1a1.7 1.7 0 001 1.5 1.7 1.7 0 001.9-.3l.1-.1a2 2 0 112.8 2.8l-.1.1a1.7 1.7 0 00-.3 1.9v0a1.7 1.7 0 001.5 1H21a2 2 0 110 4h-.1a1.7 1.7 0 00-1.5 1z"/></svg>',
+  reports:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3v18h18"/><rect x="7" y="12" width="3" height="6"/><rect x="12" y="8" width="3" height="10"/><rect x="17" y="5" width="3" height="13"/></svg>',
+  calendar:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>',
+  clock:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>',
+  check:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M20 6L9 17l-5-5"/></svg>',
+  cross:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M18 6L6 18M6 6l12 12"/></svg>'
+};
+
+/* ================= DATA ================= */
+const TRAINERS = [
+ {id:1,name:"Maya Chen",initials:"MC",role:"SAFe Practice Consultant",region:"AMER",util:82,rate:1200,available:"Jul 28",skills:["SAFe SPC","SAFe DevOps","Enterprise Coaching"],credentials:["SAFe SPC6","ICP-ACC"],todos:[{text:"Certification renewal due in 12 days",priority:"high"},{text:"Confirm August cohort availability",priority:"low"}]},
+ {id:2,name:"Ravi Kumar",initials:"RK",role:"Agile Coach",region:"APAC",util:65,rate:950,available:"Aug 2",skills:["Scrum Master","Kanban","Team Facilitation"],credentials:["CSM","CSPO"],todos:[{text:"Upload updated Scrum Guide session notes",priority:"medium"},{text:"Backup trainer for Elena's Jul 30 session",priority:"low"}]},
+ {id:3,name:"Elena Torres",initials:"ET",role:"DevOps Trainer",region:"EMEA",util:74,rate:1100,available:"Jul 30",skills:["GitLab CI/CD","Container Orchestration","DevOps Foundations"],credentials:["GitLab Certified Trainer"],todos:[{text:"Review GitLab CI/CD module diff before next cohort",priority:"medium"}]},
+ {id:4,name:"Arjun Singh",initials:"AS",role:"Scrum Master Trainer",region:"APAC",util:58,rate:900,available:"Jul 26",skills:["Scrum","Agile Fundamentals","Facilitation"],credentials:["PSM II"],todos:[{text:"New course module added — review before teaching",priority:"low"}]},
+ {id:5,name:"Neha Patel",initials:"NP",role:"Leadership Facilitator",region:"AMER",util:69,rate:1050,available:"Aug 5",skills:["Executive Coaching","Change Management","Leadership"],credentials:["ICF ACC"],todos:[{text:"Leadership Fundamentals assessment update pending review",priority:"medium"}]},
+ {id:6,name:"Daniel Osei",initials:"DO",role:"GitLab CI/CD Specialist",region:"EMEA",util:61,rate:1000,available:"Jul 29",skills:["CI/CD Pipelines","GitLab","Automation"],credentials:["GitLab Certified Associate"],todos:[{text:"Confirm EMEA September availability",priority:"low"}]},
+ {id:7,name:"Sofia Marin",initials:"SM",role:"IC Agile Trainer",region:"LATAM",util:77,rate:980,available:"Aug 1",skills:["ICP-ACC","Coaching Agile Transitions","Business Agility"],credentials:["ICAgile Certified Professional"],todos:[{text:"Certification renewal due in 25 days",priority:"medium"}]},
+ {id:8,name:"Wei Zhang",initials:"WZ",role:"SAFe DevOps Practitioner Trainer",region:"APAC",util:70,rate:1150,available:"Jul 27",skills:["SAFe DevOps","Value Stream Mapping","Lean Portfolio"],credentials:["SAFe SPC6"],todos:[{text:"SAFe 6.2 syllabus diff affects your course — awaiting admin approval",priority:"high"}]},
+ {id:9,name:"Grace Okafor",initials:"GO",role:"Product Owner Coach",region:"EMEA",util:55,rate:920,available:"Aug 3",skills:["Product Ownership","Backlog Management","Stakeholder Facilitation"],credentials:["CSPO","PSPO I"],todos:[{text:"Update profile photo and bio",priority:"low"}]},
+ {id:10,name:"Liam Fitzgerald",initials:"LF",role:"Kanban / Lean Trainer",region:"AMER",util:63,rate:970,available:"Jul 31",skills:["Kanban Systems","Lean Portfolio Mgmt","Flow Metrics"],credentials:["Kanban Management Professional"],todos:[{text:"Assign backup trainer for Aug 5 session",priority:"low"}]}
+];
+
+const REGIONS = [
+  {code:"AMER",flag:"🌎",name:"Americas"},
+  {code:"EMEA",flag:"🌍",name:"EMEA"},
+  {code:"APAC",flag:"🌏",name:"APAC"},
+  {code:"LATAM",flag:"🌎",name:"LATAM"}
+];
+
+const CATEGORIES = [
+ {name:"SAFe (Scaled Agile)",color:"accent",courses:[
+   {title:"SAFe DevOps Practitioner",version:"v6.2",lastSync:"2 hrs ago",files:18,status:"needs-review"},
+   {title:"SAFe Practitioner",version:"v6.1",lastSync:"4 days ago",files:22,status:"ok"},
+   {title:"SAFe Scrum Master",version:"v6.1",lastSync:"4 days ago",files:15,status:"ok"},
+   {title:"SAFe Product Owner / PM",version:"v6.1",lastSync:"5 days ago",files:19,status:"ok"},
+   {title:"SAFe Architect",version:"v5.9",lastSync:"12 days ago",files:24,status:"ok"},
+   {title:"SAFe Release Train Engineer",version:"v6.0",lastSync:"9 days ago",files:20,status:"ok"},
+   {title:"SAFe for Teams",version:"v6.1",lastSync:"5 days ago",files:12,status:"ok"},
+   {title:"SAFe Government",version:"v5.9",lastSync:"20 days ago",files:16,status:"ok"}
+ ]},
+ {name:"Scrum & Agile",color:"purple",courses:[
+   {title:"Scrum Master Certification",version:"v3.4",lastSync:"5 hrs ago",files:14,status:"needs-review"},
+   {title:"Certified Scrum Master",version:"v3.3",lastSync:"3 days ago",files:11,status:"ok"},
+   {title:"Advanced CSM",version:"v2.1",lastSync:"6 days ago",files:13,status:"ok"},
+   {title:"Certified Product Owner",version:"v3.0",lastSync:"7 days ago",files:12,status:"ok"},
+   {title:"Scaled Professional Scrum",version:"v1.8",lastSync:"14 days ago",files:9,status:"ok"},
+   {title:"Agile Fundamentals",version:"v2.5",lastSync:"3 days ago",files:8,status:"ok"}
+ ]},
+ {name:"DevOps & GitLab",color:"teal",courses:[
+   {title:"GitLab CI/CD Essentials",version:"v4.0",lastSync:"1 day ago",files:16,status:"ok"},
+   {title:"GitLab Certified Associate",version:"v3.8",lastSync:"1 day ago",files:20,status:"ok"},
+   {title:"DevOps Foundations",version:"v2.2",lastSync:"6 days ago",files:10,status:"ok"},
+   {title:"CI/CD Pipeline Design",version:"v2.0",lastSync:"6 days ago",files:14,status:"ok"},
+   {title:"Container Orchestration",version:"v1.6",lastSync:"11 days ago",files:17,status:"ok"}
+ ]},
+ {name:"Leadership & Management",color:"warning",courses:[
+   {title:"Leadership Fundamentals",version:"v2.3",lastSync:"1 day ago",files:12,status:"needs-review"},
+   {title:"Change Management",version:"v1.9",lastSync:"9 days ago",files:10,status:"ok"},
+   {title:"Coaching for Managers",version:"v1.4",lastSync:"15 days ago",files:9,status:"ok"},
+   {title:"Executive Agile Leadership",version:"v1.7",lastSync:"10 days ago",files:11,status:"ok"},
+   {title:"Team Facilitation",version:"v1.5",lastSync:"12 days ago",files:8,status:"ok"}
+ ]},
+ {name:"IC Agile",color:"success",courses:[
+   {title:"ICAgile Certified Professional",version:"v3.1",lastSync:"2 days ago",files:13,status:"ok"},
+   {title:"ICP-ACC Agile Coaching",version:"v2.9",lastSync:"2 days ago",files:15,status:"needs-review"},
+   {title:"ICP-CAT Coaching Transitions",version:"v2.2",lastSync:"8 days ago",files:12,status:"ok"},
+   {title:"ICP-APM Agile Project Mgmt",version:"v2.0",lastSync:"9 days ago",files:11,status:"ok"},
+   {title:"ICP-BAF Business Agility",version:"v1.6",lastSync:"13 days ago",files:9,status:"ok"}
+ ]},
+ {name:"Project & Portfolio",color:"muted",courses:[
+   {title:"PMI-ACP Prep",version:"v4.2",lastSync:"4 days ago",files:18,status:"ok"},
+   {title:"Portfolio Management",version:"v2.1",lastSync:"10 days ago",files:14,status:"ok"},
+   {title:"Kanban Systems Design",version:"v1.8",lastSync:"7 days ago",files:10,status:"ok"},
+   {title:"Lean Portfolio Mgmt",version:"v2.0",lastSync:"11 days ago",files:13,status:"ok"},
+   {title:"Value Stream Mapping",version:"v1.5",lastSync:"14 days ago",files:8,status:"ok"}
+ ]}
+];
+
+const NEW_UPDATES = [
+ {id:1,source:"SAFe",course:"SAFe DevOps Practitioner",title:"SAFe 6.2 syllabus diff",detected:"2 hrs ago",impact:"high",oldText:"Module 4: Continuous Delivery Pipeline (v6.1) — 5 learning objectives, legacy CALMR framework example.",newText:"Module 4: Continuous Delivery Pipeline (v6.2) — 7 learning objectives, updated CALMR + AI-assisted delivery examples, new assessment questions 12–15."},
+ {id:2,source:"Scrum.org",course:"Scrum Master Certification",title:"Scrum Guide revision",detected:"5 hrs ago",impact:"medium",oldText:"Scrum Guide 2020 edition — 3 accountabilities (PO, SM, Developers), 5 events.",newText:"Scrum Guide 2025 update — refined language on self-management, updated Sprint Planning guidance, new focus on Product Goal clarity."},
+ {id:3,source:"Cprime Internal",course:"Leadership Fundamentals",title:"Leadership assessment update",detected:"1 day ago",impact:"low",oldText:"Final assessment — 20 questions, single leadership style framework.",newText:"Final assessment — 25 questions, situational leadership framework added, new case-study section."},
+ {id:4,source:"ICAgile",course:"ICP-ACC Agile Coaching",title:"ICAgile learning outcomes update",detected:"2 days ago",impact:"medium",oldText:"Learning outcomes v2.9 — coaching stance section combined with mentoring.",newText:"Learning outcomes v3.0 — coaching stance and mentoring split into two dedicated outcomes, new competency rubric."}
+];
+
+const REVIEWED = [
+ {title:"GitLab CI/CD module",course:"GitLab CI/CD Essentials",status:"approved",by:"Maya Chen",time:"1 day ago",impact:"low"},
+ {title:"SAFe 6.1 Practitioner Guide",course:"SAFe Practitioner",status:"approved",by:"Jordan Reyes",time:"4 days ago",impact:"medium"},
+ {title:"PMI-ACP Handbook v2",course:"PMI-ACP Prep",status:"approved",by:"Jordan Reyes",time:"6 days ago",impact:"low"},
+ {title:"Vendor typo correction — non-critical",course:"SAFe Architect",status:"rejected",by:"Jordan Reyes",time:"3 days ago",impact:"low"}
+];
+
+const AUDIT_LOG = [
+ {time:"Jul 23, 09:14 AM",actor:"Jordan Reyes",category:"Content Review",action:"Approved content diff",details:"GitLab CI/CD module — synced from official source"},
+ {time:"Jul 23, 08:40 AM",actor:"System",category:"System",action:"Repository sync failed",details:"SharePoint migration connector — 2 retries failed"},
+ {time:"Jul 22, 05:02 PM",actor:"System",category:"Trainer",action:"Certification expiring soon",details:"Maya Chen — SAFe SPC6 expires in 12 days"},
+ {time:"Jul 22, 02:15 PM",actor:"Jordan Reyes",category:"Config",action:"Updated role permission",details:"Sales role granted view access to Repository Health"},
+ {time:"Jul 22, 11:30 AM",actor:"Ravi Kumar",category:"Trainer",action:"Updated availability",details:"Marked Aug 2–4 as available for APAC cohorts"},
+ {time:"Jul 21, 06:42 PM",actor:"System",category:"System",action:"Platform deployment",details:"v2.4.1 deployed to production"},
+ {time:"Jul 21, 03:10 PM",actor:"Jordan Reyes",category:"User Management",action:"Onboarded new trainer",details:"Sofia Marin added to LATAM trainer network"},
+ {time:"Jul 21, 10:05 AM",actor:"Elena Torres",category:"Trainer",action:"Certification renewed",details:"GitLab Certified Trainer — renewed for 2 years"},
+ {time:"Jul 20, 04:55 PM",actor:"System",category:"Content Review",action:"Detected content diff",details:"SAFe 6.2 syllabus change — flagged high impact"},
+ {time:"Jul 20, 01:20 PM",actor:"Jordan Reyes",category:"Content Review",action:"Rejected content diff",details:"Vendor typo correction — non-critical, no action needed"},
+ {time:"Jul 19, 09:48 AM",actor:"Arjun Singh",category:"Trainer",action:"Profile updated",details:"Added Kanban facilitation as new skill"},
+ {time:"Jul 19, 08:00 AM",actor:"System",category:"System",action:"PDF export queue high",details:"12 exports pending — above normal threshold"},
+ {time:"Jul 18, 07:12 PM",actor:"Jordan Reyes",category:"User Management",action:"Deactivated account",details:"Former Sales rep account disabled per offboarding"},
+ {time:"Jul 18, 03:33 PM",actor:"System",category:"Content Review",action:"Auto-synced content",details:"ICAgile ICP-ACC outcomes — downloaded from official source"},
+ {time:"Jul 17, 11:00 AM",actor:"Neha Patel",category:"Trainer",action:"Session prep accessed",details:"Downloaded Leadership Fundamentals materials"},
+ {time:"Jul 17, 09:25 AM",actor:"Jordan Reyes",category:"Config",action:"Reconnected integration",details:"Attempted SharePoint migration reconnect — pending"},
+ {time:"Jul 16, 02:48 PM",actor:"System",category:"Trainer",action:"Trainer matched to session",details:"Wei Zhang matched to SAFe DevOps cohort, Aug 4"},
+ {time:"Jul 16, 10:11 AM",actor:"Jordan Reyes",category:"Content Review",action:"Approved content diff",details:"SAFe 6.1 Practitioner Guide — synced"},
+ {time:"Jul 15, 04:20 PM",actor:"System",category:"System",action:"Backup completed",details:"Nightly production backup — 3.2GB, no errors"},
+ {time:"Jul 15, 01:05 PM",actor:"Grace Okafor",category:"Trainer",action:"Availability updated",details:"Blocked Aug 3 for personal leave"}
+];
+
+const NOTIFICATIONS = [
+ {title:"PDF export queue is running high (12 pending)",time:"5 min ago",type:"warning",read:false},
+ {title:"Maya Chen's SAFe SPC6 certification expires in 12 days",time:"23 min ago",type:"warning",read:false},
+ {title:"Content review overdue: SAFe 6.2 syllabus diff",time:"1 hr ago",type:"danger",read:false},
+ {title:"Repository sync failed — SharePoint migration connector",time:"2 hrs ago",type:"danger",read:false},
+ {title:"Sofia Marin onboarded to LATAM trainer network",time:"Yesterday",type:"success",read:true},
+ {title:"Platform deployment v2.4.1 completed successfully",time:"2 days ago",type:"success",read:true}
+];
+
+const USERS_ALL = [
+ {name:"Jordan Reyes",role:"Admin",dept:"Platform Ops · Global",status:"Active",last:"Just now"},
+ {name:"Priya Sharma",role:"Admin",dept:"Platform Ops · IN",status:"Active",last:"2 hrs ago"},
+ {name:"Marcus Webb",role:"Sales",dept:"Sales · AMER",status:"Active",last:"1 hr ago"},
+ {name:"Aisha Rahman",role:"Sales",dept:"Sales · EMEA",status:"Active",last:"3 hrs ago"},
+ {name:"Maya Chen",role:"Trainer",dept:"Training · AMER",status:"Active",last:"2 hrs ago"},
+ {name:"Ravi Kumar",role:"Trainer",dept:"Training · APAC",status:"Active",last:"4 hrs ago"},
+ {name:"Tom Bennett",role:"Learner",dept:"Acme Corp · Customer",status:"Active",last:"30 min ago"},
+ {name:"Lucia Alvarez",role:"Learner",dept:"Globex Inc · Customer",status:"Inactive",last:"9 days ago"}
+];
+</script>
+
+<script>
+/* ================= RENDER: DASHBOARD ================= */
+function renderDashboard(){
+  const kpis = [
+    {label:"Total Trainers",value:"10",delta:"+1",up:true,icon:ICONS.trainers,color:"accent"},
+    {label:"Active Courses",value:"34",delta:"+3",up:true,icon:ICONS.courses,color:"purple"},
+    {label:"Total Learners",value:"1,842",delta:"+156",up:true,icon:ICONS.learners,color:"teal"},
+    {label:"Repository Health",value:"91%",delta:"+3%",up:true,icon:ICONS.health,color:"success"},
+    {label:"Open Actions",value:"14",delta:"-4",up:false,icon:ICONS.actions,color:"warning"},
+    {label:"Avg. Utilization",value:"67%",delta:"+2%",up:true,icon:ICONS.util,color:"accent"}
+  ];
+  document.getElementById('kpiGrid').innerHTML = kpis.map(k => `
+    <div class="card kpi">
+      <div class="kpi-top">
+        <div class="kpi-icon" style="background:var(--artifact-${k.color}-soft);color:var(--artifact-${k.color});">${k.icon}</div>
+        <div class="kpi-label">${k.label}</div>
+      </div>
+      <div class="kpi-value">${k.value}</div>
+      <div class="kpi-delta ${k.up?'up':'down'}">${k.up?'▲':'▼'} ${k.delta} <span class="ctx">vs last 30 days</span></div>
+    </div>`).join('');
+
+  document.getElementById('dashReviewQueue').innerHTML = NEW_UPDATES.slice(0,4).map(r => `
+    <div class="list-row">
+      <div><div class="lr-title">${r.title}</div><div class="lr-sub">${r.course} · Updated ${r.detected}</div></div>
+      <div class="lr-right"><span class="tag tag-review">Review</span><span class="tag tag-${r.impact}">${r.impact[0].toUpperCase()+r.impact.slice(1)}</span></div>
+    </div>`).join('') + `<div style="font-size:12px;color:var(--artifact-muted);margin-top:8px;">Total pending reviews: <strong>${NEW_UPDATES.length}</strong></div>`;
+
+  const active=7,onboard=2,inactive=1;
+  document.getElementById('dashTrainerDonut').innerHTML = `
+    <div class="donut-wrap">
+      <div style="width:96px;height:96px;border-radius:50%;flex-shrink:0;background:conic-gradient(var(--artifact-accent) 0% 70%, var(--artifact-success) 70% 90%, var(--artifact-muted-2) 90% 100%);display:flex;align-items:center;justify-content:center;">
+        <div style="width:62px;height:62px;border-radius:50%;background:var(--artifact-surface);display:flex;flex-direction:column;align-items:center;justify-content:center;">
+          <div style="font-size:18px;font-weight:800;">10</div><div style="font-size:9px;color:var(--artifact-muted-2);">Trainers</div>
+        </div>
+      </div>
+      <div class="donut-legend">
+        <div class="dl-row"><span class="dl-left"><span class="dl-dot" style="background:var(--artifact-accent);"></span>Active</span><span class="dl-val">${active}</span></div>
+        <div class="dl-row"><span class="dl-left"><span class="dl-dot" style="background:var(--artifact-success);"></span>Onboarded (upcoming)</span><span class="dl-val">${onboard}</span></div>
+        <div class="dl-row"><span class="dl-left"><span class="dl-dot" style="background:var(--artifact-muted-2);"></span>Inactive</span><span class="dl-val">${inactive}</span></div>
+        <div class="dl-row"><span class="dl-left"><span class="dl-dot" style="background:var(--artifact-warning);"></span>Expiring certifications</span><span class="dl-val">2</span></div>
+      </div>
+    </div>
+    <div style="display:flex;justify-content:space-between;margin-top:14px;padding-top:12px;border-top:1px solid var(--artifact-border);font-size:12px;">
+      <span style="color:var(--artifact-muted);font-weight:600;">Certification expiry (next 30 days)</span><strong style="color:var(--artifact-warning);">2</strong>
+    </div>
+    <div style="display:flex;justify-content:space-between;margin-top:8px;font-size:12px;">
+      <span style="color:var(--artifact-muted);font-weight:600;">Regions covered</span><strong>4</strong>
+    </div>`;
+
+  const activity = [
+    {who:"Maya Chen",initials:"MC",action:"Completed course update",time:"2 hrs ago"},
+    {who:"Ravi Kumar",initials:"RK",action:"Updated availability",time:"4 hrs ago"},
+    {who:"Elena Torres",initials:"ET",action:"Certification renewed",time:"1 day ago"},
+    {who:"Arjun Singh",initials:"AS",action:"New course added",time:"2 days ago"},
+    {who:"Neha Patel",initials:"NP",action:"Profile updated",time:"2 days ago"}
+  ];
+  document.getElementById('dashTrainerActivity').innerHTML = activity.map(a => `
+    <div class="list-row">
+      <div style="display:flex;gap:9px;align-items:flex-start;"><span class="avatar-sm">${a.initials}</span><div><div class="lr-title">${a.who}</div><div class="lr-sub">${a.action}</div></div></div>
+      <div class="lr-right"><span style="font-size:11px;color:var(--artifact-muted-2);">${a.time}</span></div>
+    </div>`).join('');
+
+  const alerts = [
+    {title:"PDF export queue high",time:"5 min ago",color:"warning"},
+    {title:"Trainer certification expiring",time:"23 min ago",color:"warning"},
+    {title:"Content review overdue",time:"1 hr ago",color:"danger"},
+    {title:"Repository sync failed",time:"2 hrs ago",color:"danger"}
+  ];
+  document.getElementById('dashAlerts').innerHTML = alerts.map(a => `
+    <div class="alert-row"><span class="alert-dot" style="background:var(--artifact-${a.color});"></span>
+      <div><div class="a-title">${a.title}</div><div class="a-time">${a.time}</div></div>
+    </div>`).join('');
+
+  const events = [
+    {title:"Monthly content review",time:"Jul 24, 10:00 AM"},
+    {title:"Trainer certification check",time:"Jul 25, 11:00 AM"},
+    {title:"System maintenance window",time:"Jul 28, 01:00 AM"}
+  ];
+  document.getElementById('dashEvents').innerHTML = events.map(e => `
+    <div class="event-row"><div class="event-icon">${ICONS.calendar}</div>
+      <div><div class="e-title">${e.title}</div><div class="e-time">${e.time}</div></div>
+    </div>`).join('');
+
+  const cats = [
+    {name:"SAFe",pct:32,color:"accent"},{name:"DevOps",pct:25,color:"teal"},
+    {name:"Leadership",pct:18,color:"purple"},{name:"IC Agile",pct:15,color:"warning"},{name:"Others",pct:10,color:"muted-2"}
+  ];
+  let acc=0; const stops = cats.map(c=>{const s=acc; acc+=c.pct; return `var(--artifact-${c.color}) ${s}% ${acc}%`;}).join(', ');
+  document.getElementById('dashCategoryDonut').innerHTML = `
+    <div class="donut-wrap">
+      <div style="width:96px;height:96px;border-radius:50%;flex-shrink:0;background:conic-gradient(${stops});"></div>
+      <div class="donut-legend">
+        ${cats.map(c=>`<div class="dl-row"><span class="dl-left"><span class="dl-dot" style="background:var(--artifact-${c.color});"></span>${c.name}</span><span class="dl-val">${c.pct}%</span></div>`).join('')}
+      </div>
+    </div>`;
+
+  const sparks = [
+    {label:"Content Sync Status",value:"Last sync: 12 min ago",status:"Success",color:"success",points:"0,18 10,15 20,17 30,10 40,12 50,6 60,8 70,3"},
+    {label:"Repository Health",value:"91%",status:"Healthy",color:"accent",points:"0,20 10,16 20,18 30,12 40,14 50,9 60,7 70,5"},
+    {label:"PDF Export Queue",value:"4",status:"In progress",color:"warning",points:"0,5 10,8 20,6 30,12 40,10 50,15 60,13 70,17"},
+    {label:"System Uptime",value:"99.9%",status:"Operational",color:"success",points:"0,10 10,10 20,9 30,10 40,9 50,10 60,9 70,10"},
+    {label:"Active Integrations",value:"6",status:"Connected",color:"purple",points:"0,15 10,12 20,14 30,9 40,11 50,7 60,9 70,6"}
+  ];
+  document.getElementById('dashSparklines').innerHTML = sparks.map(s => `
+    <div class="sparkline-card">
+      <div class="sc-label">${s.label}</div>
+      <div class="sc-value">${s.value}</div>
+      <svg viewBox="0 0 70 24" style="width:100%;height:32px;" preserveAspectRatio="none"><polyline points="${s.points}" fill="none" stroke="var(--artifact-${s.color})" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      <span class="sc-status" style="background:var(--artifact-${s.color}-soft);color:var(--artifact-${s.color});width:fit-content;">${s.status}</span>
+    </div>`).join('');
+
+  const qa = [
+    {title:"Review Queue",sub:NEW_UPDATES.length+" pending",icon:ICONS.review,action:"showView('contentreview')"},
+    {title:"Add Trainer",sub:"Onboard new",icon:ICONS.addtrainer,action:"showView('usermgmt');showSubtab('um','trainernetwork')"},
+    {title:"Create Course",sub:"New course",icon:ICONS.createcourse,action:"showView('repository')"},
+    {title:"System Config",sub:"Manage settings",icon:ICONS.cfg,action:"showView('sysconfig')"},
+    {title:"View Reports",sub:"Analytics hub",icon:ICONS.reports,action:"showView('auditlogs')"}
+  ];
+  document.getElementById('dashQuickActions').innerHTML = qa.map(q => `
+    <div class="qa-card" onclick="${q.action}"><div class="qa-icon">${q.icon}</div><div><div class="qa-title">${q.title}</div><div class="qa-sub">${q.sub}</div></div></div>`).join('');
+}
+</script>
+
+<script>
+/* ================= RENDER: USER MANAGEMENT ================= */
+let currentRegionFilter = "all";
+let currentTrainerView = "list";
+let activeTrainerId = null;
+let activeCalDay = null;
+const bookedSlots = {}; // trainerId-day -> slot index taken
+
+function renderUserManagement(){
+  const roles = [
+    {name:"Admin",count:3,icon:ICONS.cfg,color:"purple",sub:"Platform administrators"},
+    {name:"Sales",count:18,icon:ICONS.reports,color:"accent",sub:"Sales & Solutions Design"},
+    {name:"Trainer",count:10,icon:ICONS.trainers,color:"teal",sub:"Active trainer network"},
+    {name:"Learner",count:2318,icon:ICONS.learners,color:"success",sub:"Enrolled across all courses"}
+  ];
+  document.getElementById('roleSummaryGrid').innerHTML = roles.map(r => `
+    <div class="role-card"><div class="role-ic" style="background:var(--artifact-${r.color}-soft);color:var(--artifact-${r.color});">${r.icon}</div>
+      <div><div class="role-name">${r.name}</div><div class="role-count">${r.count.toLocaleString()}</div><div class="role-sub">${r.sub}</div></div>
+    </div>`).join('');
+  renderUsersTable(USERS_ALL);
+
+  const tnKpis = [
+    {label:"Total Trainers",value:"10",icon:ICONS.trainers,color:"accent"},
+    {label:"Available This Week",value:"6",icon:ICONS.calendar,color:"success"},
+    {label:"Avg. Utilization",value:"67%",icon:ICONS.util,color:"teal"},
+    {label:"Open Actions",value:"14",icon:ICONS.actions,color:"warning"}
+  ];
+  document.getElementById('tnKpiGrid').innerHTML = tnKpis.map(k => `
+    <div class="card kpi"><div class="kpi-top"><div class="kpi-icon" style="background:var(--artifact-${k.color}-soft);color:var(--artifact-${k.color});">${k.icon}</div><div class="kpi-label">${k.label}</div></div><div class="kpi-value">${k.value}</div></div>`).join('');
+
+  document.getElementById('tnRegionChips').innerHTML = ['all',...REGIONS.map(r=>r.code)].map(c => `
+    <button class="chip ${c===currentRegionFilter?'active':''}" onclick="filterTrainersByRegion('${c}')">${c==='all'?'All regions':c}</button>`).join('');
+
+  renderTrainerGrid();
+  renderRegionMap();
+}
+
+function renderUsersTable(list){
+  document.getElementById('usersTableBody').innerHTML = list.map(u => `
+    <tr><td><div class="u-name-cell"><span class="avatar-sm">${u.name.split(' ').map(n=>n[0]).join('')}</span>${u.name}</div></td>
+    <td><span class="tag tag-neutral">${u.role}</span></td><td>${u.dept}</td>
+    <td><span class="status-dot-inline" style="background:var(--artifact-${u.status==='Active'?'success':'muted-2'});"></span>${u.status}</td>
+    <td style="color:var(--artifact-muted-2);">${u.last}</td></tr>`).join('');
+}
+function filterUsersTable(q){
+  q = q.toLowerCase();
+  renderUsersTable(USERS_ALL.filter(u => u.name.toLowerCase().includes(q) || u.role.toLowerCase().includes(q) || u.dept.toLowerCase().includes(q)));
+}
+
+function filterTrainersByRegion(code){
+  currentRegionFilter = code;
+  document.querySelectorAll('#tnRegionChips .chip').forEach((c,i) => c.classList.toggle('active', (i===0&&code==='all')|| c.textContent.trim()===code));
+  renderTrainerGrid();
+}
+
+function renderTrainerGrid(){
+  const list = currentRegionFilter==='all' ? TRAINERS : TRAINERS.filter(t=>t.region===currentRegionFilter);
+  document.getElementById('trainerGrid').innerHTML = list.map(trainerCardHTML).join('');
+}
+
+function trainerCardHTML(t){
+  return `
+    <div class="trainer-card" onclick="openTrainerProfile(${t.id})">
+      <div class="tc-head"><span class="avatar-sm" style="width:42px;height:42px;font-size:13px;">${t.initials}</span>
+        <div><div class="tc-name">${t.name}</div><div class="tc-role">${t.role}</div></div></div>
+      <div class="tc-stats">
+        <div class="tc-stat"><div class="v">${t.util}%</div><div class="l">UTILIZATION</div></div>
+        <div class="tc-stat"><div class="v">$${t.rate}</div><div class="l">DAY RATE</div></div>
+        <div class="tc-stat"><div class="v">${t.available}</div><div class="l">AVAILABLE</div></div>
+      </div>
+      <div class="tc-skills">${t.skills.slice(0,3).map(s=>`<span class="skill-chip">${s}</span>`).join('')}</div>
+      ${t.todos.length ? `<div class="tc-actions">⚠ ${t.todos.length} action${t.todos.length>1?'s':''} needed</div>` : ''}
+    </div>`;
+}
+
+function renderRegionMap(){
+  document.getElementById('regionMapGrid').innerHTML = REGIONS.map(r => {
+    const cnt = TRAINERS.filter(t=>t.region===r.code).length;
+    const avgUtil = Math.round(TRAINERS.filter(t=>t.region===r.code).reduce((a,t)=>a+t.util,0)/Math.max(cnt,1));
+    return `<div class="region-card ${currentRegionFilter===r.code?'active':''}" onclick="selectRegionMap('${r.code}')">
+      <div class="region-flag">${r.flag}</div><div class="region-name">${r.name}</div>
+      <div class="region-count">${cnt}</div><div class="region-sub">Avg. utilization ${avgUtil}%</div></div>`;
+  }).join('');
+  renderRegionTrainerList();
+}
+function selectRegionMap(code){
+  currentRegionFilter = currentRegionFilter===code ? 'all' : code;
+  renderRegionMap();
+}
+function renderRegionTrainerList(){
+  const list = currentRegionFilter==='all' ? TRAINERS : TRAINERS.filter(t=>t.region===currentRegionFilter);
+  document.getElementById('regionListTitle').textContent = (currentRegionFilter==='all'?'All Regions':currentRegionFilter) + ' — Trainers';
+  document.getElementById('regionTrainerGrid').innerHTML = list.map(trainerCardHTML).join('');
+}
+
+function setTrainerView(v){
+  currentTrainerView = v;
+  document.getElementById('tnListView').style.display = v==='list' ? '' : 'none';
+  document.getElementById('tnMapView').style.display = v==='map' ? '' : 'none';
+  document.getElementById('tnViewListBtn').classList.toggle('active', v==='list');
+  document.getElementById('tnViewMapBtn').classList.toggle('active', v==='map');
+}
+
+/* ---- Trainer profile slideover ---- */
+function openTrainerProfile(id){
+  const t = TRAINERS.find(x=>x.id===id);
+  activeTrainerId = id;
+  document.getElementById('soAvatar').textContent = t.initials;
+  document.getElementById('soName').textContent = t.name;
+  document.getElementById('soRole').textContent = t.role + ' · ' + t.region;
+  document.getElementById('soUtil').textContent = t.util + '%';
+  document.getElementById('soRate').textContent = '$'+t.rate;
+  document.getElementById('soAvail').textContent = t.available;
+
+  document.getElementById('soTab-profile').innerHTML = `
+    <div class="so-section-title">SKILLS &amp; SPECIALIZATION</div>
+    <div class="tc-skills">${t.skills.map(s=>`<span class="skill-chip">${s}</span>`).join('')}</div>
+    <div class="so-section-title">CREDENTIALS</div>
+    <div class="tc-skills">${t.credentials.map(s=>`<span class="skill-chip">${s}</span>`).join('')}</div>
+    <div class="so-section-title">WHAT NEEDS TO BE DONE</div>
+    ${t.todos.map(td => `<div class="todo-row"><span class="todo-text">${td.text}</span><span class="tag tag-${td.priority}">${td.priority.toUpperCase()}</span></div>`).join('') || '<div style="font-size:12px;color:var(--artifact-muted-2);">Nothing pending — fully up to date.</div>'}
+    <button class="btn primary" style="width:100%;margin-top:16px;justify-content:center;" onclick="setSlideoverTab('calendar')">
+      ${ICONS.calendar} Create course assignment
+    </button>`;
+
+  renderTrainerCalendar(t);
+  setSlideoverTab('profile');
+  document.getElementById('trainerMask').classList.add('open');
+  document.getElementById('trainerSlideover').classList.add('open');
+}
+function closeSlideover(){
+  document.getElementById('trainerMask').classList.remove('open');
+  document.getElementById('trainerSlideover').classList.remove('open');
+}
+function setSlideoverTab(tab){
+  document.querySelectorAll('.so-tab').forEach((el,i)=>el.classList.toggle('active', (tab==='profile'&&i===0)||(tab==='calendar'&&i===1)));
+  document.getElementById('soTab-profile').style.display = tab==='profile' ? '' : 'none';
+  document.getElementById('soTab-calendar').style.display = tab==='calendar' ? '' : 'none';
+}
+
+function dayStatus(trainerId, day){
+  const key = trainerId+'-'+day;
+  if (bookedSlots[key]) return 'booked';
+  const m = (trainerId*7 + day) % 5;
+  if (m===0) return 'blocked';
+  if (m===1) return 'booked';
+  return 'available';
+}
+
+function renderTrainerCalendar(t){
+  const dows = ['S','M','T','W','T','F','S'];
+  const daysInMonth = 31; // July 2026
+  const startOffset = 3; // Jul 1 2026 is a Wednesday
+  let cells = '';
+  for (let i=0;i<startOffset;i++) cells += `<div class="cal-day empty"></div>`;
+  for (let d=1; d<=daysInMonth; d++){
+    const st = dayStatus(t.id, d);
+    cells += `<div class="cal-day ${st}" data-day="${d}" onclick="selectCalDay(${t.id},${d},'${st}')">${d}</div>`;
+  }
+  document.getElementById('soTab-calendar').innerHTML = `
+    <div class="so-section-title">${t.name.split(' ')[0]}'S CALENDAR — JULY 2026</div>
+    <div class="cal-legend">
+      <span><span class="dot" style="background:var(--artifact-success);"></span>Available</span>
+      <span><span class="dot" style="background:var(--artifact-accent);"></span>Booked</span>
+      <span><span class="dot" style="background:var(--artifact-muted-2);"></span>Blocked</span>
+    </div>
+    <div class="cal-grid">${dows.map(d=>`<div class="cal-dow">${d}</div>`).join('')}${cells}</div>
+    <div id="slotPickerWrap"></div>`;
+}
+
+function selectCalDay(trainerId, day, status){
+  document.querySelectorAll('.cal-day').forEach(el=>el.classList.remove('selected'));
+  const el = [...document.querySelectorAll('.cal-day')].find(e=>e.dataset.day==String(day));
+  if (el) el.classList.add('selected');
+  activeCalDay = day;
+  const wrap = document.getElementById('slotPickerWrap');
+  if (status === 'blocked'){
+    wrap.innerHTML = `<div class="so-section-title">JULY ${day}, 2026</div><div style="font-size:12.5px;color:var(--artifact-muted-2);">Trainer has marked this day unavailable.</div>`;
+    return;
+  }
+  const key = trainerId+'-'+day;
+  const takenIdx = bookedSlots[key];
+  const slots = ["9:00 AM – 11:00 AM","12:00 PM – 2:00 PM","3:00 PM – 5:00 PM"];
+  wrap.innerHTML = `<div class="so-section-title">AVAILABLE SLOTS — JULY ${day}, 2026</div>
+    <div class="slot-list">
+      ${slots.map((s,i)=>`
+        <div class="slot-row ${takenIdx===i?'taken':''}">
+          <span>${s}</span>
+          ${takenIdx===i ? '<span class="tag tag-approved">Booked</span>' : `<button class="btn sm primary" onclick="bookSlot(${trainerId},${day},${i})">Assign training session</button>`}
+        </div>`).join('')}
+    </div>
+    <div class="booking-confirm" id="bookingConfirm"></div>`;
+}
+
+function bookSlot(trainerId, day, idx){
+  bookedSlots[trainerId+'-'+day] = idx;
+  const t = TRAINERS.find(x=>x.id===trainerId);
+  renderTrainerCalendar(t);
+  selectCalDay(trainerId, day, 'booked');
+  const confirm = document.getElementById('bookingConfirm');
+  if (confirm){ confirm.style.display='block'; confirm.textContent = `✓ Training session assigned to ${t.name} for July ${day}, 2026.`; }
+  toast('Training session assigned to '+t.name);
+  renderTrainerGrid(); renderRegionTrainerList();
+}
+</script>
+
+<script>
+/* ================= RENDER: REPOSITORY ================= */
+function renderRepository(){
+  const totalCourses = CATEGORIES.reduce((a,c)=>a+c.courses.length,0);
+  const summary = [
+    {label:"Total Courses",value:totalCourses,icon:ICONS.courses,color:"accent"},
+    {label:"Categories",value:CATEGORIES.length,icon:ICONS.repo,color:"purple"},
+    {label:"Last Full Sync",value:"12 min ago",icon:ICONS.clock,color:"success"},
+    {label:"Storage Used",value:"68%",icon:ICONS.health,color:"teal"}
+  ];
+  document.getElementById('repoSummaryGrid').innerHTML = summary.map(s => `
+    <div class="card kpi"><div class="kpi-top"><div class="kpi-icon" style="background:var(--artifact-${s.color}-soft);color:var(--artifact-${s.color});">${s.icon}</div><div class="kpi-label">${s.label}</div></div><div class="kpi-value" style="font-size:20px;">${s.value}</div></div>`).join('');
+  renderCategoryList(CATEGORIES);
+}
+
+function renderCategoryList(cats){
+  document.getElementById('categoryList').innerHTML = cats.map((c,ci) => {
+    const needsReview = c.courses.filter(co=>co.status==='needs-review').length;
+    return `
+    <div class="category-card" id="cat-${ci}">
+      <div class="category-head" onclick="toggleCategory(${ci})">
+        <div class="cat-left">
+          <div class="cat-icon" style="background:var(--artifact-${c.color}-soft);color:var(--artifact-${c.color});">${ICONS.repo}</div>
+          <div><div class="cat-name">${c.name}</div><div class="cat-sub">${c.courses.length} courses ${needsReview?`· <span style="color:var(--artifact-warning);font-weight:700;">${needsReview} need review</span>`:'· all up to date'}</div></div>
+        </div>
+        <svg class="cat-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg>
+      </div>
+      <div class="category-body">
+        ${c.courses.map(co => `
+          <div class="course-row">
+            <div><div class="cr-title">${co.title}</div><div class="cr-meta">${co.version} · ${co.files} files · Last sync ${co.lastSync}</div></div>
+            <div class="cr-right">
+              <span class="tag ${co.status==='ok'?'tag-approved':'tag-review'}">${co.status==='ok'?'Up to date':'Needs review'}</span>
+              <button class="btn sm" onclick="event.stopPropagation();toast('Exporting ${co.title} package...')" title="Download">${ICONS.export}</button>
+            </div>
+          </div>`).join('')}
+      </div>
+    </div>`;
+  }).join('');
+}
+function toggleCategory(i){ document.getElementById('cat-'+i).classList.toggle('expanded'); }
+function filterRepository(q){
+  q=q.toLowerCase();
+  if(!q){ renderCategoryList(CATEGORIES); return; }
+  const filtered = CATEGORIES.map(c => ({...c, courses:c.courses.filter(co=>co.title.toLowerCase().includes(q)||c.name.toLowerCase().includes(q)) })).filter(c=>c.courses.length);
+  renderCategoryList(filtered);
+  filtered.forEach((c,i)=>document.getElementById('cat-'+i) && document.getElementById('cat-'+i).classList.add('expanded'));
+}
+
+/* ================= RENDER: CONTENT REVIEW ================= */
+function renderContentReview(){
+  const crKpis = [
+    {label:"Pending Review",value:NEW_UPDATES.length,icon:ICONS.review,color:"warning"},
+    {label:"Approved This Week",value:5,icon:ICONS.health,color:"success"},
+    {label:"Sources Monitored",value:8,icon:ICONS.repo,color:"accent"},
+    {label:"Avg. Review Time",value:"1.8 days",icon:ICONS.clock,color:"purple"}
+  ];
+  document.getElementById('crKpiGrid').innerHTML = crKpis.map(k => `
+    <div class="card kpi"><div class="kpi-top"><div class="kpi-icon" style="background:var(--artifact-${k.color}-soft);color:var(--artifact-${k.color});">${k.icon}</div><div class="kpi-label">${k.label}</div></div><div class="kpi-value" style="font-size:20px;">${k.value}</div></div>`).join('');
+
+  const syncSources = [
+    {name:"SAFe",method:"Vendor API",last:"2 hrs ago",next:"in 4 hrs"},
+    {name:"Scrum.org",method:"Vendor API",last:"5 hrs ago",next:"in 1 hr"},
+    {name:"GitLab",method:"Webhook",last:"20 min ago",next:"real-time"},
+    {name:"ICAgile",method:"PDF Upload",last:"1 day ago",next:"manual"}
+  ];
+  document.getElementById('syncInfoGrid').innerHTML = syncSources.map(s => `
+    <div class="card-flat"><div style="font-size:13px;font-weight:700;">${s.name}</div>
+    <div style="font-size:11.5px;color:var(--artifact-muted);margin-top:4px;">${s.method}</div>
+    <div style="font-size:11px;color:var(--artifact-muted-2);margin-top:6px;">Last sync: ${s.last}</div>
+    <div style="font-size:11px;color:var(--artifact-muted-2);">Next check: ${s.next}</div></div>`).join('');
+
+  document.getElementById('newUpdatesCount').textContent = NEW_UPDATES.length;
+  renderNewUpdates();
+  renderReviewedList();
+}
+
+function renderNewUpdates(){
+  document.getElementById('newUpdatesList').innerHTML = NEW_UPDATES.map(r => `
+    <div class="review-item" id="review-${r.id}">
+      <div class="ri-top">
+        <div><div class="ri-title">${r.title} <span class="tag tag-new" style="margin-left:6px;">New</span></div>
+        <div class="ri-meta">${r.course} · Source: ${r.source} · Detected ${r.detected}</div></div>
+        <div class="ri-actions">
+          <span class="tag tag-${r.impact}">${r.impact[0].toUpperCase()+r.impact.slice(1)} impact</span>
+          <button class="btn sm" onclick="toggleReviewItem(${r.id})">Review diff</button>
+        </div>
+      </div>
+      <div class="ri-detail">
+        <strong style="color:var(--artifact-text);">What changed</strong>
+        <div class="diff-box">
+          <div class="diff-col old"><strong>− Previous</strong><br>${r.oldText}</div>
+          <div class="diff-col new"><strong>+ Updated</strong><br>${r.newText}</div>
+        </div>
+        <div class="sync-progress" id="sync-progress-${r.id}"><div class="sync-progress-bar" id="sync-bar-${r.id}"></div></div>
+        <div class="sync-status-row" id="sync-status-${r.id}"></div>
+        <div style="display:flex;gap:8px;margin-top:12px;">
+          <button class="btn success sm" onclick="approveReview(${r.id})">${ICONS.check} Approve &amp; sync from source</button>
+          <button class="btn danger-outline sm" onclick="rejectReview(${r.id})">${ICONS.cross} Reject</button>
+        </div>
+      </div>
+    </div>`).join('');
+}
+function toggleReviewItem(id){ document.getElementById('review-'+id).classList.toggle('expanded'); }
+
+function approveReview(id){
+  const bar = document.getElementById('sync-progress-'+id);
+  const fill = document.getElementById('sync-bar-'+id);
+  const status = document.getElementById('sync-status-'+id);
+  bar.style.display='block';
+  status.innerHTML = `<span style="color:var(--artifact-accent);">⟳ Downloading updated content from official source...</span>`;
+  setTimeout(()=>{ fill.style.width='100%'; }, 50);
+  setTimeout(()=>{
+    status.innerHTML = `<span style="color:var(--artifact-success);">${ICONS.check} Synced — content downloaded and repository updated just now</span>`;
+    const item = NEW_UPDATES.find(x=>x.id===id);
+    REVIEWED.unshift({title:item.title,course:item.course,status:'approved',by:'Jordan Reyes',time:'Just now',impact:item.impact});
+    const idx = NEW_UPDATES.findIndex(x=>x.id===id);
+    NEW_UPDATES.splice(idx,1);
+    toast('Content approved and synced: '+item.title);
+    setTimeout(()=>{ renderNewUpdates(); renderReviewedList(); document.getElementById('newUpdatesCount').textContent = NEW_UPDATES.length; },900);
+  }, 1300);
+}
+function rejectReview(id){
+  const item = NEW_UPDATES.find(x=>x.id===id);
+  REVIEWED.unshift({title:item.title,course:item.course,status:'rejected',by:'Jordan Reyes',time:'Just now',impact:item.impact});
+  const idx = NEW_UPDATES.findIndex(x=>x.id===id);
+  NEW_UPDATES.splice(idx,1);
+  toast('Content diff rejected: '+item.title);
+  renderNewUpdates(); renderReviewedList();
+  document.getElementById('newUpdatesCount').textContent = NEW_UPDATES.length;
+}
+function renderReviewedList(){
+  document.getElementById('reviewedList').innerHTML = REVIEWED.map(r => `
+    <div class="review-item">
+      <div class="ri-top">
+        <div><div class="ri-title">${r.title}</div><div class="ri-meta">${r.course} · ${r.status==='approved'?'Approved':'Rejected'} by ${r.by} · ${r.time}</div></div>
+        <div class="ri-actions"><span class="tag tag-${r.status==='approved'?'approved':'rejected'}">${r.status[0].toUpperCase()+r.status.slice(1)}</span><span class="tag tag-${r.impact}">${r.impact[0].toUpperCase()+r.impact.slice(1)}</span></div>
+      </div>
+    </div>`).join('');
+}
+</script>
+
+<script>
+/* ================= RENDER: AUDIT LOGS ================= */
+function renderAuditLogs(){
+  const kpis = [
+    {label:"Total Events (30d)",value:AUDIT_LOG.length*9,icon:ICONS.reports,color:"accent"},
+    {label:"Content Actions",value:47,icon:ICONS.review,color:"purple"},
+    {label:"Trainer Actions",value:38,icon:ICONS.trainers,color:"teal"},
+    {label:"System Events",value:25,icon:ICONS.cfg,color:"warning"}
+  ];
+  document.getElementById('auditKpiGrid').innerHTML = kpis.map(k => `
+    <div class="card kpi"><div class="kpi-top"><div class="kpi-icon" style="background:var(--artifact-${k.color}-soft);color:var(--artifact-${k.color});">${k.icon}</div><div class="kpi-label">${k.label}</div></div><div class="kpi-value" style="font-size:20px;">${k.value}</div></div>`).join('');
+  filterAuditLog();
+}
+const CAT_COLORS = {"Content Review":"accent","Trainer":"teal","User Management":"purple","System":"warning","Config":"muted"};
+function filterAuditLog(){
+  const cat = document.getElementById('auditCategoryFilter').value;
+  let list = AUDIT_LOG;
+  if (cat !== 'all') list = list.filter(l => l.category === cat);
+  document.getElementById('auditTableBody').innerHTML = list.map(l => `
+    <tr><td class="audit-time">${l.time}</td><td style="font-weight:700;">${l.actor}</td>
+    <td><span class="cat-pill" style="background:var(--artifact-${CAT_COLORS[l.category]||'muted'}-soft);color:var(--artifact-${CAT_COLORS[l.category]||'muted'});">${l.category}</span></td>
+    <td>${l.action}</td><td style="color:var(--artifact-muted);">${l.details}</td></tr>`).join('');
+}
+function exportAuditLog(fmt){ toast('Exporting audit log as '+fmt.toUpperCase()+'... (demo)'); }
+let pendingReportType = '';
+function generateReport(type){ pendingReportType = type; document.getElementById('reportModalTitle').textContent = 'Generate: '+type+' Report'; openModal('reportModal'); }
+function finishReport(){ closeModal('reportModal'); toast(pendingReportType+' report generated and ready to download (demo)'); }
+
+/* ================= RENDER: SYSTEM CONFIG ================= */
+function renderSysConfig(){
+  const perms = [
+    {name:"View Dashboard",admin:1,sales:1,trainer:1,learner:1},
+    {name:"Manage Content Review",admin:1,sales:0,trainer:0,learner:0},
+    {name:"Manage Trainer Network",admin:1,sales:0,trainer:0,learner:0},
+    {name:"Edit Course Repository",admin:1,sales:0,trainer:0,learner:0},
+    {name:"Configure Integrations",admin:1,sales:0,trainer:0,learner:0},
+    {name:"Manage User Roles",admin:1,sales:0,trainer:0,learner:0},
+    {name:"View Billing / Revenue",admin:1,sales:1,trainer:0,learner:0},
+    {name:"View Reports &amp; Audit Log",admin:1,sales:1,trainer:0,learner:0}
+  ];
+  document.getElementById('permTableBody').innerHTML = perms.map(p => `
+    <tr><td style="font-weight:600;">${p.name}</td>
+    ${[p.admin,p.sales,p.trainer,p.learner].map(v=>`<td>${v?`<span class="perm-check">${ICONS.check}</span>`:`<span class="perm-cross">${ICONS.cross}</span>`}</td>`).join('')}
+    </tr>`).join('');
+
+  const env = [
+    {l:"Data Source",v:"Production Postgres"},
+    {l:"Vector Store",v:"pgvector v0.7.1"},
+    {l:"API Version",v:"v2.4.1"},
+    {l:"Environment",v:"Production"},
+    {l:"Last Deployment",v:"Jul 21, 2026 · 6:42 PM"},
+    {l:"Last Backup",v:"3 hrs ago · 3.2GB · No errors"}
+  ];
+  document.getElementById('envList').innerHTML = env.map(e => `<div class="env-row"><span class="el">${e.l}</span><span class="ev">${e.v}</span></div>`).join('');
+
+  const integrations = [
+    {name:"Salesforce (CRM sync)",icon:"☁️",status:"success",statusText:"Connected",meta:"Synced 10 min ago · 0 errors"},
+    {name:"SharePoint Migration",icon:"⚠️",status:"danger",statusText:"Error",meta:"Last sync failed 2 hrs ago · 2 errors",action:true},
+    {name:"Calendar Sync (Google / Outlook)",icon:"📅",status:"success",statusText:"Connected",meta:"Synced 5 min ago · 0 errors"},
+    {name:"Finance Export (Projector)",icon:"💳",status:"success",statusText:"Connected",meta:"Synced 1 hr ago · 0 errors"},
+    {name:"Vendor API — SAFe",icon:"🔗",status:"success",statusText:"Connected",meta:"Synced 2 hrs ago · 0 errors"},
+    {name:"Vendor Webhook — GitLab",icon:"🔗",status:"success",statusText:"Connected",meta:"Synced 20 min ago · 0 errors"}
+  ];
+  document.getElementById('integrationList').innerHTML = integrations.map(i => `
+    <div class="integration-row"><div class="int-left"><div class="int-icon">${i.icon}</div>
+      <div><div class="int-name">${i.name}</div><div class="int-meta">${i.meta}</div></div></div>
+      <div style="display:flex;align-items:center;gap:10px;">
+        <span class="tag tag-${i.status==='success'?'approved':'rejected'}">${i.statusText}</span>
+        ${i.action?'<button class="btn sm primary" onclick="toast(\'Reconnecting SharePoint migration connector...\')">Reconnect</button>':''}
+      </div>
+    </div>`).join('');
+}
+</script>
+
+<script>
+/* ================= NAVIGATION ================= */
+function showView(view){
+  document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+  document.getElementById('view-'+view).classList.add('active');
+  document.querySelectorAll('.side-item').forEach(s => s.classList.toggle('active', s.dataset.view===view));
+  closeAllDropdowns();
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+function showSubtab(group, tab){
+  const prefix = group; // 'um' or 'cr'
+  document.querySelectorAll(`[id^="${prefix}-"]`).forEach(el => el.classList.remove('active'));
+  document.getElementById(prefix+'-'+tab).classList.add('active');
+  const parentTabs = document.getElementById(prefix+'-'+tab).closest('.view').querySelectorAll('.tab-btn');
+  parentTabs.forEach(b => b.classList.toggle('active', b.dataset.subtab===tab));
+}
+
+/* ================= DROPDOWNS ================= */
+function toggleDropdown(id){
+  const isOpen = document.getElementById(id).classList.contains('open');
+  closeAllDropdowns();
+  if (!isOpen) document.getElementById(id).classList.add('open');
+}
+function closeAllDropdowns(){
+  document.querySelectorAll('.dropdown-panel').forEach(p => p.classList.remove('open'));
+}
+document.addEventListener('click', function(e){
+  if (!e.target.closest('.dropdown-wrap')) closeAllDropdowns();
+});
+
+/* ================= NOTIFICATIONS ================= */
+function renderNotifications(){
+  const colorMap = {warning:"warning",danger:"danger",success:"success"};
+  document.getElementById('notifList').innerHTML = NOTIFICATIONS.map(n => `
+    <div class="notif-row"><span class="notif-dotcolor" style="background:var(--artifact-${colorMap[n.type]});"></span>
+      <div><div class="ntitle">${n.title}</div><div class="ntime">${n.time}</div></div></div>`).join('');
+  const unread = NOTIFICATIONS.filter(n=>!n.read).length;
+  document.getElementById('notifCount').textContent = unread;
+  document.getElementById('notifCount').style.display = unread ? 'flex' : 'none';
+}
+function markAllRead(){
+  NOTIFICATIONS.forEach(n=>n.read=true);
+  renderNotifications();
+  toast('All notifications marked as read');
+}
+
+/* ================= MODALS ================= */
+function openModal(id){ document.getElementById(id).classList.add('open'); closeAllDropdowns(); }
+function closeModal(id){ document.getElementById(id).classList.remove('open'); }
+function saveDemo(id, msg){ closeModal(id); toast(msg); }
+function doLogout(){ closeAllDropdowns(); toast('Logged out (demo) — session ended'); }
+
+/* ================= TOAST ================= */
+function toast(msg){
+  const wrap = document.getElementById('toastWrap');
+  const el = document.createElement('div');
+  el.className = 'toast';
+  el.textContent = msg;
+  wrap.appendChild(el);
+  requestAnimationFrame(()=>el.classList.add('show'));
+  setTimeout(()=>{ el.classList.remove('show'); setTimeout(()=>el.remove(), 250); }, 3400);
+}
+
+/* ================= COPILOT ================= */
+const CP_SUGGESTIONS = [
+  "Which trainers have expiring certifications?",
+  "Summarize this week's content review queue",
+  "How is repository health trending?",
+  "What audit events happened today?"
+];
+function renderCopilotSuggestions(){
+  document.getElementById('cpSuggestions').innerHTML = CP_SUGGESTIONS.map(s => `<button class="cp-sugg-btn" onclick="askCopilot('${s.replace(/'/g,"\\'")}')">${s}</button>`).join('');
+}
+function toggleCopilot(){ document.getElementById('copilotPanel').classList.toggle('open'); }
+function sendCopilotMessage(){
+  const input = document.getElementById('cpInput');
+  const val = input.value.trim();
+  if (!val) return;
+  askCopilot(val);
+  input.value='';
+}
+function askCopilot(text){
+  const body = document.getElementById('cpBody');
+  body.insertAdjacentHTML('beforeend', `<div class="cp-msg user">${text}</div>`);
+  const reply = copilotReply(text);
+  setTimeout(()=>{
+    body.insertAdjacentHTML('beforeend', `<div class="cp-msg bot">${reply}</div>`);
+    body.scrollTop = body.scrollHeight;
+  }, 450);
+  body.scrollTop = body.scrollHeight;
+}
+function copilotReply(text){
+  const t = text.toLowerCase();
+  if (t.includes('certif')) return "2 trainers have certifications expiring in the next 30 days: <strong>Maya Chen</strong> (SAFe SPC6, 12 days) and <strong>Sofia Marin</strong> (ICAgile Certified Professional, 25 days). Want me to open their profiles?";
+  if (t.includes('review') || t.includes('pending') || t.includes('queue')) return `There are currently <strong>${NEW_UPDATES.length} items</strong> pending in the Content Review queue — the highest priority is the <strong>SAFe 6.2 syllabus diff</strong> affecting SAFe DevOps Practitioner, detected 2 hrs ago.`;
+  if (t.includes('repository') || t.includes('health')) return "Repository Health is at <strong>91%</strong>, up 3% vs last 30 days. This reflects the share of monitored courses currently in sync with their certifying source — 3 courses are flagged as needing review.";
+  if (t.includes('audit') || t.includes('log') || t.includes('today')) return "Today's most recent events: Jordan Reyes approved the GitLab CI/CD module diff, and the system flagged a repository sync failure on the SharePoint migration connector. Check the Audit Logs tab for the full trail.";
+  if (t.includes('trainer')) return "You have <strong>10 trainers</strong> across 4 regions (AMER, EMEA, APAC, LATAM), averaging <strong>67% utilization</strong>. 6 are available this week. Want me to pull up the Trainer Network view?";
+  if (t.includes('integration') || t.includes('sync fail') || t.includes('sharepoint')) return "The SharePoint migration connector has failed 2 sync retries in the last 2 hours. I'd recommend reconnecting it from System Config → Integrations.";
+  return "Here's what I can help with as your Admin Copilot: content review status, trainer certifications &amp; availability, repository health, audit log activity, or system integration status. Try asking about any of those.";
+}
+
+/* ================= INIT ================= */
+document.addEventListener('DOMContentLoaded', function(){
+  renderDashboard();
+  renderUserManagement();
+  renderRepository();
+  renderContentReview();
+  renderAuditLogs();
+  renderSysConfig();
+  renderNotifications();
+  renderCopilotSuggestions();
+});
+</script>
+
+<script>
+  window.GleanBridge.postMessage({
+    actionId: 'export-pdf',
+    type: 'glean-add-menu',
+    metadata: { label: 'Export as PDF', icon: 'export' }
+  });
+  window.GleanBridge.onMessage('action', function(data) {
+    if (data.actionId === 'export-pdf') window.print();
+  });
+
+  function prepareChartsForPrint() {
+    document.querySelectorAll('[_echarts_instance_]').forEach(function(el) {
+      var chart = echarts.getInstanceByDom(el);
+      if (!chart) return;
+      var img = new Image();
+      img.src = chart.getDataURL({ type: 'png', pixelRatio: 2 });
+      img.className = 'print-chart-img';
+      img.style.cssText =
+        'width:100%;height:100%;object-fit:contain;' +
+        'position:absolute;top:0;left:0;z-index:10;';
+      el.dataset.prevPosition = el.style.position;
+      el.style.position = 'relative';
+      el.appendChild(img);
+    });
+  }
+
+  function cleanUpAfterPrint() {
+    document.querySelectorAll('[_echarts_instance_]').forEach(function(el) {
+      var img = el.querySelector('.print-chart-img');
+      if (!img) return;
+      img.remove();
+      el.style.position = el.dataset.prevPosition || '';
+      delete el.dataset.prevPosition;
+    });
+  }
+
+  window.addEventListener('beforeprint', prepareChartsForPrint);
+  window.addEventListener('afterprint', cleanUpAfterPrint);
+</script>
+
+<style>
+@media print {
+  body { margin: 0; padding: 0.4in 0.6in; background: #fff; print-color-adjust: exact; -webkit-print-color-adjust: exact; }
+  .container, .dashboard, .shell, main { max-width: 100% !important; width: 100% !important; }
+  .topbar, .sidebar, .copilot-fab, .copilot-panel, .dropdown-panel, .overlay-mask, .slideover, .modal-mask, .toast-wrap { position: static !important; }
+  .copilot-fab, .copilot-panel, .overlay-mask, .slideover, .modal-mask, .toast-wrap { display: none !important; }
+  .layout { display: block !important; }
+  .sidebar { display: none !important; }
+  .main { padding: 0 !important; }
+  .view { display: none !important; }
+  .view.active { display: block !important; }
+  section, [class*="section"], .header { break-inside: avoid; margin-bottom: 20px !important; }
+  .card, .qa-card, .trainer-card, .region-card, .review-item, .category-card { break-inside: avoid; padding: 14px !important; box-shadow: none !important; border: 1px solid rgba(0,0,0,0.12); }
+  .grid, .row { gap: 10px !important; margin-bottom: 16px !important; }
+}
+</style>
+</body>
+</html>

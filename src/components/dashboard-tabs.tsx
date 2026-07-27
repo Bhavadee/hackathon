@@ -2,7 +2,6 @@
 
 import { useMemo, useState } from "react";
 import {
-  Activity,
   ArrowUpRight,
   BadgeCheck,
   Banknote,
@@ -10,29 +9,21 @@ import {
   BookOpenCheck,
   Bot,
   CalendarDays,
-  CheckCircle2,
-  CircleDollarSign,
   ClipboardCheck,
-  Database,
-  Download,
-  FileText,
   Gauge,
-  Globe2,
   GraduationCap,
   Library,
   LineChart,
-  Map,
   MessageCircle,
   Network,
   Search,
-  SearchCheck,
   Send,
   Settings2,
   Sparkles,
-  Upload,
   UserRoundCheck,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
+import { ExecutiveCommandCenter } from "@/components/executive-command-center";
 import { TrainerNetwork } from "@/components/trainer-network";
 import { WorkflowLauncher } from "@/components/workflow-launcher";
 
@@ -45,10 +36,8 @@ export type DashboardData = {
 };
 
 type PersonaId = "admin" | "sales" | "trainer" | "learner" | "executive";
-type TrainerView = "home" | "network" | "generator" | "content" | "prep";
+type TrainerView = "home" | "network" | "curator" | "content" | "prep";
 type LearnerView = "discover" | "catalogue" | "generator" | "learning";
-type AdminView = "dashboard" | "content" | "repository" | "trainers" | "map" | "system";
-type SalesView = "dashboard" | "pipeline" | "quotes" | "crm" | "trainer" | "catalog" | "collections";
 
 const personas: { id: PersonaId; label: string; title: string; description: string; Icon: LucideIcon }[] = [
   { id: "admin", label: "Admin", title: "Governance and Operations Console", description: "Control content freshness, role access, catalog standards, and system integrations.", Icon: Settings2 },
@@ -57,10 +46,6 @@ const personas: { id: PersonaId; label: string; title: string; description: stri
   { id: "learner", label: "Learner", title: "Discovery, Learning, and Copilot Portal", description: "Generate a learning path, continue modules, and ask grounded learning questions.", Icon: GraduationCap },
   { id: "executive", label: "Executive", title: "Analytics and Orchestration Dashboard", description: "Track demand, margin, operating health, and agent impact across TaaS.", Icon: Gauge },
 ];
-
-function money(value: number) {
-  return `$${value.toLocaleString()}`;
-}
 
 function StatusPill({ tone = "blue", children }: { tone?: "blue" | "green" | "amber" | "red" | "slate"; children: React.ReactNode }) {
   const styles = {
@@ -106,344 +91,95 @@ function PersonaHeader({ persona }: { persona: (typeof personas)[number] }) {
   </div>;
 }
 
-function ConsoleCard({ title, children, className = "" }: { title: string; children: React.ReactNode; className?: string }) {
-  return <section className={`min-h-[212px] rounded-lg border border-slate-200 bg-[#f1f4f8] p-5 shadow-[inset_0_1px_0_rgba(255,255,255,0.7)] ${className}`}>
-    <h2 className="text-sm font-extrabold uppercase tracking-wide text-slate-600">{title}</h2>
-    <div className="mt-5">{children}</div>
+function PrototypeFrame({ src, title }: { src: string; title: string }) {
+  return <section className="overflow-hidden rounded-lg border border-slate-200 bg-white shadow-sm">
+    <iframe
+      title={title}
+      src={src}
+      className="block h-[calc(100vh-168px)] min-h-[760px] w-full border-0 bg-white"
+    />
   </section>;
 }
 
-function ConsoleRow({ label, value, tone = "slate" }: { label: string; value?: string; tone?: "blue" | "green" | "amber" | "slate" }) {
-  const toneClass = {
-    blue: "bg-blue-50 text-blue-700",
-    green: "bg-emerald-50 text-emerald-700",
-    amber: "bg-amber-50 text-amber-700",
-    slate: "bg-white text-slate-700",
-  };
-  return <div className="flex min-h-10 items-center justify-between gap-3 border-b border-dashed border-slate-200 py-2.5 last:border-0">
-    <span className="min-w-0 truncate text-sm text-slate-950">{label}</span>
-    {value && <span className={`shrink-0 rounded-md px-3 py-1 text-xs font-extrabold ${toneClass[tone]}`}>{value}</span>}
-  </div>;
-}
-
-function ConsoleShell({
-  role,
-  url,
-  search,
-  navItems,
-  active,
-  onSelect,
-  children,
-}: {
-  role: "admin" | "sales";
-  url: string;
-  search: string;
-  navItems: { id: string; label: string; Icon: LucideIcon }[];
-  active: string;
-  onSelect?: (id: string) => void;
-  children: React.ReactNode;
-}) {
-  return <div className="overflow-hidden rounded-lg border border-slate-200 bg-white shadow-sm">
-    <div className="flex h-[74px] items-center gap-4 border-b border-slate-200 bg-[#e8ebf0] px-4 md:h-[88px] md:gap-7 md:px-8">
-      <div className="flex gap-2 md:gap-3">
-        {[0, 1, 2].map((dot) => <span key={dot} className="size-3 rounded-full bg-slate-300 md:size-3.5" />)}
-      </div>
-      <div className="min-w-0 truncate rounded-md bg-white px-4 py-2 font-mono text-xs text-slate-600 shadow-sm md:px-5 md:text-sm">{url}</div>
-    </div>
-
-    <div className="grid min-h-[620px] lg:grid-cols-[300px_1fr]">
-      <aside className="border-b border-slate-200 bg-[#eef1f5] p-3 md:p-4 lg:border-b-0 lg:border-r">
-        <nav className="flex gap-2 overflow-x-auto lg:block lg:space-y-3">
-          {navItems.map(({ id, label, Icon }) => {
-            const selected = id === active;
-            return <button key={id} type="button" onClick={() => onSelect?.(id)} className={`flex min-w-fit items-center gap-3 rounded-lg px-4 py-3.5 text-left text-sm font-medium transition lg:w-full ${selected ? "bg-[#e7ebff] font-semibold text-blue-700 shadow-sm" : "text-slate-600 hover:bg-white"}`}>
-              <Icon size={17} />
-              <span>{label}</span>
-            </button>;
-          })}
-        </nav>
-      </aside>
-
-      <section className="min-w-0 overflow-hidden bg-white">
-        <div className="flex items-center justify-between gap-4 p-4 pb-3 md:p-7 md:pb-4">
-          <div className="flex min-h-14 w-full max-w-[505px] items-center gap-3 rounded-lg border border-slate-200 bg-[#f1f3f6] px-5 text-slate-500">
-            <Search size={20} className="text-blue-600" />
-            <span className="truncate text-sm md:text-base">{search}</span>
-          </div>
-          <div className="grid size-12 shrink-0 place-items-center rounded-full border border-slate-200 bg-slate-50 text-orange-500 shadow-sm">
-            <Bell size={18} />
-          </div>
-        </div>
-        <div className="px-4 pb-4 md:px-7 md:pb-7">
-          <p className="mb-6 text-xs font-bold uppercase tracking-[.16em] text-slate-500">{role === "admin" ? "Admin Console" : "Sales Console"}</p>
-          {children}
-        </div>
-      </section>
-    </div>
-  </div>;
-}
-
 function AdminPersona({ data }: { data: DashboardData }) {
-  const [view, setView] = useState<AdminView>("dashboard");
-  const avgFreshness = Math.round(data.courses.reduce((sum, course) => sum + course.freshness, 0) / data.courses.length);
-  return <ConsoleShell
-    role="admin"
-    url="taas.cprime.com/admin/dashboard"
-    search="Search courses, trainers, agents..."
-    active={view}
-    onSelect={(id) => setView(id as AdminView)}
-    navItems={[
-      { id: "dashboard", label: "Dashboard", Icon: Gauge },
-      { id: "content", label: "Content Review", Icon: Activity },
-      { id: "repository", label: "Repository", Icon: Library },
-      { id: "trainers", label: "Trainer Network", Icon: Network },
-      { id: "map", label: "Global Map", Icon: Map },
-      { id: "system", label: "System Config", Icon: Settings2 },
-    ]}
-  >
-    {view === "dashboard" && <AdminDashboard data={data} avgFreshness={avgFreshness} />}
-    {view === "content" && <AdminContentReview data={data} />}
-    {view === "repository" && <AdminRepository data={data} />}
-    {view === "trainers" && <div><SectionTitle eyebrow="Bhavadeep version retained" title="Trainer network and action management" description="Existing trainer feature remains available for filtering, profile review, and action completion." /><TrainerNetwork trainers={data.trainers} /></div>}
-    {view === "map" && <AdminTrainerMap data={data} />}
-    {view === "system" && <AdminSystemConfig connected={data.connected} />}
-  </ConsoleShell>;
-}
-
-function AdminDashboard({ data, avgFreshness }: { data: DashboardData; avgFreshness: number }) {
-  return <div className="space-y-5">
-    <Card className="border-blue-100 bg-blue-50/70">
-      <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
-        <div>
-          <p className="text-xs font-bold uppercase tracking-[.16em] text-blue-700">Admin scenario</p>
-          <h2 className="mt-2 text-lg font-semibold text-slate-950">Northstar needs SAFe DevOps content approved before trainer assignment.</h2>
-          <p className="mt-1 text-sm text-slate-600">Admin validates vendor updates, exports approved PDFs, and assigns a trainer from global availability.</p>
-        </div>
-        <StatusPill tone="amber">3 admin actions</StatusPill>
-      </div>
-    </Card>
-    <div className="grid gap-5 md:grid-cols-2 2xl:grid-cols-3">
-      <ConsoleCard title="Content Review Queue"><ConsoleRow label="SAFe 6.2 syllabus diff" value="Review" tone="amber" /><ConsoleRow label="Scrum Guide revision" value="Review" tone="amber" /><ConsoleRow label="GitLab CI module" value="Approved" tone="green" /><p className="mt-5 text-sm text-slate-600">Vendor schedule monitor flagged 3 updates today</p></ConsoleCard>
-      <ConsoleCard title="Repository Health"><p className="text-5xl font-light leading-none text-slate-950">{avgFreshness}%</p><p className="mt-3 text-sm text-slate-600">Content freshness score</p><div className="mt-3 h-2 rounded-full bg-slate-200"><div className="h-full rounded-full bg-blue-600" style={{ width: `${avgFreshness}%` }} /></div><p className="mt-5 text-sm text-slate-600">Last sync: 12 minutes ago</p></ConsoleCard>
-      <ConsoleCard title="Course Readiness"><ConsoleRow label="Launch-ready courses" value="12/15" tone="green" /><ConsoleRow label="Needs admin review" value="3" tone="amber" /><ConsoleRow label="PDF exports pending" value="4" tone="blue" /><p className="mt-5 text-sm text-slate-600">Moved from sales into admin governance</p></ConsoleCard>
-      <ConsoleCard title="Trainer Network"><ConsoleRow label="Active trainers" value={`${data.trainers.length}`} tone="blue" /><ConsoleRow label="Certs expiring <30d" value="2" tone="amber" /><ConsoleRow label="Regions covered" value="6" tone="green" /><p className="mt-5 text-sm text-slate-600">Availability refreshed from trainer profiles</p></ConsoleCard>
-      <ConsoleCard title="Admin AI Activity"><ConsoleRow label="Detected vendor update" value="SAFe" tone="amber" /><ConsoleRow label="Compared old/new PDFs" value="2 files" tone="blue" /><ConsoleRow label="Recommended approval" value="Low risk" tone="green" /><p className="mt-5 text-sm text-slate-600">Agent explains why each admin action matters</p></ConsoleCard>
-      <ConsoleCard title="Content Exports"><ConsoleRow label="PDF packages generated" value="18" tone="green" /><ConsoleRow label="SCORM bundles" value="7" tone="blue" /><ConsoleRow label="Watermarked decks" value="24" tone="green" /><p className="mt-5 text-sm text-slate-600">Approved courses can be exported as PDFs</p></ConsoleCard>
-    </div>
-  </div>;
-}
-
-function AdminContentReview({ data }: { data: DashboardData }) {
-  const [reviewed, setReviewed] = useState<Record<string, "approved" | "rejected">>({});
-  const [uploadMode, setUploadMode] = useState(false);
-  return <div className="grid gap-5 xl:grid-cols-[1fr_.85fr]">
-    <ConsoleCard title="Vendor Update Notifications" className="min-h-0">
-      <ConsoleRow label="Scaled Agile update window" value="Monthly" tone="blue" />
-      <ConsoleRow label="Scrum.org guide monitor" value="Quarterly" tone="blue" />
-      <ConsoleRow label="GitLab release notes" value="Weekly" tone="amber" />
-      <p className="mt-5 text-sm text-slate-600">Notifications are created from vendor course update schedules and source feeds.</p>
-    </ConsoleCard>
-    <ConsoleCard title="Review Source Options" className="min-h-0">
-      <div className="grid gap-3 sm:grid-cols-2">
-        <div className="rounded-lg border border-slate-200 bg-white p-4"><div className="flex items-center gap-2 font-semibold text-slate-900"><BadgeCheck size={17} className="text-emerald-600" />Vendor login</div><p className="mt-2 text-xs leading-5 text-slate-500">Use shared credentials when the vendor allows authenticated course checks.</p></div>
-        <button onClick={() => setUploadMode(true)} className="rounded-lg border border-dashed border-blue-200 bg-blue-50 p-4 text-left"><div className="flex items-center gap-2 font-semibold text-blue-900"><Upload size={17} />PDF diff upload</div><p className="mt-2 text-xs leading-5 text-blue-700">{uploadMode ? "Upload ready: old PDF and new PDF slots prepared." : "Upload old and new PDFs when credentials are not available."}</p></button>
-      </div>
-    </ConsoleCard>
-    <Card className="xl:col-span-2">
-      <h2 className="font-semibold text-slate-950">Old vs New PDF Diff Queue</h2>
-      <div className="mt-5 grid gap-3 md:grid-cols-3">
-        {data.courses.map((course, index) => {
-          const status = reviewed[course.id];
-          return <div key={course.id} className="rounded-lg border border-slate-100 bg-slate-50 p-4">
-            <div className="flex items-start justify-between gap-3"><div><p className="text-sm font-semibold text-slate-900">{course.title}</p><p className="mt-1 text-xs text-slate-500">Old v{course.sourceVersion} vs vendor update {index + 1}</p></div><StatusPill tone={status === "approved" ? "green" : status === "rejected" ? "red" : index === 0 ? "amber" : "blue"}>{status ?? (index === 0 ? "Diff found" : "Low risk")}</StatusPill></div>
-            <div className="mt-4 rounded-lg bg-white p-3 text-xs leading-5 text-slate-600"><b className="text-slate-800">AI summary:</b> {index === 0 ? "Learning objectives changed; labs unchanged; certification wording needs review." : "Minor wording updates only. No delivery impact detected."}</div>
-            <div className="mt-3 grid grid-cols-2 gap-2"><button onClick={() => setReviewed({ ...reviewed, [course.id]: "approved" })} className="rounded-lg bg-emerald-600 px-3 py-2 text-xs font-bold text-white">Approve</button><button onClick={() => setReviewed({ ...reviewed, [course.id]: "rejected" })} className="rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs font-bold text-slate-600">Reject</button></div>
-            <button className="mt-2 flex w-full items-center justify-center gap-2 rounded-lg bg-slate-950 px-3 py-2 text-xs font-bold text-white"><FileText size={15} />Open diff</button>
-          </div>;
-        })}
-      </div>
-    </Card>
-  </div>;
-}
-
-function AdminRepository({ data }: { data: DashboardData }) {
-  const [exported, setExported] = useState<string[]>([]);
-  function exportCourse(id: string) {
-    setExported((current) => current.includes(id) ? current : [...current, id]);
-  }
-  return <Card>
-    <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between"><div><h2 className="font-semibold text-slate-950">Course Repository Exports</h2><p className="mt-1 text-xs text-slate-500">Export approved content as branded PDFs for delivery or client review.</p></div><button onClick={() => setExported(data.courses.map((course) => course.id))} className="flex items-center justify-center gap-2 rounded-lg bg-blue-600 px-4 py-2.5 text-sm font-bold text-white"><Download size={16} />Export selected PDFs</button></div>
-    {!!exported.length && <div className="mt-4 rounded-lg border border-emerald-100 bg-emerald-50 p-3 text-sm font-semibold text-emerald-800">{exported.length} PDF export{exported.length === 1 ? "" : "s"} ready for download.</div>}
-    <div className="mt-5 space-y-3">{data.courses.map((course) => {
-      const isExported = exported.includes(course.id);
-      return <div key={course.id} className="flex flex-col gap-3 rounded-lg border border-slate-100 bg-slate-50 p-4 md:flex-row md:items-center md:justify-between"><div><p className="text-sm font-semibold text-slate-900">{course.title}</p><p className="mt-1 text-xs text-slate-500">Source v{course.sourceVersion} - freshness {course.freshness}%</p></div><div className="flex gap-2"><button className="rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs font-bold text-slate-600">Preview</button><button onClick={() => exportCourse(course.id)} className={`rounded-lg px-3 py-2 text-xs font-bold text-white ${isExported ? "bg-emerald-600" : "bg-slate-950"}`}>{isExported ? "Exported" : "PDF"}</button></div></div>;
-    })}</div>
-  </Card>;
-}
-
-function AdminTrainerMap({ data }: { data: DashboardData }) {
-  const [assignedId, setAssignedId] = useState<string | null>(null);
-  const locations = ["Austin", "Bengaluru", "Madrid", "Toronto", "London", "Singapore"];
-  return <div className="grid gap-5 xl:grid-cols-[1fr_.9fr]">
-    <Card><div className="flex items-center justify-between"><div><h2 className="font-semibold text-slate-950">Global Trainer Availability</h2><p className="mt-1 text-xs text-slate-500">Map view of trainers by region and next available delivery date.</p></div><Globe2 className="text-blue-600" size={22} /></div><div className="mt-5 grid min-h-[320px] place-items-center rounded-lg border border-slate-200 bg-[#eef4ff] p-5"><div className="grid w-full max-w-xl grid-cols-2 gap-4 md:grid-cols-3">{locations.map((location, index) => <div key={location} className="rounded-lg border border-blue-100 bg-white p-3 shadow-sm"><p className="text-sm font-bold text-slate-900">{location}</p><p className="mt-1 text-xs text-slate-500">{index + 1} trainer{index ? "s" : ""} available</p><StatusPill tone={index % 2 ? "amber" : "green"}>{index % 2 ? "This week" : "Now"}</StatusPill></div>)}</div></div></Card>
-    <Card><h2 className="font-semibold text-slate-950">Assign Training Session</h2><div className="mt-5 space-y-3">{data.trainers.slice(0, 5).map((trainer, index) => {
-      const assigned = assignedId === trainer.id;
-      return <div key={trainer.id} className={`rounded-lg border p-4 ${assigned ? "border-emerald-200 bg-emerald-50" : "border-slate-100 bg-slate-50"}`}><div className="flex items-start justify-between gap-3"><div><p className="text-sm font-semibold text-slate-900">{trainer.name}</p><p className="mt-1 text-xs text-slate-500">{trainer.role} - calendar open {new Date(trainer.availableFrom).toLocaleDateString("en-US", { month: "short", day: "numeric" })}</p></div><StatusPill tone={assigned ? "green" : trainer.utilization > 80 ? "amber" : "green"}>{assigned ? "Assigned" : `${trainer.utilization}% used`}</StatusPill></div>{assigned ? <p className="mt-3 text-xs font-semibold text-emerald-800">SAFe DevOps session reserved. Calendar hold sent for Aug 2, 2026.</p> : <button onClick={() => setAssignedId(trainer.id)} className="mt-3 rounded-lg bg-blue-600 px-3 py-2 text-xs font-bold text-white">Check calendar & assign {index === 0 ? "SAFe" : "course"}</button>}</div>;
-    })}</div></Card>
-  </div>;
-}
-
-function AdminSystemConfig({ connected }: { connected: boolean }) {
-  return <div className="grid gap-5 md:grid-cols-2">
-    <ConsoleCard title="Access & Roles"><div className="grid gap-3 text-sm text-slate-700">{[["Admin", "Full access"], ["Sales", "CRM + quotes"], ["Trainer", "Assignments"], ["Learner", "Catalogue + learning"]].map(([role, access]) => <label key={role} className="flex items-center justify-between rounded-md border border-slate-100 bg-white px-3 py-2 font-semibold shadow-sm"><span>{role}</span><span className="text-xs font-medium text-slate-500">{access}</span><input type="checkbox" defaultChecked className="size-4 accent-blue-600" /></label>)}</div><p className="mt-5 text-sm text-slate-600">SSO policy required for all internal users</p></ConsoleCard>
-    <ConsoleCard title="System Integrations"><ConsoleRow label="Salesforce" value={connected ? "Live" : "Demo"} tone={connected ? "green" : "amber"} /><ConsoleRow label="Outlook calendar" value="Connected" tone="green" /><ConsoleRow label="Repository Sync" value={connected ? "Live" : "Demo"} tone={connected ? "green" : "amber"} /><ConsoleRow label="Finance Export" value={connected ? "Live" : "Demo"} tone={connected ? "green" : "amber"} /><p className="mt-5 text-sm text-slate-600">Moved from dashboard into system config</p></ConsoleCard>
-  </div>;
+  void data;
+  return <PrototypeFrame src="/personas/taas_admin_view.html" title="Admin console" />;
 }
 
 function SalesPersona({ data }: { data: DashboardData }) {
-  const [view, setView] = useState<SalesView>("dashboard");
-  const revenue = data.requests.reduce((sum, item) => sum + item.seats * Number(item.pricePerSeat), 0);
-  const seats = data.requests.reduce((sum, item) => sum + item.seats, 0);
-  return <ConsoleShell
-    role="sales"
-    url="taas.cprime.com/sales/dashboard"
-    search="Search accounts, quotes, cohorts..."
-    active={view}
-    onSelect={(id) => setView(id as SalesView)}
-    navItems={[
-      { id: "dashboard", label: "Dashboard", Icon: Gauge },
-      { id: "pipeline", label: "Demand Pipeline", Icon: Activity },
-      { id: "quotes", label: "Quote Builder", Icon: CircleDollarSign },
-      { id: "crm", label: "CRM", Icon: Database },
-      { id: "trainer", label: "Trainer Match", Icon: UserRoundCheck },
-      { id: "catalog", label: "Catalog Offers", Icon: BookOpenCheck },
-      { id: "collections", label: "Collections", Icon: Banknote },
-    ]}
-  >
-    {view === "dashboard" && <SalesDashboard data={data} revenue={revenue} seats={seats} />}
-    {view === "pipeline" && <SalesPipeline data={data} />}
-    {view === "quotes" && <SalesQuotes data={data} />}
-    {view === "crm" && <SalesCrm data={data} connected={data.connected} />}
-    {view === "trainer" && <SalesTrainerMatch data={data} />}
-    {view === "catalog" && <SalesCatalogOffers data={data} />}
-    {view === "collections" && <SalesCollections />}
-  </ConsoleShell>;
+  void data;
+  return <PrototypeFrame src="/personas/taas_sales_view.html" title="Sales console" />;
 }
 
-function SalesDashboard({ data, revenue, seats }: { data: DashboardData; revenue: number; seats: number }) {
-  const [quoteReady, setQuoteReady] = useState(false);
-  return <div className="space-y-5">
-    <Card className="border-emerald-100 bg-emerald-50/70">
-      <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
-        <div>
-          <p className="text-xs font-bold uppercase tracking-[.16em] text-emerald-700">Sales scenario</p>
-          <h2 className="mt-2 text-lg font-semibold text-slate-950">Northstar Financial requests a 28-seat SAFe DevOps cohort.</h2>
-          <p className="mt-1 text-sm text-slate-600">Sales validates CRM demand, uses AI deal desk guidance, packages the quote, and hands trainer matching to operations.</p>
-        </div>
-        <button onClick={() => setQuoteReady(true)} className="rounded-lg bg-slate-950 px-4 py-2.5 text-sm font-bold text-white">{quoteReady ? "Quote generated" : "Generate Northstar quote"}</button>
-      </div>
-      {quoteReady && <div className="mt-4 rounded-lg border border-emerald-200 bg-white p-3 text-sm font-semibold text-emerald-800">Quote Q-1042 created with blended delivery, 34% margin, and trainer hold requested.</div>}
-    </Card>
-    <div className="grid gap-5 md:grid-cols-2 2xl:grid-cols-3">
-      <ConsoleCard title="Demand Pipeline">
-        {data.requests.map((request, index) => <ConsoleRow key={request.id} label={request.customer} value={index === 0 ? "Qualify" : index === 1 ? "Match" : "Ready"} tone={index === 0 ? "amber" : index === 1 ? "blue" : "green"} />)}
-        <p className="mt-5 text-sm text-slate-600">{seats} learner seats in active pipeline</p>
-      </ConsoleCard>
-      <ConsoleCard title="Pipeline Value">
-        <p className="text-5xl font-light leading-none text-slate-950">{money(revenue)}</p>
-        <p className="mt-3 text-sm text-slate-600">Current quoted training value</p>
-        <div className="mt-3 h-2 rounded-full bg-slate-200"><div className="h-full w-[78%] rounded-full bg-blue-600" /></div>
-        <p className="mt-5 text-sm text-slate-600">Weighted forecast: 78%</p>
-      </ConsoleCard>
-      <ConsoleCard title="AI Deal Desk">
-        <ConsoleRow label="Close probability" value="78%" tone="green" />
-        <ConsoleRow label="Recommended bundle" value="SAFe + DevOps" tone="blue" />
-        <ConsoleRow label="Discount guardrail" value="Max 8%" tone="amber" />
-        <p className="mt-5 text-sm text-slate-600">AI suggests blended delivery to protect margin and speed launch.</p>
-      </ConsoleCard>
-      <ConsoleCard title="CRM Stage">
-        <ConsoleRow label="Northstar Financial" value={quoteReady ? "Quoted" : "Needs quote"} tone={quoteReady ? "green" : "amber"} />
-        <ConsoleRow label="Acme Health" value="Trainer match" tone="blue" />
-        <ConsoleRow label="Orbit Retail" value="Renewal" tone="green" />
-        <p className="mt-5 text-sm text-slate-600">CRM owns account owner, stage, close date, and quote state.</p>
-      </ConsoleCard>
-      <ConsoleCard title="Margin Guardrails">
-        <p className="text-5xl font-light leading-none text-slate-950">34%</p>
-        <p className="mt-3 text-sm text-slate-600">Projected blended margin</p>
-        <div className="mt-3 h-2 rounded-full bg-slate-200"><div className="h-full w-[66%] rounded-full bg-emerald-500" /></div>
-        <p className="mt-5 text-sm text-slate-600">Within approved discount guardrail</p>
-      </ConsoleCard>
-      <ConsoleCard title="Next Actions">
-        <ConsoleRow label="Send quote to Northstar" value={quoteReady ? "Ready" : "Due"} tone={quoteReady ? "green" : "amber"} />
-        <ConsoleRow label="Confirm Acme trainer match" value="Open" />
-        <ConsoleRow label="Send Orbit renewal pack" value="Open" />
-        <p className="mt-5 text-sm text-slate-600">Sales agent sorted by urgency and deal value</p>
-      </ConsoleCard>
+function TrainerAvailabilityCard() {
+  type SlotStatus = "class" | "full" | "hold" | "open" | "off";
+  const slots: { day: number; weekday: string; status: SlotStatus; label: string; detail: string }[] = [
+    { day: 1, weekday: "Sat", status: "full", label: "Full", detail: "Private Agile cohort is fully booked." },
+    { day: 2, weekday: "Sun", status: "class", label: "Class", detail: "Northstar SAFe DevOps class at 10:00 AM." },
+    { day: 3, weekday: "Mon", status: "open", label: "Open", detail: "Best day to accept a remote class." },
+    { day: 4, weekday: "Tue", status: "full", label: "Full", detail: "Two delivery blocks and prep time are already booked." },
+    { day: 5, weekday: "Wed", status: "full", label: "Full", detail: "No more teaching capacity available." },
+    { day: 6, weekday: "Thu", status: "open", label: "Open", detail: "Available for instructor-led or blended delivery." },
+    { day: 7, weekday: "Fri", status: "hold", label: "Hold", detail: "Admin hold pending for Acme Health." },
+    { day: 8, weekday: "Sat", status: "open", label: "Open", detail: "Available for a half-day workshop." },
+    { day: 9, weekday: "Sun", status: "off", label: "Off", detail: "No class scheduled." },
+    { day: 10, weekday: "Mon", status: "class", label: "Class", detail: "GitLab CI/CD private cohort at 2:00 PM." },
+    { day: 11, weekday: "Tue", status: "open", label: "Open", detail: "Recommended date for a new class." },
+    { day: 12, weekday: "Wed", status: "full", label: "Full", detail: "Certification workshop and office hours booked." },
+    { day: 13, weekday: "Thu", status: "open", label: "Open", detail: "Available for a client kickoff or delivery." },
+    { day: 14, weekday: "Fri", status: "hold", label: "Hold", detail: "Tentative calendar hold for Orbit Retail." },
+  ];
+  const [selectedDay, setSelectedDay] = useState(2);
+  const selected = slots.find((slot) => slot.day === selectedDay) ?? slots[0];
+  const styles = {
+    class: "border-blue-200 bg-blue-50 text-blue-800",
+    full: "border-red-200 bg-red-50 text-red-700",
+    hold: "border-amber-200 bg-amber-50 text-amber-800",
+    open: "border-emerald-200 bg-emerald-50 text-emerald-800",
+    off: "border-slate-200 bg-slate-50 text-slate-400",
+  } satisfies Record<SlotStatus, string>;
+
+  return <Card>
+    <div className="flex items-start justify-between">
+      <div className="grid size-10 place-items-center rounded-lg bg-emerald-50 text-emerald-700"><CalendarDays size={19} /></div>
+      <span className="rounded-full bg-emerald-50 px-2.5 py-1 text-[10px] font-bold uppercase tracking-wide text-emerald-700">5 open days</span>
     </div>
-  </div>;
-}
-
-function SalesPipeline({ data }: { data: DashboardData }) {
-  return <Card><h2 className="font-semibold text-slate-950">Demand Pipeline</h2><div className="mt-5 overflow-x-auto"><table className="w-full min-w-[840px] text-left text-sm"><thead><tr className="border-b border-slate-100 text-[10px] uppercase tracking-wider text-slate-400"><th className="pb-3">Customer / Topic</th><th className="pb-3">Owner</th><th className="pb-3">Close Date</th><th className="pb-3">Seats</th><th className="pb-3">Value</th><th className="pb-3">Probability</th><th className="pb-3">Stage</th></tr></thead><tbody>{data.requests.map((request, index) => <tr key={request.id} className="border-b border-slate-50 last:border-0"><td className="py-4"><p className="font-semibold text-slate-900">{request.customer}</p><p className="mt-1 text-xs text-slate-500">{request.topic} - {request.deliveryMode}</p></td><td className="py-4 text-slate-600">{["Mira S.", "Dev P.", "Nora K."][index % 3]}</td><td className="py-4 text-slate-600">{["Aug 8", "Aug 15", "Sep 2"][index % 3]}</td><td className="py-4 font-semibold">{request.seats}</td><td className="py-4 font-semibold">{money(request.seats * Number(request.pricePerSeat))}</td><td className="py-4 font-semibold text-emerald-700">{[78, 64, 82][index % 3]}%</td><td className="py-4"><StatusPill tone={index === 0 ? "amber" : index === 1 ? "blue" : "green"}>{request.status}</StatusPill></td></tr>)}</tbody></table></div></Card>;
-}
-
-function SalesQuotes({ data }: { data: DashboardData }) {
-  const [selected, setSelected] = useState<string[]>([]);
-  const [generated, setGenerated] = useState(false);
-  const base = data.requests[0]?.seats ? data.requests[0].seats * Number(data.requests[0].pricePerSeat) : 11900;
-  const discount = Math.round(base * 0.08);
-  const total = base - discount + selected.length * 1800;
-  return <div className="grid gap-5 xl:grid-cols-[.8fr_1fr]">
-    <ConsoleCard title="Quote Builder">
-      <ConsoleRow label="Northstar Financial" value={generated ? "Generated" : "Ready"} tone={generated ? "green" : "amber"} />
-      <ConsoleRow label="Seats" value={`${data.requests[0]?.seats ?? 28}`} tone="blue" />
-      <ConsoleRow label="Discount guardrail" value="8%" tone="amber" />
-      <ConsoleRow label="Margin after discount" value="34%" tone="green" />
-      <button onClick={() => setGenerated(true)} className="mt-5 w-full rounded-lg bg-blue-600 px-4 py-2.5 text-sm font-bold text-white">{generated ? "Quote Q-1042 generated" : "Generate quote"}</button>
-      <p className="mt-3 text-sm text-slate-600">Content readiness is governed in admin before quote packaging.</p>
-    </ConsoleCard>
-    <Card>
-      <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between"><div><h2 className="font-semibold text-slate-950">Package Options</h2><p className="mt-1 text-xs text-slate-500">AI recommends bundling SAFe DevOps with a private cohort kickoff.</p></div><div className="rounded-lg bg-slate-950 px-4 py-3 text-right text-white"><p className="text-xs text-slate-300">Quote total</p><p className="text-xl font-bold">{money(total)}</p></div></div>
-      <div className="mt-5 space-y-3">{data.courses.map((course) => {
-        const added = selected.includes(course.id);
-        return <div key={course.id} className={`flex flex-col gap-3 rounded-lg border p-3 md:flex-row md:items-center md:justify-between ${added ? "border-emerald-200 bg-emerald-50" : "border-slate-100 bg-slate-50"}`}><div><span className="text-sm font-semibold text-slate-800">{course.title}</span><p className="mt-1 text-xs text-slate-500">Adds certification prep, labs, and branded PDF handout</p></div><button onClick={() => setSelected(added ? selected.filter((id) => id !== course.id) : [...selected, course.id])} className={`rounded-lg px-3 py-2 text-xs font-bold text-white ${added ? "bg-emerald-600" : "bg-slate-950"}`}>{added ? "Added" : "Add"}</button></div>;
-      })}</div>
-      <div className="mt-5 grid gap-3 rounded-lg bg-slate-50 p-4 text-sm md:grid-cols-3"><div><p className="text-xs text-slate-500">Base</p><p className="font-bold">{money(base)}</p></div><div><p className="text-xs text-slate-500">Discount</p><p className="font-bold text-amber-700">-{money(discount)}</p></div><div><p className="text-xs text-slate-500">Add-ons</p><p className="font-bold">{money(selected.length * 1800)}</p></div></div>
-    </Card>
-  </div>;
-}
-
-function SalesCrm({ data, connected }: { data: DashboardData; connected: boolean }) {
-  const [synced, setSynced] = useState(false);
-  return <div className="grid gap-5 xl:grid-cols-[.85fr_1fr]"><ConsoleCard title="CRM Health"><ConsoleRow label="Salesforce connection" value={connected || synced ? "Live" : "Demo"} tone={connected || synced ? "green" : "amber"} /><ConsoleRow label="Open opportunities" value={`${data.requests.length}`} tone="blue" /><ConsoleRow label="Stale account notes" value={synced ? "0" : "2"} tone={synced ? "green" : "amber"} /><button onClick={() => setSynced(true)} className="mt-5 w-full rounded-lg bg-blue-600 px-4 py-2.5 text-sm font-bold text-white">{synced ? "CRM synced" : "Sync CRM notes"}</button><p className="mt-3 text-sm text-slate-600">CRM is the sales system of record for request status.</p></ConsoleCard><Card><h2 className="font-semibold text-slate-950">Account Activity</h2><div className="mt-5 space-y-3">{data.requests.map((request, index) => <div key={request.id} className="rounded-lg border border-slate-100 bg-slate-50 p-4"><div className="flex items-start justify-between gap-3"><div><p className="text-sm font-semibold text-slate-900">{request.customer}</p><p className="mt-1 text-xs text-slate-500">{request.topic} - owner {["Mira S.", "Dev P.", "Nora K."][index % 3]} - close {["Aug 8", "Aug 15", "Sep 2"][index % 3]}</p><p className="mt-2 text-xs leading-5 text-slate-500">AI note: {index === 0 ? "Send quote today and propose blended delivery." : index === 1 ? "Trainer availability is the blocker." : "Renewal pack is ready."}</p></div><StatusPill tone={synced ? "green" : index === 0 ? "amber" : "blue"}>{synced ? "Synced" : index === 0 ? "Follow up" : "Synced"}</StatusPill></div></div>)}</div></Card></div>;
-}
-
-function SalesTrainerMatch({ data }: { data: DashboardData }) {
-  const [heldId, setHeldId] = useState<string | null>(null);
-  return <Card><h2 className="font-semibold text-slate-950">Trainer Match</h2><p className="mt-1 text-xs text-slate-500">Sales can see fit, rate, utilization, and availability before requesting an admin hold.</p><div className="mt-5 grid gap-3 md:grid-cols-2">{data.trainers.slice(0, 4).map((trainer, index) => {
-    const held = heldId === trainer.id;
-    return <div key={trainer.id} className={`rounded-lg border p-4 ${held ? "border-emerald-200 bg-emerald-50" : "border-slate-100 bg-slate-50"}`}><div className="flex items-start justify-between gap-3"><div><p className="text-sm font-semibold text-slate-900">{trainer.name}</p><p className="mt-1 text-xs text-slate-500">{trainer.skills.slice(0, 2).join(", ")} - {trainer.utilization}% utilized - ${trainer.hourlyRate}/hr</p></div><StatusPill tone={held ? "green" : index < 2 ? "green" : "blue"}>{held ? "Hold requested" : index < 2 ? "Best fit" : "Backup"}</StatusPill></div><button onClick={() => setHeldId(trainer.id)} className="mt-4 rounded-lg bg-blue-600 px-3 py-2 text-xs font-bold text-white">{held ? "Admin hold requested" : "Request trainer hold"}</button></div>;
-  })}</div></Card>;
-}
-
-function SalesCatalogOffers({ data }: { data: DashboardData }) {
-  const [added, setAdded] = useState<string[]>([]);
-  return <Card><h2 className="font-semibold text-slate-950">Catalog Offers</h2><p className="mt-1 text-xs text-slate-500">Package-ready offers can be added directly into the active quote.</p><div className="mt-5 grid gap-3 md:grid-cols-3">{data.courses.map((course, index) => {
-    const selected = added.includes(course.id);
-    return <div key={course.id} className={`rounded-lg border p-4 ${selected ? "border-emerald-200 bg-emerald-50" : "border-slate-100 bg-slate-50"}`}><div className="flex items-start justify-between gap-2"><p className="text-sm font-semibold text-slate-900">{course.title}</p><StatusPill tone={index === 0 ? "green" : "blue"}>{index === 0 ? "AI pick" : "Offer"}</StatusPill></div><p className="mt-2 text-xs leading-5 text-slate-500">Package-ready offer - v{course.sourceVersion}. Includes branded PDF export from admin repository.</p><button onClick={() => setAdded(selected ? added.filter((id) => id !== course.id) : [...added, course.id])} className={`mt-4 rounded-lg px-3 py-2 text-xs font-bold text-white ${selected ? "bg-emerald-600" : "bg-blue-600"}`}>{selected ? "Added to quote" : "Add to quote"}</button></div>;
-  })}</div></Card>;
-}
-
-function SalesCollections() {
-  const [followedUp, setFollowedUp] = useState(false);
-  return <div className="space-y-5"><Card><div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between"><div><h2 className="font-semibold text-slate-950">Collections</h2><p className="mt-1 text-xs text-slate-500">Finance follow-up is part of quote-to-cash readiness.</p></div><button onClick={() => setFollowedUp(true)} className="rounded-lg bg-blue-600 px-4 py-2.5 text-sm font-bold text-white">{followedUp ? "Follow-up sent" : "Send finance follow-up"}</button></div><div className="mt-5 grid gap-3 md:grid-cols-3"><MetricCard Icon={Banknote} label="Open invoices" value={followedUp ? "$0" : "$4.2K"} detail={followedUp ? "Follow-up sent to finance" : "One invoice needs finance follow-up"} tone="bg-amber-50 text-amber-700" /><MetricCard Icon={CheckCircle2} label="Terms accepted" value="6" detail="Approved customer payment terms" tone="bg-emerald-50 text-emerald-700" /><MetricCard Icon={LineChart} label="Renewals" value="3" detail="Accounts renewing this month" tone="bg-blue-50 text-blue-700" /></div></Card></div>;
+    <p className="mt-5 text-xs font-bold uppercase tracking-wider text-slate-400">Availability</p>
+    <div className="mt-1 flex items-end justify-between gap-3">
+      <p className="text-2xl font-semibold tracking-tight text-slate-950">Calendar</p>
+      <p className="text-xs font-semibold text-slate-500">Aug 1-14</p>
+    </div>
+    <div className="mt-4 grid grid-cols-7 gap-1.5">
+      {slots.map((slot) => (
+        <button
+          key={slot.day}
+          type="button"
+          onClick={() => setSelectedDay(slot.day)}
+          aria-label={`Aug ${slot.day}, ${slot.label}: ${slot.detail}`}
+          className={`grid h-14 min-w-0 place-items-center rounded-md border text-center transition ${styles[slot.status]} ${selectedDay === slot.day ? "ring-2 ring-slate-900 ring-offset-1" : ""}`}
+        >
+          <span className="text-[9px] font-bold uppercase leading-none">{slot.weekday}</span>
+          <span className="text-sm font-extrabold leading-none">{slot.day}</span>
+        </button>
+      ))}
+    </div>
+    <div className="mt-4 flex flex-wrap gap-1.5 text-[10px] font-bold uppercase tracking-wide">
+      <span className="rounded-full bg-blue-50 px-2 py-1 text-blue-700">Class</span>
+      <span className="rounded-full bg-red-50 px-2 py-1 text-red-700">Full</span>
+      <span className="rounded-full bg-emerald-50 px-2 py-1 text-emerald-700">Open</span>
+      <span className="rounded-full bg-amber-50 px-2 py-1 text-amber-700">Hold</span>
+    </div>
+    <div className="mt-3 rounded-md bg-slate-50 px-3 py-2 text-xs leading-5 text-slate-600">
+      <span className="font-bold text-slate-900">Aug {selected.day}: {selected.label}.</span> {selected.detail}
+    </div>
+  </Card>;
 }
 
 function TrainerShell({ activeView, onViewChange, children }: { activeView: TrainerView; onViewChange: (view: TrainerView) => void; children: React.ReactNode }) {
   const views: { id: TrainerView; label: string; Icon: LucideIcon }[] = [
     { id: "home", label: "My Profile", Icon: UserRoundCheck },
     { id: "network", label: "Trainer Feature", Icon: Network },
-    { id: "generator", label: "Course Generator", Icon: Sparkles },
+    { id: "curator", label: "Course Curator", Icon: Sparkles },
     { id: "content", label: "Content Library", Icon: Library },
     { id: "prep", label: "Session Prep", Icon: ClipboardCheck },
   ];
@@ -478,7 +214,7 @@ function TrainerHome({ data }: { data: DashboardData }) {
     </Card>
     <div className="grid gap-4 md:grid-cols-3">
       <MetricCard Icon={BadgeCheck} label="My credentials" value="3 active" detail="SAFe SPC, CSP-SM, ICAgile" tone="bg-blue-50 text-blue-700" />
-      <MetricCard Icon={CalendarDays} label="Availability" value="5 days" detail="Open across the next two delivery weeks" tone="bg-emerald-50 text-emerald-700" />
+      <TrainerAvailabilityCard />
       <MetricCard Icon={LineChart} label="Network utilization" value={`${avgUtilization}%`} detail="Average utilization across trainer pool" tone="bg-amber-50 text-amber-700" />
     </div>
     <Card>
@@ -503,10 +239,82 @@ function TrainerPersona({ data }: { data: DashboardData }) {
   return <TrainerShell activeView={view} onViewChange={setView}>
     {view === "home" && <TrainerHome data={data} />}
     {view === "network" && <div><SectionTitle eyebrow="Trainer feature" title="Trainer network and action management" description="This is the existing complete trainer feature, placed inside the Trainer persona." /><TrainerNetwork trainers={data.trainers} /></div>}
-    {view === "generator" && <div><SectionTitle eyebrow="Course generator" title="Create or tailor a course for delivery" description="This is the existing complete course generator, available to trainers." /><section className="overflow-hidden rounded-lg bg-[#17233b] text-white shadow-xl"><WorkflowLauncher /></section></div>}
+    {view === "curator" && <TrainerCourseCurator data={data} />}
     {view === "content" && <TrainerContent data={data} />}
     {view === "prep" && <TrainerPrep />}
   </TrainerShell>;
+}
+
+function TrainerCourseCurator({ data }: { data: DashboardData }) {
+  const [selectedCourseId, setSelectedCourseId] = useState(data.courses[0]?.id ?? "");
+  const [notesReady, setNotesReady] = useState(false);
+  const selectedCourse = data.courses.find((course) => course.id === selectedCourseId) ?? data.courses[0];
+  const lessonFlow = [
+    ["Opening", "Set context, learner outcomes, and real client scenario.", "10 min"],
+    ["Concepts", "Explain the core model with one visual and one business example.", "25 min"],
+    ["Demo", "Walk through the trainer-led example before learner practice.", "20 min"],
+    ["Practice", "Run breakout activity, lab, or guided discussion.", "35 min"],
+    ["Debrief", "Collect questions, correct misconceptions, and connect to certification prep.", "20 min"],
+  ];
+  const notes = [
+    "Start with the Northstar value stream story so the class sees why the topic matters.",
+    "Keep definitions short, then immediately show how the idea changes daily work.",
+    "Use the GitLab CI/CD lab as the practical anchor for DevOps learners.",
+    "Pause after every major concept and ask learners to map it to their current team.",
+  ];
+  const materials = ["Facilitator guide", "Slide deck", "Lab guide", "Timing plan", "Q&A prompts", "Assessment notes"];
+
+  return <div className="space-y-5">
+    <SectionTitle
+      eyebrow="Course curator"
+      title="Prepare the course before teaching"
+      description="Curate the approved content into trainer notes, lesson order, examples, timing, and classroom delivery structure."
+    />
+    <Card className="border-blue-100 bg-blue-50/70">
+      <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+        <label className="block min-w-0 flex-1">
+          <span className="text-xs font-bold uppercase tracking-wide text-blue-700">Course</span>
+          <select value={selectedCourseId} onChange={(event) => { setSelectedCourseId(event.target.value); setNotesReady(false); }} className="mt-2 w-full rounded-lg border border-blue-100 bg-white px-4 py-3 text-sm font-semibold text-slate-950 outline-none focus:border-blue-500">
+            {data.courses.map((course) => <option key={course.id} value={course.id}>{course.title}</option>)}
+          </select>
+        </label>
+        <button onClick={() => setNotesReady(true)} className="rounded-lg bg-slate-950 px-4 py-3 text-sm font-bold text-white">{notesReady ? "Curator pack ready" : "Prepare curator pack"}</button>
+      </div>
+      {selectedCourse && <p className="mt-3 text-sm leading-6 text-blue-900">Selected course: <b>{selectedCourse.title}</b>. Source v{selectedCourse.sourceVersion}, freshness {selectedCourse.freshness}%.</p>}
+    </Card>
+
+    <div className="grid gap-5 xl:grid-cols-[1.05fr_.95fr]">
+      <Card>
+        <h2 className="font-semibold text-slate-950">Teaching Structure</h2>
+        <div className="mt-5 space-y-3">
+          {lessonFlow.map(([step, detail, time], index) => <div key={step} className="grid gap-3 rounded-lg border border-slate-100 bg-slate-50 p-4 sm:grid-cols-[76px_1fr_70px] sm:items-center">
+            <div className="text-xs font-bold uppercase tracking-wide text-blue-700">Step {index + 1}</div>
+            <div><p className="text-sm font-semibold text-slate-900">{step}</p><p className="mt-1 text-xs leading-5 text-slate-500">{detail}</p></div>
+            <div className="rounded-md bg-white px-3 py-2 text-center text-xs font-bold text-slate-600">{time}</div>
+          </div>)}
+        </div>
+      </Card>
+
+      <Card>
+        <h2 className="font-semibold text-slate-950">Trainer Notes</h2>
+        <div className="mt-5 space-y-3">
+          {notes.map((note, index) => <div key={note} className={`rounded-lg border p-3 text-sm leading-6 ${notesReady ? "border-emerald-100 bg-emerald-50 text-emerald-900" : "border-slate-100 bg-slate-50 text-slate-600"}`}>
+            <span className="mr-2 font-bold">{index + 1}.</span>{note}
+          </div>)}
+        </div>
+      </Card>
+    </div>
+
+    <Card>
+      <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+        <div><h2 className="font-semibold text-slate-950">Curator Materials</h2><p className="mt-1 text-xs text-slate-500">Everything the trainer prepares before the class starts.</p></div>
+        <StatusPill tone={notesReady ? "green" : "amber"}>{notesReady ? "Ready to teach" : "Draft"}</StatusPill>
+      </div>
+      <div className="mt-5 grid gap-3 md:grid-cols-3">
+        {materials.map((item) => <div key={item} className={`rounded-lg border p-4 text-sm font-semibold ${notesReady ? "border-emerald-100 bg-emerald-50 text-emerald-800" : "border-slate-100 bg-slate-50 text-slate-700"}`}>{item}</div>)}
+      </div>
+    </Card>
+  </div>;
 }
 
 function TrainerContent({ data }: { data: DashboardData }) {
@@ -676,47 +484,7 @@ function LearnerCopilot() {
 }
 
 function ExecutivePersona({ data }: { data: DashboardData }) {
-  const revenue = data.requests.reduce((sum, item) => sum + item.seats * Number(item.pricePerSeat), 0);
-  const avgFreshness = Math.round(data.courses.reduce((sum, course) => sum + course.freshness, 0) / data.courses.length);
-  return <div className="space-y-6">
-    <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-      <MetricCard Icon={LineChart} label="Demand forecast" value="+24%" detail="Scaled agile demand, quarter over quarter" tone="bg-blue-50 text-blue-700" />
-      <MetricCard Icon={CircleDollarSign} label="Pipeline value" value={money(revenue)} detail="Current qualified learning requests" tone="bg-emerald-50 text-emerald-700" />
-      <MetricCard Icon={Gauge} label="Readiness" value={`${avgFreshness}%`} detail="Average content freshness signal" tone="bg-violet-50 text-violet-700" />
-      <MetricCard Icon={CheckCircle2} label="Time saved" value="46.5 hrs" detail="Manual operations returned this month" tone="bg-amber-50 text-amber-700" />
-    </div>
-    <div className="grid gap-6 xl:grid-cols-[1fr_.8fr]">
-      <Card>
-        <h2 className="font-semibold text-slate-950">Overview: Channel Mix</h2>
-        <div className="mt-5 grid gap-3 md:grid-cols-3">
-          {[["Direct enterprise", "54%", "Strategic accounts"], ["Partner channel", "28%", "Resellers and alliances"], ["Marketplace", "18%", "Self-service demand"]].map(([label, value, detail], index) => <div key={label} className="rounded-lg bg-slate-50 p-4"><p className="text-2xl font-semibold text-slate-950">{value}</p><p className="mt-1 text-sm font-semibold text-slate-700">{label}</p><p className="mt-1 text-xs text-slate-500">{detail}</p><div className="mt-3 h-2 rounded-full bg-white"><div className={`h-full rounded-full ${index === 0 ? "w-[54%] bg-blue-600" : index === 1 ? "w-[28%] bg-emerald-500" : "w-[18%] bg-amber-500"}`} /></div></div>)}
-        </div>
-      </Card>
-      <Card>
-        <h2 className="font-semibold text-slate-950">Demand & Forecast</h2>
-        <div className="mt-5 space-y-3">
-          {[["Financial services", "+31%", "SAFe and DevOps modernization"], ["Healthcare", "+18%", "Compliance-ready agile delivery"], ["Retail", "+22%", "Private cohorts and blended learning"], ["Technology", "+27%", "Platform engineering enablement"]].map(([industry, forecast, detail]) => <div key={industry} className="flex items-center justify-between gap-3 rounded-lg bg-slate-50 p-3"><div><p className="text-sm font-semibold text-slate-900">{industry}</p><p className="mt-1 text-xs text-slate-500">{detail}</p></div><span className="rounded-md bg-blue-50 px-3 py-1 text-xs font-extrabold text-blue-700">{forecast}</span></div>)}
-        </div>
-      </Card>
-    </div>
-    <div className="grid gap-6 xl:grid-cols-[.9fr_1fr]">
-      <Card>
-        <h2 className="font-semibold text-slate-950">Market Position</h2>
-        <div className="mt-5 space-y-3">
-          {[["Cprime TaaS", "Integrated AI + trainer delivery", "Strong"], ["Coursera Business", "Broad catalogue marketplace", "Monitor"], ["Udemy Business", "Low-cost content scale", "Price pressure"], ["Pluralsight", "Technical skill depth", "Compete by vertical solution"]].map(([name, detail, position], index) => <div key={name} className="rounded-lg border border-slate-100 bg-slate-50 p-4"><div className="flex items-start justify-between gap-3"><div><p className="text-sm font-semibold text-slate-900">{name}</p><p className="mt-1 text-xs text-slate-500">{detail}</p></div><StatusPill tone={index === 0 ? "green" : index === 2 ? "amber" : "blue"}>{position}</StatusPill></div></div>)}
-        </div>
-      </Card>
-      <Card>
-        <h2 className="font-semibold text-slate-950">Latest Agent Activity</h2>
-        <div className="mt-5 space-y-4">
-          {data.runs.map((run) => <div key={run.id} className="flex gap-3 rounded-lg border border-slate-100 bg-slate-50 p-3">
-            <div className={`grid size-9 shrink-0 place-items-center rounded-lg ${run.status === "attention" ? "bg-amber-50 text-amber-700" : "bg-emerald-50 text-emerald-700"}`}>{run.status === "attention" ? <SearchCheck size={17} /> : <CheckCircle2 size={17} />}</div>
-            <div><p className="text-sm font-semibold text-slate-900">{run.agent}</p><p className="mt-1 text-xs leading-5 text-slate-500">{run.summary}</p></div>
-          </div>)}
-        </div>
-      </Card>
-    </div>
-  </div>;
+  return <ExecutiveCommandCenter connected={data.connected} />;
 }
 
 function SectionTitle({ eyebrow, title, description }: { eyebrow: string; title: string; description: string }) {
@@ -728,18 +496,30 @@ function SectionTitle({ eyebrow, title, description }: { eyebrow: string; title:
 }
 
 export function DashboardTabs({ data }: { data: DashboardData }) {
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [allowedPersona, setAllowedPersona] = useState<PersonaId>("admin");
   const [activePersona, setActivePersona] = useState<PersonaId>(() => {
     if (typeof window === "undefined") return "admin";
     const hash = window.location.hash.replace("#", "");
     return personas.some((persona) => persona.id === hash) ? hash as PersonaId : "admin";
   });
   const active = useMemo(() => personas.find((persona) => persona.id === activePersona) ?? personas[0], [activePersona]);
+  const visiblePersonas = useMemo(() => personas.filter((persona) => persona.id === allowedPersona), [allowedPersona]);
 
   function selectPersona(persona: PersonaId) {
     setActivePersona(persona);
     window.history.replaceState(null, "", `#${persona}`);
     window.scrollTo({ top: 0, behavior: "smooth" });
   }
+
+  function loginAs(persona: PersonaId) {
+    setAllowedPersona(persona);
+    setActivePersona(persona);
+    window.history.replaceState(null, "", `#${persona}`);
+    setIsAuthenticated(true);
+  }
+
+  if (!isAuthenticated) return <LoginScreen onLogin={loginAs} />;
 
   return <main className="min-h-screen bg-[#f5f7fb] text-[#17233b]">
     <section className="mx-auto max-w-[1520px] px-4 py-6 md:px-8 md:py-8">
@@ -755,8 +535,8 @@ export function DashboardTabs({ data }: { data: DashboardData }) {
       </div>
 
       <nav aria-label="Personas" className="sticky top-4 z-20 mb-10 rounded-full border border-slate-200 bg-white/95 p-2 shadow-lg shadow-slate-200/70 backdrop-blur">
-        <div className="grid grid-cols-2 gap-2 md:grid-cols-5">
-          {personas.map(({ id, label, Icon }) => <button key={id} type="button" onClick={() => selectPersona(id)} className={`flex items-center justify-center gap-2 rounded-full px-4 py-3 text-sm font-bold transition ${activePersona === id ? "bg-slate-950 text-white" : "text-slate-500 hover:bg-slate-100 hover:text-slate-950"}`}>
+        <div className="grid grid-cols-1 gap-2">
+          {visiblePersonas.map(({ id, label, Icon }) => <button key={id} type="button" onClick={() => selectPersona(id)} className={`flex items-center justify-center gap-2 rounded-full px-4 py-3 text-sm font-bold transition ${activePersona === id ? "bg-slate-950 text-white" : "text-slate-500 hover:bg-slate-100 hover:text-slate-950"}`}>
             <Icon size={16} />
             {label}
           </button>)}
@@ -769,6 +549,45 @@ export function DashboardTabs({ data }: { data: DashboardData }) {
       {activePersona === "trainer" && <TrainerPersona data={data} />}
       {activePersona === "learner" && <LearnerPersona data={data} />}
       {activePersona === "executive" && <ExecutivePersona data={data} />}
+    </section>
+  </main>;
+}
+
+function LoginScreen({ onLogin }: { onLogin: (persona: PersonaId) => void }) {
+  const [persona, setPersona] = useState<PersonaId>("admin");
+  return <main className="grid min-h-screen place-items-center bg-[#f5f7fb] px-4 py-10 text-[#17233b]">
+    <section className="w-full max-w-md rounded-lg border border-slate-200 bg-white p-6 shadow-xl shadow-slate-200/70 md:p-8">
+      <div className="mb-8 flex items-center gap-3">
+        <div className="grid size-12 place-items-center rounded-lg bg-[#ff5b49] text-white"><Sparkles size={22} /></div>
+        <div>
+          <p className="text-xl font-bold tracking-tight text-slate-950">Cprime TaaS</p>
+          <p className="text-[10px] font-bold uppercase tracking-[.2em] text-slate-400">Secure access</p>
+        </div>
+      </div>
+
+      <div className="mb-6">
+        <p className="text-xs font-bold uppercase tracking-[.16em] text-blue-600">Login</p>
+        <h1 className="mt-2 text-3xl font-semibold tracking-tight text-slate-950">Sign in to continue</h1>
+        <p className="mt-2 text-sm leading-6 text-slate-500">Use any email and password for this prototype.</p>
+      </div>
+
+      <form onSubmit={(event) => { event.preventDefault(); onLogin(persona); }} className="space-y-4">
+        <label className="block">
+          <span className="text-xs font-bold uppercase tracking-wide text-slate-500">Role</span>
+          <select value={persona} onChange={(event) => setPersona(event.target.value as PersonaId)} className="mt-2 w-full rounded-lg border border-slate-200 bg-slate-50 px-4 py-3 text-sm font-semibold text-slate-950 outline-none transition focus:border-blue-500 focus:bg-white">
+            {personas.map((item) => <option key={item.id} value={item.id}>{item.label}</option>)}
+          </select>
+        </label>
+        <label className="block">
+          <span className="text-xs font-bold uppercase tracking-wide text-slate-500">Email</span>
+          <input type="email" required placeholder="you@company.com" className="mt-2 w-full rounded-lg border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-950 outline-none transition focus:border-blue-500 focus:bg-white" />
+        </label>
+        <label className="block">
+          <span className="text-xs font-bold uppercase tracking-wide text-slate-500">Password</span>
+          <input type="password" required placeholder="Password" className="mt-2 w-full rounded-lg border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-950 outline-none transition focus:border-blue-500 focus:bg-white" />
+        </label>
+        <button type="submit" className="mt-2 w-full rounded-lg bg-slate-950 px-4 py-3 text-sm font-bold text-white transition hover:bg-slate-800">Login</button>
+      </form>
     </section>
   </main>;
 }

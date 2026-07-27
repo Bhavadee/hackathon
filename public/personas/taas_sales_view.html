@@ -1,0 +1,1270 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Cprime TaaS — Sales &amp; Operations Console</title>
+<style>
+:root{
+  --artifact-bg:#f4f6fa;
+  --artifact-surface:#ffffff;
+  --artifact-surface-2:#f8fafc;
+  --artifact-border:#e6e9f0;
+  --artifact-text:#0f172a;
+  --artifact-muted:#64748b;
+  --artifact-muted-2:#94a3b8;
+  --artifact-accent:#2f5fef;
+  --artifact-accent-soft:#eaf0ff;
+  --artifact-success:#16a35a;
+  --artifact-success-soft:#e7f7ee;
+  --artifact-warning:#d9820a;
+  --artifact-warning-soft:#fdf1de;
+  --artifact-danger:#dc3545;
+  --artifact-danger-soft:#fdeaec;
+  --artifact-purple:#7c5cf0;
+  --artifact-purple-soft:#f1edfd;
+  --artifact-teal:#0ea5a5;
+  --artifact-teal-soft:#e3f7f7;
+  --artifact-shadow:0 1px 2px rgba(15,23,42,0.04),0 8px 24px -12px rgba(15,23,42,0.10);
+  --artifact-radius:14px;
+  --artifact-radius-sm:10px;
+  --font-ui:-apple-system,BlinkMacSystemFont,"Segoe UI",Inter,Roboto,Helvetica,Arial,sans-serif;
+  --font-mono:"SF Mono",ui-monospace,"Cascadia Code",Consolas,monospace;
+}
+html[data-theme='dark']{
+  --artifact-bg:#0b1020;
+  --artifact-surface:#121a2e;
+  --artifact-surface-2:#0f1626;
+  --artifact-border:#232d45;
+  --artifact-text:#eef1f8;
+  --artifact-muted:#9aa5c0;
+  --artifact-muted-2:#6c7796;
+  --artifact-accent:#5b82ff;
+  --artifact-accent-soft:#1a2140;
+  --artifact-success:#34c37c;
+  --artifact-success-soft:#122a20;
+  --artifact-warning:#e8a13a;
+  --artifact-warning-soft:#2c2213;
+  --artifact-danger:#f16a76;
+  --artifact-danger-soft:#2c1518;
+  --artifact-purple:#9c85f7;
+  --artifact-purple-soft:#211c3a;
+  --artifact-teal:#3fd0d0;
+  --artifact-teal-soft:#0f2626;
+  --artifact-shadow:0 1px 2px rgba(0,0,0,0.3),0 8px 24px -12px rgba(0,0,0,0.5);
+}
+*{box-sizing:border-box;}
+body{margin:0;font-family:var(--font-ui);background:var(--artifact-bg);color:var(--artifact-text);-webkit-font-smoothing:antialiased;}
+a{color:inherit;text-decoration:none;}
+button{font-family:inherit;cursor:pointer;}
+.shell{min-height:100vh;display:flex;flex-direction:column;}
+
+/* ---------- Topbar ---------- */
+.topbar{display:flex;align-items:center;justify-content:space-between;padding:12px 24px;background:var(--artifact-surface);border-bottom:1px solid var(--artifact-border);position:sticky;top:0;z-index:50;}
+.brand{display:flex;align-items:center;gap:10px;}
+.brand-mark{width:34px;height:34px;border-radius:10px;background:linear-gradient(135deg,#ff6b4a,#ff8a5c);display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:15px;flex-shrink:0;}
+.brand-text .name{font-size:14.5px;font-weight:700;letter-spacing:-.01em;line-height:1.2;}
+.brand-text .sub{font-size:10px;letter-spacing:.08em;color:var(--artifact-muted-2);font-weight:600;}
+.topbar-right{display:flex;align-items:center;gap:10px;}
+.badge-pill{font-size:11.5px;font-weight:600;padding:5px 10px;border-radius:999px;background:var(--artifact-warning-soft);color:var(--artifact-warning);border:1px solid transparent;}
+.badge-pill.blue{background:var(--artifact-accent-soft);color:var(--artifact-accent);}
+.badge-pill.admin-tag{background:var(--artifact-purple-soft);color:var(--artifact-purple);}
+
+.icon-btn{position:relative;width:38px;height:38px;border-radius:10px;border:1px solid var(--artifact-border);background:var(--artifact-surface);display:flex;align-items:center;justify-content:center;color:var(--artifact-muted);transition:background .15s;}
+.icon-btn:hover{background:var(--artifact-surface-2);}
+.icon-btn svg{width:18px;height:18px;}
+.notif-dot{position:absolute;top:-5px;right:-5px;min-width:17px;height:17px;padding:0 4px;border-radius:999px;background:var(--artifact-danger);color:#fff;font-size:10px;font-weight:700;display:flex;align-items:center;justify-content:center;border:2px solid var(--artifact-surface);}
+
+.profile-chip{display:flex;align-items:center;gap:9px;padding:5px 10px 5px 6px;border-radius:999px;border:1px solid var(--artifact-border);background:var(--artifact-surface);}
+.profile-chip:hover{background:var(--artifact-surface-2);}
+.avatar{width:30px;height:30px;border-radius:50%;background:var(--artifact-accent);color:#fff;font-size:12.5px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.profile-meta{text-align:left;line-height:1.2;}
+.profile-meta .pname{font-size:12.5px;font-weight:700;}
+.profile-meta .prole{font-size:10.5px;color:var(--artifact-muted-2);font-weight:600;}
+.chip-caret{width:14px;height:14px;color:var(--artifact-muted-2);}
+
+/* dropdown */
+.dropdown-panel{position:absolute;top:calc(100% + 8px);right:0;background:var(--artifact-surface);border:1px solid var(--artifact-border);border-radius:var(--artifact-radius);box-shadow:var(--artifact-shadow);min-width:270px;z-index:200;opacity:0;visibility:hidden;transform:translateY(-6px);transition:all .15s ease;overflow:hidden;}
+.dropdown-panel.open{opacity:1;visibility:visible;transform:translateY(0);}
+.dropdown-wrap{position:relative;}
+.dd-header{padding:14px 16px;border-bottom:1px solid var(--artifact-border);}
+.dd-header .dname{font-size:13.5px;font-weight:700;}
+.dd-header .demail{font-size:11.5px;color:var(--artifact-muted);margin-top:1px;}
+.dd-item{display:flex;align-items:center;gap:10px;padding:11px 16px;font-size:13px;font-weight:600;color:var(--artifact-text);}
+.dd-item:hover{background:var(--artifact-surface-2);}
+.dd-item svg{width:16px;height:16px;color:var(--artifact-muted);}
+.dd-item.danger{color:var(--artifact-danger);}
+.dd-item.danger svg{color:var(--artifact-danger);}
+.dd-sep{height:1px;background:var(--artifact-border);margin:4px 0;}
+
+.notif-panel{width:360px;max-height:440px;display:flex;flex-direction:column;}
+.notif-list{overflow-y:auto;max-height:340px;}
+.notif-row{display:flex;gap:10px;padding:12px 16px;border-bottom:1px solid var(--artifact-border);}
+.notif-row:last-child{border-bottom:none;}
+.notif-dotcolor{width:8px;height:8px;border-radius:50%;margin-top:5px;flex-shrink:0;}
+.notif-row .ntitle{font-size:12.5px;font-weight:600;line-height:1.35;}
+.notif-row .ntime{font-size:11px;color:var(--artifact-muted-2);margin-top:2px;}
+.notif-footer{padding:10px 16px;border-top:1px solid var(--artifact-border);display:flex;justify-content:space-between;align-items:center;}
+.link-btn{font-size:12px;font-weight:700;color:var(--artifact-accent);background:none;border:none;padding:0;}
+
+/* ---------- Layout: sidebar + main ---------- */
+.layout{display:flex;flex:1;min-height:0;}
+.sidebar{width:236px;flex-shrink:0;background:var(--artifact-surface);border-right:1px solid var(--artifact-border);padding:16px 12px;position:sticky;top:61px;align-self:flex-start;height:calc(100vh - 61px);overflow-y:auto;}
+.side-item{display:flex;align-items:center;gap:11px;padding:10px 12px;border-radius:10px;font-size:13.5px;font-weight:600;color:var(--artifact-muted);margin-bottom:2px;transition:background .15s,color .15s;cursor:pointer;}
+.side-item svg{width:17px;height:17px;flex-shrink:0;}
+.side-item:hover{background:var(--artifact-surface-2);color:var(--artifact-text);}
+.side-item.active{background:var(--artifact-accent-soft);color:var(--artifact-accent);}
+.side-label{font-size:10.5px;font-weight:700;letter-spacing:.07em;color:var(--artifact-muted-2);padding:14px 12px 6px;}
+
+.main{flex:1;min-width:0;padding:22px 26px 60px;}
+.view{display:none;animation:fadeIn .25s ease;}
+.view.active{display:block;}
+@keyframes fadeIn{from{opacity:0;transform:translateY(4px);}to{opacity:1;transform:translateY(0);}}
+
+.page-title{font-size:20px;font-weight:800;letter-spacing:-.01em;margin:0 0 3px;}
+.page-sub{font-size:13px;color:var(--artifact-muted);margin:0 0 18px;}
+.eyebrow{font-size:10.5px;font-weight:700;letter-spacing:.09em;color:var(--artifact-muted-2);margin:0 0 10px;}
+
+/* search row */
+.search-row{display:flex;gap:12px;align-items:center;margin-bottom:18px;}
+.search-box{flex:1;display:flex;align-items:center;gap:10px;background:var(--artifact-surface);border:1px solid var(--artifact-border);border-radius:11px;padding:10px 14px;}
+.search-box svg{width:17px;height:17px;color:var(--artifact-muted-2);flex-shrink:0;}
+.search-box input{border:none;outline:none;background:none;font-size:13.5px;width:100%;color:var(--artifact-text);font-family:inherit;}
+.search-box input::placeholder{color:var(--artifact-muted-2);}
+
+/* grid helpers */
+.grid{display:grid;gap:14px;}
+.g6{grid-template-columns:repeat(6,1fr);}
+.g5{grid-template-columns:repeat(5,1fr);}
+.g4{grid-template-columns:repeat(4,1fr);}
+.g3{grid-template-columns:repeat(3,1fr);}
+.g2{grid-template-columns:repeat(2,1fr);}
+.g-31{grid-template-columns:1.6fr 1fr 1fr;}
+.g-211{grid-template-columns:1.3fr 1fr 1fr;}
+@media (max-width:1200px){.g6{grid-template-columns:repeat(3,1fr);}.g5{grid-template-columns:repeat(3,1fr);}.g4{grid-template-columns:repeat(2,1fr);}.g-31,.g-211{grid-template-columns:1fr;}}
+
+.card{background:var(--artifact-surface);border:1px solid var(--artifact-border);border-radius:var(--artifact-radius);padding:17px 18px;}
+.card-flat{background:var(--artifact-surface-2);border:1px solid var(--artifact-border);border-radius:var(--artifact-radius-sm);padding:14px;}
+
+/* KPI card */
+.kpi{display:flex;flex-direction:column;gap:10px;}
+.kpi-top{display:flex;align-items:center;gap:9px;}
+.kpi-icon{width:32px;height:32px;border-radius:9px;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.kpi-icon svg{width:16px;height:16px;}
+.kpi-label{font-size:12px;color:var(--artifact-muted);font-weight:600;}
+.kpi-value{font-size:26px;font-weight:800;letter-spacing:-.02em;}
+.kpi-delta{font-size:11.5px;font-weight:700;display:flex;align-items:center;gap:4px;}
+.kpi-delta.up{color:var(--artifact-success);}
+.kpi-delta.down{color:var(--artifact-danger);}
+.kpi-delta span.ctx{color:var(--artifact-muted-2);font-weight:500;}
+
+.card-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;}
+.card-head h3{font-size:14.5px;font-weight:700;margin:0;}
+
+.tag{font-size:10.5px;font-weight:700;padding:3px 9px;border-radius:999px;white-space:nowrap;}
+.tag-high{background:var(--artifact-danger-soft);color:var(--artifact-danger);}
+.tag-medium{background:var(--artifact-warning-soft);color:var(--artifact-warning);}
+.tag-low{background:var(--artifact-accent-soft);color:var(--artifact-accent);}
+.tag-approved{background:var(--artifact-success-soft);color:var(--artifact-success);}
+.tag-review{background:var(--artifact-warning-soft);color:var(--artifact-warning);}
+.tag-new{background:var(--artifact-purple-soft);color:var(--artifact-purple);}
+.tag-rejected{background:var(--artifact-danger-soft);color:var(--artifact-danger);}
+.tag-neutral{background:var(--artifact-surface-2);color:var(--artifact-muted);border:1px solid var(--artifact-border);}
+
+.list-row{display:flex;align-items:flex-start;justify-content:space-between;gap:10px;padding:10px 0;border-bottom:1px solid var(--artifact-border);}
+.list-row:last-child{border-bottom:none;}
+.list-row .lr-title{font-size:13px;font-weight:700;}
+.list-row .lr-sub{font-size:11.5px;color:var(--artifact-muted);margin-top:2px;}
+.list-row .lr-right{display:flex;flex-direction:column;align-items:flex-end;gap:6px;flex-shrink:0;}
+
+.btn{display:inline-flex;align-items:center;gap:6px;font-size:12.5px;font-weight:700;padding:8px 14px;border-radius:9px;border:1px solid var(--artifact-border);background:var(--artifact-surface);color:var(--artifact-text);}
+.btn:hover{background:var(--artifact-surface-2);}
+.btn.primary{background:var(--artifact-accent);color:#fff;border-color:var(--artifact-accent);}
+.btn.primary:hover{opacity:.92;}
+.btn.success{background:var(--artifact-success);color:#fff;border-color:var(--artifact-success);}
+.btn.danger-outline{color:var(--artifact-danger);border-color:var(--artifact-danger-soft);background:var(--artifact-danger-soft);}
+.btn.sm{padding:6px 11px;font-size:11.5px;}
+.btn svg{width:14px;height:14px;}
+.btn:disabled{opacity:.5;cursor:not-allowed;}
+
+.avatar-sm{width:34px;height:34px;border-radius:50%;background:var(--artifact-accent-soft);color:var(--artifact-accent);font-size:11.5px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+
+/* ---------- Sales-specific ---------- */
+.progress-track{height:7px;border-radius:99px;background:var(--artifact-surface-2);overflow:hidden;}
+.progress-fill{height:100%;border-radius:99px;background:var(--artifact-accent);}
+.slider-row{display:flex;flex-direction:column;gap:4px;margin-bottom:12px;}
+.slider-row .sl-label{display:flex;justify-content:space-between;font-size:11.5px;font-weight:600;color:var(--artifact-muted);}
+.slider-row .sl-label b{color:var(--artifact-text);font-weight:800;}
+input[type=range]{width:100%;accent-color:var(--artifact-accent);}
+.calc-card{border:1px solid var(--artifact-border);border-radius:var(--artifact-radius-sm);padding:16px;background:var(--artifact-surface-2);}
+.calc-metrics{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-top:12px;}
+.calc-metric{background:var(--artifact-surface);border:1px solid var(--artifact-border);border-radius:9px;padding:10px;}
+.calc-metric .cm-label{font-size:10.5px;color:var(--artifact-muted-2);font-weight:700;}
+.calc-metric .cm-value{font-size:16px;font-weight:800;margin-top:2px;}
+.reco-badge{font-size:11px;font-weight:800;padding:5px 12px;border-radius:999px;letter-spacing:.03em;}
+.reco-go{background:var(--artifact-success-soft);color:var(--artifact-success);}
+.reco-hold{background:var(--artifact-warning-soft);color:var(--artifact-warning);}
+.chip{display:inline-flex;align-items:center;font-size:12px;font-weight:700;padding:6px 13px;border-radius:999px;border:1px solid var(--artifact-border);background:var(--artifact-surface);color:var(--artifact-muted);cursor:pointer;}
+.chip.active{background:var(--artifact-accent);color:#fff;border-color:var(--artifact-accent);}
+.course-card{border:1px solid var(--artifact-border);border-radius:var(--artifact-radius-sm);padding:14px;background:var(--artifact-surface);display:flex;flex-direction:column;gap:8px;}
+.course-card .cc-track{font-size:10px;font-weight:700;letter-spacing:.05em;color:var(--artifact-accent);text-transform:uppercase;}
+.course-card .cc-title{font-size:13.5px;font-weight:700;}
+.course-card .cc-desc{font-size:11.5px;color:var(--artifact-muted);line-height:1.4;}
+.course-card .cc-foot{display:flex;justify-content:space-between;align-items:center;margin-top:6px;font-size:12px;font-weight:700;}
+.quote-panel{position:sticky;top:75px;}
+.quote-line{display:flex;justify-content:space-between;font-size:12.5px;padding:8px 0;border-bottom:1px solid var(--artifact-border);}
+.quote-line:last-child{border-bottom:none;}
+.quote-total{display:flex;justify-content:space-between;font-size:15px;font-weight:800;padding-top:10px;margin-top:6px;border-top:2px solid var(--artifact-border);}
+.stage-col{display:flex;flex-direction:column;gap:10px;min-width:0;}
+.stage-head{font-size:11.5px;font-weight:800;letter-spacing:.04em;color:var(--artifact-muted);text-transform:uppercase;padding:0 4px;display:flex;justify-content:space-between;}
+.deal-card{border:1px solid var(--artifact-border);border-radius:var(--artifact-radius-sm);padding:12px;background:var(--artifact-surface);cursor:pointer;transition:box-shadow .15s;}
+.deal-card:hover{box-shadow:var(--artifact-shadow);}
+.deal-card .dc-name{font-size:12.8px;font-weight:700;}
+.deal-card .dc-sub{font-size:11px;color:var(--artifact-muted);margin-top:2px;}
+.deal-card .dc-foot{display:flex;justify-content:space-between;align-items:center;margin-top:8px;}
+table.data-table{width:100%;border-collapse:collapse;font-size:12.5px;}
+table.data-table th{text-align:left;font-size:11px;font-weight:700;color:var(--artifact-muted-2);text-transform:uppercase;letter-spacing:.04em;padding:8px 10px;border-bottom:1px solid var(--artifact-border);}
+table.data-table td{padding:11px 10px;border-bottom:1px solid var(--artifact-border);}
+table.data-table tr:last-child td{border-bottom:none;}
+.timeline-item{display:flex;gap:12px;padding:10px 0;}
+.timeline-dot{width:10px;height:10px;border-radius:50%;margin-top:4px;flex-shrink:0;}
+.timeline-line{position:relative;}
+</style>
+</head>
+<body>
+<div class="shell">
+
+<!-- ================= TOP BAR ================= -->
+<div class="topbar">
+  <div class="brand">
+    <div class="brand-mark">C</div>
+    <div class="brand-text">
+      <div class="name">Cprime TaaS</div>
+      <div class="sub">SALES CONSOLE</div>
+    </div>
+  </div>
+  <div class="topbar-right">
+    <span class="badge-pill">Demo data</span>
+    <span class="badge-pill blue">Postgres + pgvector</span>
+    <span class="badge-pill admin-tag">Sales session</span>
+
+    <div class="dropdown-wrap" id="notifWrap">
+      <button class="icon-btn" onclick="toggleDropdown('notifPanel')" aria-label="Notifications">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8a6 6 0 10-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 01-3.46 0"/></svg>
+        <span class="notif-dot" id="notifCount">4</span>
+      </button>
+      <div class="dropdown-panel notif-panel" id="notifPanel">
+        <div class="dd-header" style="display:flex;align-items:center;justify-content:space-between;">
+          <div class="dname">Notifications</div>
+          <button class="link-btn" onclick="markAllRead()">Mark all read</button>
+        </div>
+        <div class="notif-list" id="notifList"></div>
+        <div class="notif-footer">
+          <span style="font-size:11px;color:var(--artifact-muted-2);">Updated just now</span>
+          <button class="link-btn" onclick="closeAllDropdowns()">Close</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="dropdown-wrap" id="profileWrap">
+      <button class="profile-chip" onclick="toggleDropdown('profilePanel')">
+        <span class="avatar">TB</span>
+        <span class="profile-meta">
+          <div class="pname">Taylor Brooks</div>
+          <div class="prole">Sales · Account Executive</div>
+        </span>
+        <svg class="chip-caret" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M6 9l6 6 6-6"/></svg>
+      </button>
+      <div class="dropdown-panel" id="profilePanel" style="min-width:230px;">
+        <div class="dd-header">
+          <div class="dname">Taylor Brooks</div>
+          <div class="demail">taylor.brooks@cprime.com · Role: Sales</div>
+        </div>
+        <a class="dd-item" onclick="openModal('profileModal')">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 4-6 8-6s8 2 8 6"/></svg>
+          Update profile
+        </a>
+        <a class="dd-item" onclick="openModal('settingsModal')">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 00.3 1.9l.1.1a2 2 0 11-2.8 2.8l-.1-.1a1.7 1.7 0 00-1.9-.3 1.7 1.7 0 00-1 1.5V21a2 2 0 11-4 0v-.1a1.7 1.7 0 00-1-1.6 1.7 1.7 0 00-1.9.3l-.1.1a2 2 0 11-2.8-2.8l.1-.1a1.7 1.7 0 00.3-1.9 1.7 1.7 0 00-1.5-1H3a2 2 0 110-4h.1a1.7 1.7 0 001.5-1 1.7 1.7 0 00-.3-1.9l-.1-.1a2 2 0 112.8-2.8l.1.1a1.7 1.7 0 001.9.3h0a1.7 1.7 0 001-1.5V3a2 2 0 114 0v.1a1.7 1.7 0 001 1.5 1.7 1.7 0 001.9-.3l.1-.1a2 2 0 112.8 2.8l-.1.1a1.7 1.7 0 00-.3 1.9v0a1.7 1.7 0 001.5 1H21a2 2 0 110 4h-.1a1.7 1.7 0 00-1.5 1z"/></svg>
+          Settings
+        </a>
+        <div class="dd-sep"></div>
+        <a class="dd-item danger" onclick="doLogout()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/><path d="M16 17l5-5-5-5"/><path d="M21 12H9"/></svg>
+          Log out
+        </a>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ================= LAYOUT ================= -->
+<div class="layout">
+  <div class="sidebar">
+    <a class="side-item active" data-view="dashboard" onclick="showView('dashboard')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="9" rx="1.5"/><rect x="14" y="3" width="7" height="5" rx="1.5"/><rect x="14" y="12" width="7" height="9" rx="1.5"/><rect x="3" y="16" width="7" height="5" rx="1.5"/></svg>
+      Dashboard
+    </a>
+    <a class="side-item" data-view="profitability" onclick="showView('profitability')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 6l-9.5 9.5-5-5L1 18"/><path d="M17 6h6v6"/></svg>
+      Demand &amp; Profitability
+    </a>
+    <a class="side-item" data-view="catalog" onclick="showView('catalog')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5A2.5 2.5 0 016.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 014 19.5v-15A2.5 2.5 0 016.5 2z"/></svg>
+      Course Catalog
+    </a>
+    <a class="side-item" data-view="quote" onclick="showView('quote')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><path d="M14 2v6h6"/><path d="M9 13h6"/><path d="M9 17h6"/></svg>
+      Quote Builder
+    </a>
+    <a class="side-item" data-view="deals" onclick="showView('deals')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="4" height="18" rx="1"/><rect x="10" y="8" width="4" height="13" rx="1"/><rect x="17" y="5" width="4" height="16" rx="1"/></svg>
+      Deals Pipeline
+    </a>
+    <div class="side-label">OPERATIONS</div>
+    <a class="side-item" data-view="billing" onclick="showView('billing')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="1" y="4" width="22" height="16" rx="2"/><path d="M1 10h22"/></svg>
+      Billing &amp; Reconciliation
+    </a>
+    <a class="side-item" data-view="analytics" onclick="showView('analytics')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 20V10"/><path d="M12 20V4"/><path d="M6 20v-6"/></svg>
+      Analytics &amp; Reports
+    </a>
+  </div>
+
+  <div class="main">
+
+<style>
+.sparkline-card{display:flex;flex-direction:column;gap:8px;}
+.donut-legend{display:flex;flex-direction:column;gap:8px;flex:1;}
+.donut-legend .dl-row{display:flex;align-items:center;justify-content:space-between;font-size:12px;}
+.donut-legend .dl-row .dl-left{display:flex;align-items:center;gap:7px;color:var(--artifact-muted);font-weight:600;}
+.dl-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;}
+.dl-row .dl-val{font-weight:800;}
+.qa-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:12px;}
+@media (max-width:1200px){.qa-grid{grid-template-columns:repeat(2,1fr);}}
+.qa-card{display:flex;flex-direction:column;gap:10px;padding:16px;border:1px solid var(--artifact-border);border-radius:var(--artifact-radius-sm);background:var(--artifact-surface);transition:box-shadow .15s,transform .15s;}
+.qa-card:hover{box-shadow:var(--artifact-shadow);transform:translateY(-1px);}
+.qa-icon{width:34px;height:34px;border-radius:9px;background:var(--artifact-accent-soft);color:var(--artifact-accent);display:flex;align-items:center;justify-content:center;}
+.qa-icon svg{width:17px;height:17px;}
+.qa-title{font-size:13px;font-weight:700;}
+.qa-sub{font-size:11px;color:var(--artifact-muted-2);}
+.alert-row{display:flex;align-items:flex-start;gap:9px;padding:9px 0;border-bottom:1px solid var(--artifact-border);}
+.alert-row:last-child{border-bottom:none;}
+.alert-dot{width:7px;height:7px;border-radius:50%;margin-top:6px;flex-shrink:0;}
+.alert-row .a-title{font-size:12.5px;font-weight:600;}
+.alert-row .a-time{font-size:11px;color:var(--artifact-muted-2);margin-top:1px;}
+</style>
+
+<!-- ================= DASHBOARD VIEW ================= -->
+<div class="view active" id="view-dashboard">
+  <div class="page-title">Good morning, Taylor</div>
+  <div class="page-sub">Here's what's happening across your pipeline and courses today, July 23 2026.</div>
+
+  <div class="grid g6" id="kpiRow" style="margin-bottom:16px;"></div>
+
+  <div class="grid g-31" style="margin-bottom:16px;">
+    <div class="card">
+      <div class="card-head"><h3>Demand &amp; Profitability Snapshot</h3><a class="btn sm" onclick="showView('profitability')">Open</a></div>
+      <div id="dashTrending"></div>
+    </div>
+    <div class="card">
+      <div class="card-head"><h3>Billing Alerts</h3><a class="btn sm" onclick="showView('billing')">View all</a></div>
+      <div id="dashAlerts"></div>
+    </div>
+    <div class="card">
+      <div class="card-head"><h3>Recent Quotes</h3><a class="btn sm" onclick="showView('quote')">New quote</a></div>
+      <div id="dashQuotes"></div>
+    </div>
+  </div>
+
+  <div class="card" style="margin-bottom:16px;">
+    <div class="card-head"><h3>Quick Actions</h3></div>
+    <div class="qa-grid">
+      <div class="qa-card" onclick="showView('profitability')">
+        <div class="qa-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 6l-9.5 9.5-5-5L1 18"/></svg></div>
+        <div class="qa-title">Check launch margin</div>
+        <div class="qa-sub">Demand &amp; profitability calculator</div>
+      </div>
+      <div class="qa-card" onclick="showView('catalog'); openModal('genModal');">
+        <div class="qa-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2l1.5 4.5L18 8l-4.5 1.5L12 14l-1.5-4.5L6 8l4.5-1.5z"/></svg></div>
+        <div class="qa-title">Request new course</div>
+        <div class="qa-sub">AI-generate from a learning objective</div>
+      </div>
+      <div class="qa-card" onclick="showView('quote')">
+        <div class="qa-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/></svg></div>
+        <div class="qa-title">Build a quote</div>
+        <div class="qa-sub">Catalog, bundles &amp; discount tiers</div>
+      </div>
+      <div class="qa-card" onclick="showView('deals')">
+        <div class="qa-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="4" height="18" rx="1"/></svg></div>
+        <div class="qa-title">Review pipeline</div>
+        <div class="qa-sub">Deals by stage &amp; delivery status</div>
+      </div>
+      <div class="qa-card" onclick="showView('billing')">
+        <div class="qa-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="1" y="4" width="22" height="16" rx="2"/></svg></div>
+        <div class="qa-title">Chase overdue invoices</div>
+        <div class="qa-sub">Reconciliation &amp; reminders</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ================= DEMAND & PROFITABILITY VIEW ================= -->
+<div class="view" id="view-profitability">
+  <div class="page-title">Demand &amp; Profitability</div>
+  <div class="page-sub">CRM demand signals feeding launch-readiness decisions. Adjust seats, price, and cost to see margin and the Go/Hold recommendation update live.</div>
+
+  <div class="card" style="margin-bottom:16px;">
+    <div class="card-head"><h3>CRM Demand Signals</h3><span class="tag tag-neutral">Source: Salesforce CRM Demand &amp; Profitability Agent</span></div>
+    <table class="data-table">
+      <thead><tr><th>Topic</th><th>Account Interest</th><th>Pipeline Opportunities</th><th>Historical Enrollment</th><th>Demand Index</th></tr></thead>
+      <tbody id="demandSignalsBody"></tbody>
+    </table>
+  </div>
+
+  <div class="eyebrow">NEW COURSE BUILD DECISIONS</div>
+  <div class="grid g3" id="buildCalcRow" style="margin-bottom:20px;"></div>
+
+  <div class="eyebrow">LIVE-CLASS CAPACITY DECISIONS</div>
+  <div class="grid g2" id="liveCalcRow"></div>
+</div>
+
+<!-- ================= COURSE CATALOG VIEW ================= -->
+<div class="view" id="view-catalog">
+  <div class="page-title">Course Catalog</div>
+  <div class="page-sub">Browse, quote from, and extend the catalog. Courses tagged AI-generated came from a sales-submitted learning objective.</div>
+
+  <div class="search-row">
+    <div class="search-box">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.3-4.3"/></svg>
+      <input type="text" id="catalogSearch" placeholder="Search courses..." oninput="filterCatalog(this.value)">
+    </div>
+    <button class="btn primary" onclick="openModal('genModal')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2l1.5 4.5L18 8l-4.5 1.5L12 14l-1.5-4.5L6 8l4.5-1.5z"/></svg>
+      Request New Course
+    </button>
+  </div>
+  <div style="display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap;" id="catalogChips"></div>
+  <div class="grid g3" id="catalogGrid"></div>
+</div>
+
+<!-- ================= QUOTE BUILDER VIEW ================= -->
+<div class="view" id="view-quote">
+  <div class="page-title">Quote Builder</div>
+  <div class="page-sub">Select courses or bundles to build a live quote with volume discounts applied automatically.</div>
+
+  <div class="grid" style="grid-template-columns:1.6fr 1fr;">
+    <div class="card">
+      <div class="card-head"><h3>Select Items</h3></div>
+      <div id="quoteCatalogList" style="display:flex;flex-direction:column;gap:8px;"></div>
+    </div>
+    <div>
+      <div class="card quote-panel">
+        <div class="card-head"><h3>Live Quote</h3></div>
+        <div class="form-row"><label>Company</label><input type="text" id="quoteCompany" placeholder="e.g. Northwind Logistics"></div>
+        <div class="form-row"><label>Seats</label><input type="text" id="quoteSeats" value="20"></div>
+        <div id="quoteLines" style="margin:10px 0;"></div>
+        <div class="quote-total"><span>Total</span><span id="quoteTotal">$0</span></div>
+        <div style="font-size:11px;color:var(--artifact-muted-2);margin-top:6px;" id="quoteDiscountNote"></div>
+        <button class="btn primary" style="width:100%;justify-content:center;margin-top:14px;" onclick="generateQuote()">Generate Quote</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ================= DEALS PIPELINE VIEW ================= -->
+<div class="view" id="view-deals">
+  <div class="page-title">Deals Pipeline</div>
+  <div class="page-sub">Track opportunities from prospecting through delivery and billing. Click a deal to see its delivery-to-cash timeline.</div>
+  <div class="grid g4" id="dealsBoard"></div>
+</div>
+
+<!-- ================= BILLING & RECONCILIATION VIEW ================= -->
+<div class="view" id="view-billing">
+  <div class="page-title">Billing &amp; Reconciliation</div>
+  <div class="page-sub">Session-to-invoice matching and revenue-collection status, so you know what's actually been paid — not just billed.</div>
+
+  <div class="grid g4" id="billingKpiRow" style="margin-bottom:16px;"></div>
+
+  <div class="grid g-31">
+    <div class="card">
+      <div class="card-head"><h3>Invoices</h3></div>
+      <div style="display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap;" id="billingChips"></div>
+      <table class="data-table">
+        <thead><tr><th>Invoice</th><th>Company</th><th>Course / Bundle</th><th>Amount</th><th>Due Date</th><th>Status</th><th></th></tr></thead>
+        <tbody id="billingTableBody"></tbody>
+      </table>
+    </div>
+    <div class="card">
+      <div class="card-head"><h3>Overdue &amp; Anomaly Alerts</h3></div>
+      <div id="billingAlerts"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ================= ANALYTICS & REPORTS VIEW ================= -->
+<div class="view" id="view-analytics">
+  <div class="page-title">Analytics &amp; Reports</div>
+  <div class="page-sub">What's converting, where the catalog has gaps, and reports ready to generate and export.</div>
+
+  <div class="grid g-31" style="margin-bottom:16px;">
+    <div class="card">
+      <div class="card-head"><h3>Enrollments by Track (Last 90 Days)</h3></div>
+      <div id="analyticsTrackChart"></div>
+    </div>
+    <div class="card">
+      <div class="card-head"><h3>Requested, Not Yet in Catalog</h3></div>
+      <p style="font-size:11.5px;color:var(--artifact-muted);margin:0 0 10px;">Demand signal forwarded to instructor sourcing.</p>
+      <div id="analyticsGapList"></div>
+    </div>
+    <div class="card">
+      <div class="card-head"><h3>Top Accounts by Pipeline</h3></div>
+      <div id="analyticsTopAccounts"></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-head"><h3>Generate Reports</h3></div>
+    <div class="grid g3" id="reportCards"></div>
+  </div>
+</div>
+
+  </div>
+</div>
+
+<!-- ================= DEAL DETAIL SLIDEOVER ================= -->
+<div class="modal-mask" id="dealDrawer">
+  <div class="modal-box" style="width:460px;" id="dealDrawerContent"></div>
+</div>
+
+<style>
+.copilot-fab{position:fixed;bottom:24px;right:24px;width:56px;height:56px;border-radius:50%;background:var(--artifact-accent);color:#fff;display:flex;align-items:center;justify-content:center;box-shadow:0 8px 24px -6px rgba(47,95,239,0.5);z-index:400;border:none;transition:transform .15s;}
+.copilot-fab:hover{transform:scale(1.06);}
+.copilot-fab svg{width:24px;height:24px;}
+.copilot-panel{position:fixed;bottom:92px;right:24px;width:360px;max-width:92vw;height:490px;background:var(--artifact-surface);border:1px solid var(--artifact-border);border-radius:var(--artifact-radius);box-shadow:var(--artifact-shadow);z-index:401;display:flex;flex-direction:column;overflow:hidden;opacity:0;visibility:hidden;transform:translateY(10px) scale(.98);transition:all .18s ease;}
+.copilot-panel.open{opacity:1;visibility:visible;transform:translateY(0) scale(1);}
+.cp-head{display:flex;align-items:center;justify-content:space-between;padding:14px 16px;border-bottom:1px solid var(--artifact-border);background:linear-gradient(135deg,var(--artifact-accent-soft),var(--artifact-surface));}
+.cp-head-title{display:flex;align-items:center;gap:9px;font-size:13.5px;font-weight:800;}
+.cp-head-title .cp-dot{width:8px;height:8px;border-radius:50%;background:var(--artifact-success);}
+.cp-close{width:26px;height:26px;border-radius:7px;border:none;background:none;color:var(--artifact-muted);display:flex;align-items:center;justify-content:center;}
+.cp-body{flex:1;overflow-y:auto;padding:14px 16px;display:flex;flex-direction:column;gap:10px;}
+.cp-msg{max-width:85%;font-size:12.6px;line-height:1.45;padding:9px 12px;border-radius:12px;}
+.cp-msg.bot{background:var(--artifact-surface-2);align-self:flex-start;border:1px solid var(--artifact-border);}
+.cp-msg.user{background:var(--artifact-accent);color:#fff;align-self:flex-end;}
+.cp-suggestions{display:flex;flex-direction:column;gap:6px;margin-top:4px;}
+.cp-sugg-btn{text-align:left;font-size:12px;font-weight:600;padding:8px 11px;border-radius:9px;border:1px solid var(--artifact-border);background:var(--artifact-surface);color:var(--artifact-accent);}
+.cp-sugg-btn:hover{background:var(--artifact-accent-soft);}
+.cp-input-row{display:flex;gap:8px;padding:12px 14px;border-top:1px solid var(--artifact-border);}
+.cp-input-row input{flex:1;border:1px solid var(--artifact-border);border-radius:9px;padding:9px 12px;font-size:12.5px;outline:none;background:var(--artifact-surface-2);color:var(--artifact-text);font-family:inherit;}
+.cp-send{width:36px;height:36px;border-radius:9px;background:var(--artifact-accent);color:#fff;border:none;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.cp-send svg{width:16px;height:16px;}
+
+.modal-mask{position:fixed;inset:0;background:rgba(15,23,42,0.4);z-index:500;display:flex;align-items:center;justify-content:center;opacity:0;visibility:hidden;transition:opacity .15s;}
+.modal-mask.open{opacity:1;visibility:visible;}
+.modal-box{background:var(--artifact-surface);border-radius:var(--artifact-radius);width:420px;max-width:92vw;max-height:85vh;overflow-y:auto;box-shadow:var(--artifact-shadow);}
+.modal-head{display:flex;align-items:center;justify-content:space-between;padding:16px 18px;border-bottom:1px solid var(--artifact-border);}
+.modal-head h3{margin:0;font-size:14.5px;}
+.modal-close{width:28px;height:28px;border-radius:8px;border:none;background:var(--artifact-surface-2);display:flex;align-items:center;justify-content:center;color:var(--artifact-muted);}
+.modal-body{padding:18px;}
+.form-row{margin-bottom:12px;}
+.form-row label{display:block;font-size:11.5px;font-weight:700;color:var(--artifact-muted);margin-bottom:5px;}
+.form-row input,.form-row select{width:100%;padding:9px 11px;border-radius:9px;border:1px solid var(--artifact-border);font-size:12.8px;font-family:inherit;background:var(--artifact-surface-2);color:var(--artifact-text);}
+.modal-footer{padding:14px 18px;border-top:1px solid var(--artifact-border);display:flex;justify-content:flex-end;gap:8px;}
+
+.toast-wrap{position:fixed;bottom:24px;left:24px;z-index:600;display:flex;flex-direction:column;gap:8px;}
+.toast{background:var(--artifact-text);color:var(--artifact-surface);font-size:12.5px;font-weight:600;padding:11px 16px;border-radius:10px;box-shadow:var(--artifact-shadow);opacity:0;transform:translateY(8px);transition:all .2s;}
+.toast.show{opacity:1;transform:translateY(0);}
+.gen-status{display:flex;align-items:center;gap:10px;padding:14px;background:var(--artifact-surface-2);border-radius:9px;margin-top:10px;font-size:12.5px;font-weight:600;}
+.spinner{width:18px;height:18px;border-radius:50%;border:2.5px solid var(--artifact-border);border-top-color:var(--artifact-accent);animation:spin .8s linear infinite;flex-shrink:0;}
+@keyframes spin{to{transform:rotate(360deg);}}
+</style>
+
+<!-- ================= COPILOT ================= -->
+<button class="copilot-fab" onclick="toggleCopilot()" aria-label="TaaS Copilot">
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2a4 4 0 014 4v2a4 4 0 01-8 0V6a4 4 0 014-4z"/><path d="M5 21v-1a7 7 0 0114 0v1"/><circle cx="9" cy="8" r=".5"/><circle cx="15" cy="8" r=".5"/></svg>
+</button>
+<div class="copilot-panel" id="copilotPanel">
+  <div class="cp-head">
+    <div class="cp-head-title"><span class="cp-dot"></span> TaaS Copilot</div>
+    <button class="cp-close" onclick="toggleCopilot()">✕</button>
+  </div>
+  <div class="cp-body" id="cpBody">
+    <div class="cp-msg bot">Hi Taylor 👋 I'm your Sales Copilot. Ask me about overdue invoices, launch margin thresholds, trending demand, or catalog gaps — I can pull it up right here.</div>
+    <div class="cp-suggestions" id="cpSuggestions"></div>
+  </div>
+  <div class="cp-input-row">
+    <input type="text" id="cpInput" placeholder="Ask Copilot..." onkeydown="if(event.key==='Enter')sendCopilotMessage()">
+    <button class="cp-send" onclick="sendCopilotMessage()">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 2L11 13"/><path d="M22 2l-7 20-4-9-9-4z"/></svg>
+    </button>
+  </div>
+</div>
+
+<!-- ================= MODALS ================= -->
+<div class="modal-mask" id="profileModal">
+  <div class="modal-box">
+    <div class="modal-head"><h3>Update Profile</h3><button class="modal-close" onclick="closeModal('profileModal')">✕</button></div>
+    <div class="modal-body">
+      <div class="form-row"><label>Full name</label><input type="text" value="Taylor Brooks"></div>
+      <div class="form-row"><label>Email</label><input type="text" value="taylor.brooks@cprime.com"></div>
+      <div class="form-row"><label>Role</label><input type="text" value="Sales · Account Executive" disabled></div>
+      <div class="form-row"><label>Time zone</label><select><option>EST (UTC-5)</option><option>IST (UTC+5:30)</option><option>PST (UTC-8)</option></select></div>
+    </div>
+    <div class="modal-footer"><button class="btn" onclick="closeModal('profileModal')">Cancel</button><button class="btn primary" onclick="saveDemo('profileModal','Profile updated')">Save changes</button></div>
+  </div>
+</div>
+
+<div class="modal-mask" id="settingsModal">
+  <div class="modal-box">
+    <div class="modal-head"><h3>Settings</h3><button class="modal-close" onclick="closeModal('settingsModal')">✕</button></div>
+    <div class="modal-body">
+      <div class="form-row"><label>Email notifications</label><select><option>All activity</option><option>High priority only</option><option>Off</option></select></div>
+      <div class="form-row"><label>Default landing screen</label><select><option>Dashboard</option><option>Deals Pipeline</option><option>Billing &amp; Reconciliation</option></select></div>
+      <div class="form-row"><label>Theme</label><select><option>Light</option><option>Dark</option><option>System</option></select></div>
+    </div>
+    <div class="modal-footer"><button class="btn" onclick="closeModal('settingsModal')">Cancel</button><button class="btn primary" onclick="saveDemo('settingsModal','Settings saved')">Save changes</button></div>
+  </div>
+</div>
+
+<div class="modal-mask" id="genModal">
+  <div class="modal-box" id="genModalBox">
+    <div class="modal-head"><h3 id="genModalTitle">Request a New Course</h3><button class="modal-close" onclick="closeModal('genModal')">✕</button></div>
+    <div class="modal-body" id="genModalBody">
+      <div class="form-row"><label>Learning Objective</label><input type="text" id="genObjective" placeholder="e.g. Kubernetes Fundamentals for Platform Teams"></div>
+      <div class="form-row"><label>Certification Track</label>
+        <select id="genTrack"><option>DevOps</option><option>Cloud</option><option>Agile</option><option>Product Management</option></select>
+      </div>
+      <p style="font-size:11.5px;color:var(--artifact-muted);margin:0;">TaaS will generate a structured, branded module — curriculum, assessments, and delivery-model recommendation.</p>
+    </div>
+    <div class="modal-footer" id="genModalFooter">
+      <button class="btn" onclick="closeModal('genModal')">Cancel</button>
+      <button class="btn primary" onclick="startGenerating()">Generate Course</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast-wrap" id="toastWrap"></div>
+</div>
+
+<script>
+/* ================= DATA ================= */
+const NOTIFICATIONS = [
+  {title:"Invoice INV-1042 is 18 days overdue — Northwind Logistics ($9,960)", time:"1 hr ago", type:"danger", read:false},
+  {title:"New demand signal: 6 client requests logged for AI Product Management", time:"3 hrs ago", type:"warning", read:false},
+  {title:"AI course generation complete — CI/CD Pipeline Foundations is ready to publish", time:"Yesterday", type:"success", read:false},
+  {title:"Amount mismatch flagged on INV-1033 — Loft & Barrel Co.", time:"2 days ago", type:"warning", read:false},
+];
+
+let courses = [
+  { id:1, track:"Agile", title:"Certified ScrumMaster Foundations", desc:"Core Scrum roles, events, and artifacts for new Scrum Masters.", hours:6, price:249, ai:false },
+  { id:2, track:"Agile", title:"Product Owner Essentials", desc:"Backlog management, prioritization, and stakeholder alignment.", hours:5, price:229, ai:false },
+  { id:3, track:"Scaled Agile", title:"SAFe for Teams", desc:"Applying Scaled Agile practices across multi-team programs.", hours:8, price:299, ai:false },
+  { id:4, track:"DevOps", title:"CI/CD Pipeline Foundations", desc:"Building automated build, test, and release pipelines.", hours:7, price:279, ai:true },
+  { id:5, track:"Cloud", title:"Cloud Architecture Basics", desc:"Core patterns for resilient, cost-aware cloud systems.", hours:9, price:319, ai:false },
+  { id:6, track:"Product Management", title:"Roadmapping & Prioritization", desc:"Translating strategy into a roadmap stakeholders trust.", hours:5, price:239, ai:false },
+  { id:7, track:"Agile", title:"Agile Coaching Practicum", desc:"Coaching stances, facilitation, and team-level change.", hours:10, price:349, ai:true },
+  { id:8, track:"DevOps", title:"Site Reliability Fundamentals", desc:"SLIs, SLOs, and error budgets for reliable systems.", hours:6, price:259, ai:false },
+  { id:9, track:"Cloud", title:"Cloud Security Essentials", desc:"Identity, network, and data controls in the cloud.", hours:7, price:289, ai:true },
+];
+
+let deals = [
+  { id:1, company:"Northwind Logistics", initials:"NL", bundle:"Agile Career Path", seats:40, value:9960, stage:"won", billing:"overdue" },
+  { id:2, company:"Bramble Retail", initials:"BR", bundle:"SAFe for Teams", seats:25, value:7475, stage:"won", billing:"overdue" },
+  { id:3, company:"Sunridge Health", initials:"SH", bundle:"Cloud Architecture Basics", seats:15, value:4785, stage:"negotiation", billing:"invoiced" },
+  { id:4, company:"Voltix Manufacturing", initials:"VM", bundle:"CI/CD Pipeline Foundations", seats:30, value:8370, stage:"quoted", billing:"delivered" },
+  { id:5, company:"Cedarline Finance", initials:"CF", bundle:"Product Owner Essentials", seats:20, value:4580, stage:"won", billing:"paid" },
+  { id:6, company:"Aster Retail Group", initials:"AR", bundle:"Roadmapping & Prioritization", seats:12, value:2868, stage:"prospecting", billing:"delivered" },
+];
+
+let invoices = [
+  { id:"INV-1042", company:"Northwind Logistics", course:"Agile Career Path", amount:9960, due:"Jul 05, 2026", status:"overdue" },
+  { id:"INV-1039", company:"Bramble Retail", course:"SAFe for Teams", amount:7475, due:"Jul 10, 2026", status:"overdue" },
+  { id:"INV-1051", company:"Sunridge Health", course:"Cloud Architecture Basics", amount:4785, due:"Aug 02, 2026", status:"invoiced" },
+  { id:"INV-1055", company:"Cedarline Finance", course:"Product Owner Essentials", amount:4580, due:"Jun 18, 2026", status:"paid" },
+  { id:"INV-1058", company:"Aster Retail Group", course:"Roadmapping & Prioritization", amount:2868, due:"Aug 14, 2026", status:"delivered" },
+  { id:"INV-1033", company:"Loft & Barrel Co.", course:"Certified ScrumMaster Foundations", amount:4200, due:"Jul 20, 2026", status:"mismatch" },
+];
+
+const demandSignals = [
+  { topic:"Agile / Scrum", interest:"High — 12 accounts", pipeline:"$86,400 open", history:"340 seats / 90d", index:86 },
+  { topic:"Cloud & DevOps", interest:"High — 9 accounts", pipeline:"$61,200 open", history:"265 seats / 90d", index:71 },
+  { topic:"Scaled Agile", interest:"Medium — 7 accounts", pipeline:"$44,900 open", history:"190 seats / 90d", index:64 },
+  { topic:"Product Management", interest:"Medium — 5 accounts", pipeline:"$28,600 open", history:"120 seats / 90d", index:48 },
+];
+
+const buildOpportunities = [
+  { id:"b1", name:"AI Product Management", signal:"6 client requests logged • no matching self-paced course", seats:24, price:279, buildCost:9200, deliveryCostPerSeat:14 },
+  { id:"b2", name:"Platform Engineering", signal:"4 client requests logged • no matching self-paced course", seats:16, price:299, buildCost:8600, deliveryCostPerSeat:16 },
+  { id:"b3", name:"FinOps Fundamentals", signal:"3 client requests logged • no matching self-paced course", seats:11, price:259, buildCost:7400, deliveryCostPerSeat:12 },
+];
+
+const liveOpportunities = [
+  { id:"l1", name:"Agile / Scrum — Live Cohort", signal:"86% demand index • escalated to instructor sourcing", seats:20, price:1450, instructorDayRate:1800, days:2 },
+  { id:"l2", name:"Cloud & DevOps — Live Cohort", signal:"71% demand index • escalated to instructor sourcing", seats:15, price:1600, instructorDayRate:2000, days:3 },
+];
+
+const catalogGaps = [
+  { name:"AI Product Management", count:6 },
+  { name:"Platform Engineering", count:4 },
+  { name:"FinOps Fundamentals", count:3 },
+];
+
+const topAccounts = [
+  { name:"Northwind Logistics", pipeline:9960 },
+  { name:"Bramble Retail", pipeline:7475 },
+  { name:"Voltix Manufacturing", pipeline:8370 },
+  { name:"Sunridge Health", pipeline:4785 },
+];
+
+const trackEnrollment = [
+  { name:"Agile / Scrum", pct:86 },
+  { name:"Cloud & DevOps", pct:71 },
+  { name:"Scaled Agile", pct:64 },
+  { name:"Product Management", pct:48 },
+];
+
+let quoteItems = [];
+let activeCatalogTrack = "All";
+let activeBillingFilter = "All";
+let pendingGenTrack = "";
+
+const pillMeta = {
+  delivered:{ label:"Delivered", cls:"tag-neutral" },
+  invoiced:{ label:"Invoiced", cls:"tag-low" },
+  pending:{ label:"Pending", cls:"tag-review" },
+  paid:{ label:"Paid", cls:"tag-approved" },
+  overdue:{ label:"Overdue", cls:"tag-high" },
+  mismatch:{ label:"Mismatch", cls:"tag-medium" },
+  won:{ label:"Won", cls:"tag-approved" },
+  negotiation:{ label:"Negotiation", cls:"tag-medium" },
+  quoted:{ label:"Quoted", cls:"tag-low" },
+  prospecting:{ label:"Prospecting", cls:"tag-neutral" },
+};
+function pillHTML(status){
+  const m = pillMeta[status] || pillMeta.delivered;
+  return `<span class="tag ${m.cls}">${m.label}</span>`;
+}
+function money(n){ return '$'+n.toLocaleString(); }
+</script>
+
+<script>
+/* ================= RENDER: DASHBOARD ================= */
+function renderDashboard(){
+  const openDeals = deals.filter(d=>d.stage!=="won").length;
+  const pipelineValue = deals.reduce((s,d)=>s+d.value,0);
+  const overdueCount = invoices.filter(i=>i.status==="overdue").length;
+  const kpis = [
+    { label:"Open Opportunities", value:openDeals, delta:"+2 this week", up:true, icon:'<path d="M3 3v18h18"/><path d="M18 9l-5 5-4-4-4 4"/>', color:"accent" },
+    { label:"Pipeline Value", value:money(pipelineValue), delta:"+12% vs last month", up:true, icon:'<path d="M12 2v20"/><path d="M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/>', color:"success" },
+    { label:"Quotes Sent (30d)", value:"14", delta:"5 pending response", up:true, icon:'<path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/>', color:"purple" },
+    { label:"Avg. Deal Margin", value:"58%", delta:"Above 55% threshold", up:true, icon:'<path d="M23 6l-9.5 9.5-5-5L1 18"/>', color:"teal" },
+    { label:"Courses Ready to Sell", value:"9", delta:"3 AI-generated", up:true, icon:'<path d="M4 19.5A2.5 2.5 0 016.5 17H20"/>', color:"warning" },
+    { label:"Overdue Invoices", value:overdueCount, delta:money(invoices.filter(i=>i.status==="overdue").reduce((s,i)=>s+i.amount,0))+" outstanding", up:false, icon:'<rect x="1" y="4" width="22" height="16" rx="2"/>', color:"danger" },
+  ];
+  document.getElementById('kpiRow').innerHTML = kpis.map(k=>`
+    <div class="card kpi">
+      <div class="kpi-top"><div class="kpi-icon" style="background:var(--artifact-${k.color}-soft);color:var(--artifact-${k.color});"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">${k.icon}</svg></div><div class="kpi-label">${k.label}</div></div>
+      <div class="kpi-value">${k.value}</div>
+      <div class="kpi-delta ${k.up?'up':'down'}">${k.delta}</div>
+    </div>`).join('');
+
+  document.getElementById('dashTrending').innerHTML = demandSignals.map(t=>`
+    <div style="margin-bottom:12px;">
+      <div style="display:flex;justify-content:space-between;font-size:12.5px;font-weight:700;margin-bottom:5px;"><span>${t.topic}</span><span>${t.index}%</span></div>
+      <div class="progress-track"><div class="progress-fill" style="width:${t.index}%;"></div></div>
+    </div>`).join('');
+
+  const alerts = [
+    {title:"INV-1042 overdue 18 days — Northwind Logistics", time:"1 hr ago", color:"danger"},
+    {title:"INV-1033 amount mismatch flagged — Loft & Barrel Co.", time:"2 days ago", color:"warning"},
+    {title:"INV-1039 overdue 13 days — Bramble Retail", time:"3 days ago", color:"danger"},
+  ];
+  document.getElementById('dashAlerts').innerHTML = alerts.map(a=>`
+    <div class="alert-row"><span class="alert-dot" style="background:var(--artifact-${a.color});"></span>
+      <div><div class="a-title">${a.title}</div><div class="a-time">${a.time}</div></div></div>`).join('');
+
+  const recentQuotes = [
+    {company:"Voltix Manufacturing", bundle:"CI/CD Pipeline Foundations", value:8370, status:"quoted"},
+    {company:"Sunridge Health", bundle:"Cloud Architecture Basics", value:4785, status:"negotiation"},
+    {company:"Aster Retail Group", bundle:"Roadmapping & Prioritization", value:2868, status:"prospecting"},
+  ];
+  document.getElementById('dashQuotes').innerHTML = recentQuotes.map(q=>`
+    <div class="list-row"><div><div class="lr-title">${q.company}</div><div class="lr-sub">${q.bundle}</div></div>
+      <div class="lr-right"><span style="font-weight:800;font-size:13px;">${money(q.value)}</span>${pillHTML(q.status)}</div></div>`).join('');
+}
+</script>
+
+<script>
+/* ================= RENDER: DEMAND & PROFITABILITY ================= */
+function renderProfitability(){
+  document.getElementById('demandSignalsBody').innerHTML = demandSignals.map(t=>`
+    <tr><td style="font-weight:700;">${t.topic}</td><td>${t.interest}</td><td>${t.pipeline}</td><td>${t.history}</td>
+      <td><div style="display:flex;align-items:center;gap:8px;"><div class="progress-track" style="width:70px;"><div class="progress-fill" style="width:${t.index}%;"></div></div><b>${t.index}%</b></div></td></tr>`).join('');
+
+  document.getElementById('buildCalcRow').innerHTML = buildOpportunities.map(o=>`
+    <div class="calc-card">
+      <div style="font-weight:800;font-size:13.5px;margin-bottom:2px;">${o.name}</div>
+      <div style="font-size:11px;color:var(--artifact-muted);margin-bottom:12px;">${o.signal}</div>
+      <div class="slider-row"><div class="sl-label"><span>Registrations</span><b id="${o.id}-seats-val">${o.seats}</b></div>
+        <input type="range" min="5" max="60" value="${o.seats}" id="${o.id}-seats" oninput="updateBuildCalc('${o.id}')"></div>
+      <div class="slider-row"><div class="sl-label"><span>Price / seat</span><b id="${o.id}-price-val">$${o.price}</b></div>
+        <input type="range" min="150" max="450" step="10" value="${o.price}" id="${o.id}-price" oninput="updateBuildCalc('${o.id}')"></div>
+      <div class="slider-row"><div class="sl-label"><span>Build cost</span><b id="${o.id}-cost-val">$${o.buildCost.toLocaleString()}</b></div>
+        <input type="range" min="4000" max="15000" step="200" value="${o.buildCost}" id="${o.id}-cost" oninput="updateBuildCalc('${o.id}')"></div>
+      <div class="calc-metrics">
+        <div class="calc-metric"><div class="cm-label">REVENUE</div><div class="cm-value" id="${o.id}-rev">$0</div></div>
+        <div class="calc-metric"><div class="cm-label">COST</div><div class="cm-value" id="${o.id}-costtotal">$0</div></div>
+        <div class="calc-metric"><div class="cm-label">MARGIN</div><div class="cm-value" id="${o.id}-margin">0%</div></div>
+        <div class="calc-metric"><div class="cm-label">RECOMMENDATION</div><div id="${o.id}-reco"></div></div>
+      </div>
+    </div>`).join('');
+  buildOpportunities.forEach(o=>updateBuildCalc(o.id));
+
+  document.getElementById('liveCalcRow').innerHTML = liveOpportunities.map(o=>`
+    <div class="calc-card">
+      <div style="font-weight:800;font-size:13.5px;margin-bottom:2px;">${o.name}</div>
+      <div style="font-size:11px;color:var(--artifact-muted);margin-bottom:12px;">${o.signal}</div>
+      <div class="slider-row"><div class="sl-label"><span>Cohort seats</span><b id="${o.id}-seats-val">${o.seats}</b></div>
+        <input type="range" min="6" max="35" value="${o.seats}" id="${o.id}-seats" oninput="updateLiveCalc('${o.id}')"></div>
+      <div class="slider-row"><div class="sl-label"><span>Price / seat</span><b id="${o.id}-price-val">$${o.price}</b></div>
+        <input type="range" min="800" max="2500" step="50" value="${o.price}" id="${o.id}-price" oninput="updateLiveCalc('${o.id}')"></div>
+      <div class="slider-row"><div class="sl-label"><span>Instructor day rate × days</span><b id="${o.id}-rate-val">$${o.instructorDayRate} × ${o.days}</b></div>
+        <input type="range" min="1200" max="3000" step="50" value="${o.instructorDayRate}" id="${o.id}-rate" oninput="updateLiveCalc('${o.id}')"></div>
+      <div class="calc-metrics">
+        <div class="calc-metric"><div class="cm-label">REVENUE</div><div class="cm-value" id="${o.id}-rev">$0</div></div>
+        <div class="calc-metric"><div class="cm-label">COST</div><div class="cm-value" id="${o.id}-costtotal">$0</div></div>
+        <div class="calc-metric"><div class="cm-label">MARGIN</div><div class="cm-value" id="${o.id}-margin">0%</div></div>
+        <div class="calc-metric"><div class="cm-label">RECOMMENDATION</div><div id="${o.id}-reco"></div></div>
+      </div>
+    </div>`).join('');
+  liveOpportunities.forEach(o=>updateLiveCalc(o.id));
+}
+
+function recoBadge(margin, revenue){
+  const go = margin >= 55 && revenue >= 4000;
+  return `<span class="reco-badge ${go?'reco-go':'reco-hold'}">${go?'GO — Launch':'HOLD'}</span>`;
+}
+
+function updateBuildCalc(id){
+  const seats = +document.getElementById(id+'-seats').value;
+  const price = +document.getElementById(id+'-price').value;
+  const cost = +document.getElementById(id+'-cost').value;
+  const o = buildOpportunities.find(x=>x.id===id);
+  const revenue = seats*price;
+  const totalCost = cost + seats*o.deliveryCostPerSeat;
+  const margin = revenue>0 ? Math.round(((revenue-totalCost)/revenue)*100) : 0;
+  document.getElementById(id+'-seats-val').textContent = seats;
+  document.getElementById(id+'-price-val').textContent = '$'+price;
+  document.getElementById(id+'-cost-val').textContent = '$'+cost.toLocaleString();
+  document.getElementById(id+'-rev').textContent = money(revenue);
+  document.getElementById(id+'-costtotal').textContent = money(totalCost);
+  document.getElementById(id+'-margin').textContent = margin+'%';
+  document.getElementById(id+'-reco').innerHTML = recoBadge(margin, revenue-totalCost);
+}
+
+function updateLiveCalc(id){
+  const seats = +document.getElementById(id+'-seats').value;
+  const price = +document.getElementById(id+'-price').value;
+  const rate = +document.getElementById(id+'-rate').value;
+  const o = liveOpportunities.find(x=>x.id===id);
+  const revenue = seats*price;
+  const totalCost = rate*o.days;
+  const margin = revenue>0 ? Math.round(((revenue-totalCost)/revenue)*100) : 0;
+  document.getElementById(id+'-seats-val').textContent = seats;
+  document.getElementById(id+'-price-val').textContent = '$'+price;
+  document.getElementById(id+'-rate-val').textContent = '$'+rate+' × '+o.days;
+  document.getElementById(id+'-rev').textContent = money(revenue);
+  document.getElementById(id+'-costtotal').textContent = money(totalCost);
+  document.getElementById(id+'-margin').textContent = margin+'%';
+  document.getElementById(id+'-reco').innerHTML = recoBadge(margin, revenue-totalCost);
+}
+</script>
+
+<script>
+/* ================= RENDER: CATALOG ================= */
+function courseCardHTML(c){
+  return `<div class="course-card">
+    <div style="display:flex;justify-content:space-between;align-items:flex-start;">
+      <span class="cc-track">${c.track}</span>${c.ai?'<span class="tag tag-new">AI-generated</span>':''}
+    </div>
+    <div class="cc-title">${c.title}</div>
+    <div class="cc-desc">${c.desc}</div>
+    <div class="cc-foot"><span>${c.hours} hrs</span><span>$${c.price}</span></div>
+  </div>`;
+}
+function renderCatalog(){
+  const tracks = ["All", ...new Set(courses.map(c=>c.track))];
+  document.getElementById('catalogChips').innerHTML = tracks.map(t=>`<span class="chip ${t===activeCatalogTrack?'active':''}" onclick="setCatalogTrack('${t}')">${t}</span>`).join('');
+  renderCatalogGrid('');
+}
+function setCatalogTrack(t){ activeCatalogTrack = t; renderCatalog(); }
+function renderCatalogGrid(q){
+  let list = courses;
+  if (activeCatalogTrack !== "All") list = list.filter(c=>c.track===activeCatalogTrack);
+  if (q) list = list.filter(c=>c.title.toLowerCase().includes(q.toLowerCase()));
+  document.getElementById('catalogGrid').innerHTML = list.map(courseCardHTML).join('') || '<p style="color:var(--artifact-muted);font-size:12.5px;">No courses match.</p>';
+}
+function filterCatalog(q){ renderCatalogGrid(q); }
+
+/* ================= RENDER: QUOTE BUILDER ================= */
+function renderQuote(){
+  document.getElementById('quoteCatalogList').innerHTML = courses.map(c=>`
+    <label class="list-row" style="cursor:pointer;">
+      <div style="display:flex;gap:10px;align-items:flex-start;">
+        <input type="checkbox" style="margin-top:3px;" onchange="toggleQuoteItem(${c.id}, this.checked)">
+        <div><div class="lr-title">${c.title}</div><div class="lr-sub">${c.track} · ${c.hours} hrs</div></div>
+      </div>
+      <div class="lr-right"><span style="font-weight:800;">$${c.price}</span></div>
+    </label>`).join('');
+  updateQuoteTotal();
+}
+function toggleQuoteItem(id, checked){
+  if (checked) quoteItems.push(id);
+  else quoteItems = quoteItems.filter(i=>i!==id);
+  updateQuoteTotal();
+}
+function updateQuoteTotal(){
+  const seats = +(document.getElementById('quoteSeats').value || 1);
+  const items = courses.filter(c=>quoteItems.includes(c.id));
+  let subtotal = items.reduce((s,c)=>s+c.price,0) * (seats||1);
+  let discountPct = 0;
+  if (seats >= 30) discountPct = 15;
+  else if (seats >= 15) discountPct = 10;
+  else if (seats >= 8) discountPct = 5;
+  const discount = subtotal * (discountPct/100);
+  const total = subtotal - discount;
+  document.getElementById('quoteLines').innerHTML = items.map(c=>`
+    <div class="quote-line"><span>${c.title} × ${seats}</span><span>$${(c.price*seats).toLocaleString()}</span></div>`).join('') +
+    (discountPct ? `<div class="quote-line"><span>Volume discount (${discountPct}%)</span><span>-$${discount.toLocaleString()}</span></div>` : '');
+  document.getElementById('quoteTotal').textContent = money(Math.round(total));
+  document.getElementById('quoteDiscountNote').textContent = discountPct ? `${discountPct}% volume discount applied for ${seats} seats.` : 'Discounts apply at 8+, 15+, and 30+ seats.';
+}
+document.addEventListener('input', function(e){ if(e.target && e.target.id==='quoteSeats') updateQuoteTotal(); });
+function generateQuote(){
+  const company = document.getElementById('quoteCompany').value || 'New prospect';
+  if (!quoteItems.length){ toast('Select at least one course to generate a quote'); return; }
+  toast(`Quote generated for ${company} — added to Deals Pipeline (demo)`);
+}
+
+/* ================= AI COURSE GENERATION MODAL ================= */
+function startGenerating(){
+  pendingGenTrack = document.getElementById('genTrack') ? document.getElementById('genTrack').value : 'DevOps';
+  const objective = document.getElementById('genObjective') ? document.getElementById('genObjective').value : 'New course';
+  document.getElementById('genModalTitle').textContent = 'Generating Your Course';
+  document.getElementById('genModalBody').innerHTML = `<div class="gen-status"><div class="spinner"></div><span id="genStatusText">Outlining curriculum...</span></div>`;
+  document.getElementById('genModalFooter').innerHTML = '';
+  const steps = ["Outlining curriculum...", "Structuring modules & assessments...", "Applying Cprime branding...", "Publishing to catalog..."];
+  let i = 0;
+  const interval = setInterval(()=>{
+    i++;
+    if (i < steps.length){ document.getElementById('genStatusText').textContent = steps[i]; }
+    else {
+      clearInterval(interval);
+      const newId = Math.max(...courses.map(c=>c.id))+1;
+      courses.push({ id:newId, track:pendingGenTrack, title:objective||'New AI-Generated Course', desc:'AI-generated curriculum from a sales-submitted learning objective.', hours:6, price:279, ai:true });
+      document.getElementById('genModalTitle').innerHTML = '<span style="color:var(--artifact-success);">✓</span> Course Ready';
+      document.getElementById('genModalBody').innerHTML = `<p style="font-size:12.5px;color:var(--artifact-muted);">"${objective||'New course'}" has been generated and added to the catalog, tagged AI-generated.</p>`;
+      document.getElementById('genModalFooter').innerHTML = `<button class="btn" onclick="closeModal('genModal')">Close</button><button class="btn primary" onclick="closeModal('genModal'); showView('catalog'); renderCatalog();">View in Catalog</button>`;
+    }
+  }, 900);
+}
+</script>
+
+<script>
+/* ================= RENDER: DEALS PIPELINE ================= */
+function renderDeals(){
+  const stages = [
+    {key:"prospecting", label:"Prospecting"},
+    {key:"quoted", label:"Quoted"},
+    {key:"negotiation", label:"Negotiation"},
+    {key:"won", label:"Won"},
+  ];
+  document.getElementById('dealsBoard').innerHTML = stages.map(s=>{
+    const list = deals.filter(d=>d.stage===s.key);
+    return `<div class="stage-col">
+      <div class="stage-head"><span>${s.label}</span><span>${list.length}</span></div>
+      ${list.map(d=>`
+        <div class="deal-card" onclick="openDealDrawer(${d.id})">
+          <div class="dc-name">${d.company}</div>
+          <div class="dc-sub">${d.bundle} · ${d.seats} seats</div>
+          <div class="dc-foot"><b>${money(d.value)}</b>${pillHTML(d.billing)}</div>
+        </div>`).join('') || '<p style="font-size:11.5px;color:var(--artifact-muted-2);">No deals</p>'}
+    </div>`;
+  }).join('');
+}
+
+function openDealDrawer(id){
+  const d = deals.find(x=>x.id===id);
+  const timeline = [
+    {label:"Deal created", done:true, color:"accent"},
+    {label:"Quote sent", done:true, color:"accent"},
+    {label:d.stage==="won"?"Closed won":"In "+d.stage, done:true, color:"success"},
+    {label:"Delivery scheduled", done:d.billing!=="pending", color:"purple"},
+    {label:"Session delivered", done:["delivered","invoiced","paid","overdue","mismatch"].includes(d.billing), color:"teal"},
+    {label:"Invoiced", done:["invoiced","paid","overdue","mismatch"].includes(d.billing), color:"warning"},
+    {label:d.billing==="paid"?"Paid":"Awaiting payment", done:d.billing==="paid", color:d.billing==="overdue"?"danger":"muted"},
+  ];
+  document.getElementById('dealDrawerContent').innerHTML = `
+    <div class="modal-head"><h3>${d.company}</h3><button class="modal-close" onclick="closeModal('dealDrawer')">✕</button></div>
+    <div class="modal-body">
+      <div style="display:flex;gap:8px;margin-bottom:14px;">${pillHTML(d.stage)}${pillHTML(d.billing)}</div>
+      <div class="grid g2" style="margin-bottom:16px;">
+        <div class="card-flat"><div style="font-size:11px;color:var(--artifact-muted-2);font-weight:700;">BUNDLE</div><div style="font-weight:700;font-size:13px;">${d.bundle}</div></div>
+        <div class="card-flat"><div style="font-size:11px;color:var(--artifact-muted-2);font-weight:700;">SEATS</div><div style="font-weight:700;font-size:13px;">${d.seats}</div></div>
+        <div class="card-flat"><div style="font-size:11px;color:var(--artifact-muted-2);font-weight:700;">DEAL VALUE</div><div style="font-weight:700;font-size:13px;">${money(d.value)}</div></div>
+        <div class="card-flat"><div style="font-size:11px;color:var(--artifact-muted-2);font-weight:700;">STATUS</div><div style="font-weight:700;font-size:13px;">${d.stage}</div></div>
+      </div>
+      <div class="eyebrow" style="margin-bottom:8px;">DELIVERY-TO-CASH TIMELINE</div>
+      ${timeline.map(t=>`<div class="timeline-item"><span class="timeline-dot" style="background:${t.done?'var(--artifact-'+t.color+')':'var(--artifact-border)'};"></span><span style="font-size:12.5px;font-weight:${t.done?'700':'500'};color:${t.done?'var(--artifact-text)':'var(--artifact-muted-2)'};">${t.label}</span></div>`).join('')}
+    </div>
+    <div class="modal-footer"><button class="btn" onclick="closeModal('dealDrawer')">Close</button><button class="btn primary" onclick="closeModal('dealDrawer'); showView('billing');">View billing</button></div>`;
+  openModal('dealDrawer');
+}
+</script>
+
+<script>
+/* ================= RENDER: BILLING & RECONCILIATION ================= */
+function renderBillingKpis(){
+  const invoiced = invoices.reduce((s,i)=>s+i.amount,0);
+  const collected = invoices.filter(i=>i.status==="paid").reduce((s,i)=>s+i.amount,0);
+  const overdue = invoices.filter(i=>i.status==="overdue").reduce((s,i)=>s+i.amount,0);
+  const disputed = invoices.filter(i=>i.status==="mismatch").length;
+  const kpis = [
+    {label:"Total Invoiced", value:money(invoiced), color:"accent"},
+    {label:"Collected", value:money(collected), color:"success"},
+    {label:"Overdue", value:money(overdue), color:"danger"},
+    {label:"Disputed / Mismatch", value:disputed, color:"warning"},
+  ];
+  document.getElementById('billingKpiRow').innerHTML = kpis.map(k=>`
+    <div class="card kpi"><div class="kpi-label">${k.label}</div><div class="kpi-value" style="color:var(--artifact-${k.color});">${k.value}</div></div>`).join('');
+}
+function renderBillingChips(){
+  const statuses = ["All","overdue","invoiced","pending","paid","mismatch"];
+  document.getElementById('billingChips').innerHTML = statuses.map(s=>`<span class="chip ${s===activeBillingFilter?'active':''}" onclick="setBillingFilter('${s}')">${s==='All'?'All':pillMeta[s].label}</span>`).join('');
+}
+function setBillingFilter(s){ activeBillingFilter = s; renderBillingTable(); }
+function renderBillingTable(){
+  let list = invoices;
+  if (activeBillingFilter !== "All") list = list.filter(i=>i.status===activeBillingFilter);
+  document.getElementById('billingTableBody').innerHTML = list.map(i=>`
+    <tr><td style="font-weight:700;">${i.id}</td><td>${i.company}</td><td>${i.course}</td><td>${money(i.amount)}</td><td>${i.due}</td><td>${pillHTML(i.status)}</td>
+      <td>${i.status==="overdue"?`<button class="btn sm" onclick="sendReminder('${i.id}')">Send reminder</button>`:''}</td></tr>`).join('');
+}
+function sendReminder(id){ toast(`Payment reminder sent for ${id}`); }
+function renderBillingAlerts(){
+  const alerts = invoices.filter(i=>i.status==="overdue"||i.status==="mismatch").map(i=>({
+    title: i.status==="overdue" ? `${i.id} overdue — ${i.company} (${money(i.amount)})` : `${i.id} amount mismatch — ${i.company}`,
+    color: i.status==="overdue" ? "danger" : "warning"
+  }));
+  document.getElementById('billingAlerts').innerHTML = alerts.map(a=>`
+    <div class="alert-row"><span class="alert-dot" style="background:var(--artifact-${a.color});"></span><div class="a-title">${a.title}</div></div>`).join('');
+}
+function renderBilling(){ renderBillingKpis(); renderBillingChips(); renderBillingTable(); renderBillingAlerts(); }
+
+/* ================= RENDER: ANALYTICS & REPORTS ================= */
+function renderAnalytics(){
+  document.getElementById('analyticsTrackChart').innerHTML = trackEnrollment.map(t=>`
+    <div style="margin-bottom:12px;"><div style="display:flex;justify-content:space-between;font-size:12.5px;font-weight:700;margin-bottom:5px;"><span>${t.name}</span><span>${t.pct}%</span></div>
+    <div class="progress-track"><div class="progress-fill" style="width:${t.pct}%;"></div></div></div>`).join('');
+  document.getElementById('analyticsGapList').innerHTML = catalogGaps.map(g=>`
+    <div class="list-row"><div class="lr-title">${g.name}</div><span class="tag tag-medium">${g.count} requests</span></div>`).join('');
+  document.getElementById('analyticsTopAccounts').innerHTML = topAccounts.map(a=>`
+    <div class="list-row"><div class="lr-title">${a.name}</div><b>${money(a.pipeline)}</b></div>`).join('');
+  const reports = [
+    {title:"Pipeline & Conversion Report", sub:"Deals by stage, conversion rate, avg. cycle time"},
+    {title:"Revenue by Delivery Model", sub:"Self-paced vs. subscription vs. live cohort"},
+    {title:"Full Sales Audit", sub:"Quotes, invoices, and reconciliation trail"},
+  ];
+  document.getElementById('reportCards').innerHTML = reports.map(r=>`
+    <div class="card-flat">
+      <div style="font-weight:700;font-size:13px;margin-bottom:4px;">${r.title}</div>
+      <div style="font-size:11.5px;color:var(--artifact-muted);margin-bottom:12px;">${r.sub}</div>
+      <div style="display:flex;gap:8px;"><button class="btn sm" onclick="exportReport('${r.title}','CSV')">Export CSV</button><button class="btn sm primary" onclick="exportReport('${r.title}','PDF')">Export PDF</button></div>
+    </div>`).join('');
+}
+function exportReport(title, fmt){ toast(`${title} exported as ${fmt} (demo)`); }
+</script>
+
+<script>
+/* ================= NAVIGATION ================= */
+function showView(view){
+  document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+  document.getElementById('view-'+view).classList.add('active');
+  document.querySelectorAll('.side-item').forEach(s => s.classList.toggle('active', s.dataset.view===view));
+  closeAllDropdowns();
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+
+/* ================= DROPDOWNS ================= */
+function toggleDropdown(id){
+  const isOpen = document.getElementById(id).classList.contains('open');
+  closeAllDropdowns();
+  if (!isOpen) document.getElementById(id).classList.add('open');
+}
+function closeAllDropdowns(){
+  document.querySelectorAll('.dropdown-panel').forEach(p => p.classList.remove('open'));
+}
+document.addEventListener('click', function(e){
+  if (!e.target.closest('.dropdown-wrap')) closeAllDropdowns();
+});
+
+/* ================= NOTIFICATIONS ================= */
+function renderNotifications(){
+  const colorMap = {warning:"warning",danger:"danger",success:"success"};
+  document.getElementById('notifList').innerHTML = NOTIFICATIONS.map(n => `
+    <div class="notif-row"><span class="notif-dotcolor" style="background:var(--artifact-${colorMap[n.type]});"></span>
+      <div><div class="ntitle">${n.title}</div><div class="ntime">${n.time}</div></div></div>`).join('');
+  const unread = NOTIFICATIONS.filter(n=>!n.read).length;
+  document.getElementById('notifCount').textContent = unread;
+  document.getElementById('notifCount').style.display = unread ? 'flex' : 'none';
+}
+function markAllRead(){
+  NOTIFICATIONS.forEach(n=>n.read=true);
+  renderNotifications();
+  toast('All notifications marked as read');
+}
+
+/* ================= MODALS ================= */
+function openModal(id){ document.getElementById(id).classList.add('open'); closeAllDropdowns(); }
+function closeModal(id){
+  document.getElementById(id).classList.remove('open');
+  if (id === 'genModal') resetGenModal();
+}
+function resetGenModal(){
+  document.getElementById('genModalTitle').textContent = 'Request a New Course';
+  document.getElementById('genModalBody').innerHTML = `
+    <div class="form-row"><label>Learning Objective</label><input type="text" id="genObjective" placeholder="e.g. Kubernetes Fundamentals for Platform Teams"></div>
+    <div class="form-row"><label>Certification Track</label>
+      <select id="genTrack"><option>DevOps</option><option>Cloud</option><option>Agile</option><option>Product Management</option></select>
+    </div>
+    <p style="font-size:11.5px;color:var(--artifact-muted);margin:0;">TaaS will generate a structured, branded module — curriculum, assessments, and delivery-model recommendation.</p>`;
+  document.getElementById('genModalFooter').innerHTML = `<button class="btn" onclick="closeModal('genModal')">Cancel</button><button class="btn primary" onclick="startGenerating()">Generate Course</button>`;
+}
+function saveDemo(id, msg){ closeModal(id); toast(msg); }
+function doLogout(){ closeAllDropdowns(); toast('Logged out (demo) — session ended'); }
+
+/* ================= TOAST ================= */
+function toast(msg){
+  const wrap = document.getElementById('toastWrap');
+  const el = document.createElement('div');
+  el.className = 'toast';
+  el.textContent = msg;
+  wrap.appendChild(el);
+  requestAnimationFrame(()=>el.classList.add('show'));
+  setTimeout(()=>{ el.classList.remove('show'); setTimeout(()=>el.remove(), 250); }, 3400);
+}
+
+/* ================= COPILOT ================= */
+const CP_SUGGESTIONS = [
+  "Which invoices are overdue?",
+  "Should we build the AI Product Management course?",
+  "What's trending in demand this month?",
+  "Summarize this week's pipeline"
+];
+function renderCopilotSuggestions(){
+  document.getElementById('cpSuggestions').innerHTML = CP_SUGGESTIONS.map(s => `<button class="cp-sugg-btn" onclick="askCopilot('${s.replace(/'/g,"\\'")}')">${s}</button>`).join('');
+}
+function toggleCopilot(){ document.getElementById('copilotPanel').classList.toggle('open'); }
+function sendCopilotMessage(){
+  const input = document.getElementById('cpInput');
+  const val = input.value.trim();
+  if (!val) return;
+  askCopilot(val);
+  input.value='';
+}
+function askCopilot(text){
+  const body = document.getElementById('cpBody');
+  body.insertAdjacentHTML('beforeend', `<div class="cp-msg user">${text}</div>`);
+  const reply = copilotReply(text);
+  setTimeout(()=>{
+    body.insertAdjacentHTML('beforeend', `<div class="cp-msg bot">${reply}</div>`);
+    body.scrollTop = body.scrollHeight;
+  }, 450);
+  body.scrollTop = body.scrollHeight;
+}
+function copilotReply(text){
+  const t = text.toLowerCase();
+  if (t.includes('overdue')) {
+    const od = invoices.filter(i=>i.status==="overdue");
+    return `You have <strong>${od.length} overdue invoices</strong> totaling ${money(od.reduce((s,i)=>s+i.amount,0))} — the oldest is <strong>${od[0].id}</strong> from ${od[0].company}. Want me to open Billing &amp; Reconciliation?`;
+  }
+  if (t.includes('ai product') || t.includes('build')) return "AI Product Management has <strong>6 client requests logged</strong> with no matching self-paced course. At default sliders it clears the 55% margin threshold — check the Demand &amp; Profitability screen to confirm with your own seat/price assumptions.";
+  if (t.includes('trend') || t.includes('demand')) return "Agile/Scrum leads demand this month at an <strong>86% index</strong>, followed by Cloud &amp; DevOps at 71%. Both have been escalated to instructor sourcing for live cohort capacity.";
+  if (t.includes('pipeline') || t.includes('summar')) return `You have <strong>${deals.filter(d=>d.stage!=='won').length} open opportunities</strong> worth ${money(deals.reduce((s,d)=>s+d.value,0))} in total pipeline value. Two deals are in Negotiation or later stage this week.`;
+  if (t.includes('margin')) return "The launch threshold is <strong>55% margin</strong> and <strong>$4,000 minimum revenue</strong>. Courses below either bar are flagged HOLD in the Demand &amp; Profitability calculators.";
+  return "Here's what I can help with as your Sales Copilot: overdue invoices, launch margin/profitability checks, trending demand signals, catalog gaps, or pipeline status. Try asking about any of those.";
+}
+
+/* ================= INIT ================= */
+document.addEventListener('DOMContentLoaded', function(){
+  renderDashboard();
+  renderProfitability();
+  renderCatalog();
+  renderQuote();
+  renderDeals();
+  renderBilling();
+  renderAnalytics();
+  renderNotifications();
+  renderCopilotSuggestions();
+});
+</script>
+
+<script>
+  window.GleanBridge.postMessage({
+    actionId: 'export-pdf',
+    type: 'glean-add-menu',
+    metadata: { label: 'Export as PDF', icon: 'export' }
+  });
+  window.GleanBridge.onMessage('action', function(data) {
+    if (data.actionId === 'export-pdf') window.print();
+  });
+
+  function prepareChartsForPrint() {
+    document.querySelectorAll('[_echarts_instance_]').forEach(function(el) {
+      var chart = echarts.getInstanceByDom(el);
+      if (!chart) return;
+      var img = new Image();
+      img.src = chart.getDataURL({ type: 'png', pixelRatio: 2 });
+      img.className = 'print-chart-img';
+      img.style.cssText =
+        'width:100%;height:100%;object-fit:contain;' +
+        'position:absolute;top:0;left:0;z-index:10;';
+      el.dataset.prevPosition = el.style.position;
+      el.style.position = 'relative';
+      el.appendChild(img);
+    });
+  }
+
+  function cleanUpAfterPrint() {
+    document.querySelectorAll('[_echarts_instance_]').forEach(function(el) {
+      var img = el.querySelector('.print-chart-img');
+      if (!img) return;
+      img.remove();
+      el.style.position = el.dataset.prevPosition || '';
+      delete el.dataset.prevPosition;
+    });
+  }
+
+  window.addEventListener('beforeprint', prepareChartsForPrint);
+  window.addEventListener('afterprint', cleanUpAfterPrint);
+</script>
+
+<style>
+@media print {
+  body { margin: 0; padding: 0.4in 0.6in; background: #fff; print-color-adjust: exact; -webkit-print-color-adjust: exact; }
+  .container, .dashboard, .shell, main { max-width: 100% !important; width: 100% !important; }
+  .topbar, .sidebar, .copilot-fab, .copilot-panel, .dropdown-panel, .overlay-mask, .slideover, .modal-mask, .toast-wrap { position: static !important; }
+  .copilot-fab, .copilot-panel, .overlay-mask, .slideover, .modal-mask, .toast-wrap { display: none !important; }
+  .layout { display: block !important; }
+  .sidebar { display: none !important; }
+  .main { padding: 0 !important; }
+  .view { display: none !important; }
+  .view.active { display: block !important; }
+  section, [class*="section"], .header { break-inside: avoid; margin-bottom: 20px !important; }
+  .card, .qa-card, .course-card, .deal-card, .calc-card { break-inside: avoid; padding: 14px !important; box-shadow: none !important; border: 1px solid rgba(0,0,0,0.12); }
+  .grid, .row { gap: 10px !important; margin-bottom: 16px !important; }
+}
+</style>
+</body>
+</html>
