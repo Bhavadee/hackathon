@@ -144,11 +144,6 @@ function CourseRoadmap({ result }: { result: Result }) {
 
 export function WorkflowLauncher() {
   const [objective, setObjective] = useState("Run a SAFe DevOps course next month");
-  const [audience, setAudience] = useState("Technical professionals");
-  const [jobRole, setJobRole] = useState("");
-  const [certification, setCertification] = useState("");
-  const [deliveryModel, setDeliveryModel] = useState("Blended");
-  const [businessContext, setBusinessContext] = useState("");
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<Result | null>(null);
   const [error, setError] = useState("");
@@ -161,7 +156,7 @@ export function WorkflowLauncher() {
       const response = await fetch("/api/orchestrate", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ objective, audience, jobRole, certification, deliveryModel, businessContext }),
+        body: JSON.stringify({ objective }),
       });
       const body = await response.json();
       if (!response.ok) throw new Error(body.error ?? "Course generation failed.");
@@ -184,13 +179,6 @@ export function WorkflowLauncher() {
         <div className="mb-3 flex items-center gap-2 text-sm font-semibold"><Sparkles size={16} className="text-[#ff8b7e]" />Launch an agent workflow</div>
         <label className="text-[11px] font-semibold text-slate-300">Learning objective or topic</label>
         <textarea value={objective} onChange={(event) => setObjective(event.target.value)} className="mt-1.5 h-20 w-full resize-none rounded-xl border border-white/10 bg-[#0e192d] p-3 text-sm text-white outline-none placeholder:text-slate-500 focus:border-blue-400" aria-label="Learning objective" placeholder="e.g. DevOps for enterprise delivery teams" />
-        <div className="mt-3 grid gap-3 sm:grid-cols-2">
-          <label className="text-[11px] font-semibold text-slate-300">Target audience<input value={audience} onChange={(event) => setAudience(event.target.value)} className="mt-1.5 w-full rounded-lg border border-white/10 bg-[#0e192d] px-3 py-2.5 text-sm font-normal text-white outline-none focus:border-blue-400" placeholder="Technical professionals" /></label>
-          <label className="text-[11px] font-semibold text-slate-300">Job role<input value={jobRole} onChange={(event) => setJobRole(event.target.value)} className="mt-1.5 w-full rounded-lg border border-white/10 bg-[#0e192d] px-3 py-2.5 text-sm font-normal text-white outline-none focus:border-blue-400" placeholder="Optional" /></label>
-          <label className="text-[11px] font-semibold text-slate-300">Certification track<input value={certification} onChange={(event) => setCertification(event.target.value)} className="mt-1.5 w-full rounded-lg border border-white/10 bg-[#0e192d] px-3 py-2.5 text-sm font-normal text-white outline-none focus:border-blue-400" placeholder="Optional" /></label>
-          <label className="text-[11px] font-semibold text-slate-300">Delivery model<select value={deliveryModel} onChange={(event) => setDeliveryModel(event.target.value)} className="mt-1.5 w-full rounded-lg border border-white/10 bg-[#0e192d] px-3 py-2.5 text-sm font-normal text-white outline-none focus:border-blue-400"><option>Self-paced</option><option>Blended</option><option>Instructor-led</option><option>Virtual instructor-led</option><option>Private cohort</option></select></label>
-        </div>
-        <label className="mt-3 block text-[11px] font-semibold text-slate-300">Customer or business context<input value={businessContext} onChange={(event) => setBusinessContext(event.target.value)} className="mt-1.5 w-full rounded-lg border border-white/10 bg-[#0e192d] px-3 py-2.5 text-sm font-normal text-white outline-none focus:border-blue-400" placeholder="Optional enterprise requirement" /></label>
         <button onClick={run} disabled={loading || !objective.trim()} className="mt-4 flex w-full items-center justify-center gap-2 rounded-xl bg-[#ff5b49] px-4 py-3 text-sm font-bold shadow-lg shadow-red-950/30 transition hover:bg-[#ff6c5b] disabled:opacity-60">{loading ? <LoaderCircle size={16} className="animate-spin" /> : <ArrowRight size={16} />} {loading ? "Building your roadmap..." : "Generate roadmap"}</button>
         {error && <div className="mt-3 rounded-xl border border-red-400/30 bg-red-500/10 p-3 text-xs leading-5 text-red-100">{error}</div>}
       </div>

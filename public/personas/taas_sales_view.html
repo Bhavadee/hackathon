@@ -245,7 +245,7 @@ table.data-table tr:last-child td{border-bottom:none;}
   </div>
   <div class="topbar-right">
     <span class="badge-pill">Demo data</span>
-    <span class="badge-pill blue">Postgres + pgvector</span>
+    <span class="badge-pill blue">Demo data</span>
     <span class="badge-pill admin-tag">Sales session</span>
 
     <div class="dropdown-wrap" id="notifWrap">
@@ -452,7 +452,7 @@ table.data-table tr:last-child td{border-bottom:none;}
 <!-- ================= QUOTE BUILDER VIEW ================= -->
 <div class="view" id="view-quote">
   <div class="page-title">Quote Builder</div>
-  <div class="page-sub">Select courses or bundles to build a live quote with volume discounts applied automatically.</div>
+  <div class="page-sub">Select courses or bundles to build a live quote and override discounts manually when the client relationship calls for it.</div>
 
   <div class="grid" style="grid-template-columns:1.6fr 1fr;">
     <div class="card">
@@ -464,6 +464,10 @@ table.data-table tr:last-child td{border-bottom:none;}
         <div class="card-head"><h3>Live Quote</h3></div>
         <div class="form-row"><label>Company</label><input type="text" id="quoteCompany" placeholder="e.g. Northwind Logistics"></div>
         <div class="form-row"><label>Seats</label><input type="text" id="quoteSeats" value="20"></div>
+        <div class="grid" style="grid-template-columns:1fr 1fr;gap:8px;">
+          <div class="form-row" style="margin:0;"><label>Discount %</label><input type="text" id="quoteDiscountPct" placeholder="e.g. 12"></div>
+          <div class="form-row" style="margin:0;"><label>Discount amount</label><input type="text" id="quoteDiscountAmt" placeholder="e.g. 2500"></div>
+        </div>
         <div id="quoteLines" style="margin:10px 0;"></div>
         <div class="quote-total"><span>Total</span><span id="quoteTotal">$0</span></div>
         <div style="font-size:11px;color:var(--artifact-muted-2);margin-top:6px;" id="quoteDiscountNote"></div>
@@ -657,15 +661,15 @@ const NOTIFICATIONS = [
 ];
 
 let courses = [
-  { id:1, track:"Agile", title:"Certified ScrumMaster Foundations", desc:"Core Scrum roles, events, and artifacts for new Scrum Masters.", hours:6, price:249, ai:false },
-  { id:2, track:"Agile", title:"Product Owner Essentials", desc:"Backlog management, prioritization, and stakeholder alignment.", hours:5, price:229, ai:false },
-  { id:3, track:"Scaled Agile", title:"SAFe for Teams", desc:"Applying Scaled Agile practices across multi-team programs.", hours:8, price:299, ai:false },
-  { id:4, track:"DevOps", title:"CI/CD Pipeline Foundations", desc:"Building automated build, test, and release pipelines.", hours:7, price:279, ai:true },
-  { id:5, track:"Cloud", title:"Cloud Architecture Basics", desc:"Core patterns for resilient, cost-aware cloud systems.", hours:9, price:319, ai:false },
-  { id:6, track:"Product Management", title:"Roadmapping & Prioritization", desc:"Translating strategy into a roadmap stakeholders trust.", hours:5, price:239, ai:false },
-  { id:7, track:"Agile", title:"Agile Coaching Practicum", desc:"Coaching stances, facilitation, and team-level change.", hours:10, price:349, ai:true },
-  { id:8, track:"DevOps", title:"Site Reliability Fundamentals", desc:"SLIs, SLOs, and error budgets for reliable systems.", hours:6, price:259, ai:false },
-  { id:9, track:"Cloud", title:"Cloud Security Essentials", desc:"Identity, network, and data controls in the cloud.", hours:7, price:289, ai:true },
+  { id:1, code:"PUB-AG-001", access:"Public", resale:"Direct", track:"Agile", title:"Certified ScrumMaster Foundations", desc:"Core Scrum roles, events, and artifacts for new Scrum Masters.", hours:6, price:249, ai:false },
+  { id:2, code:"PRI-AG-002", access:"Private", resale:"Client-only", track:"Agile", title:"Product Owner Essentials", desc:"Backlog management, prioritization, and stakeholder alignment.", hours:5, price:229, ai:false },
+  { id:3, code:"RES-SA-003", access:"Reseller", resale:"Partner", track:"Scaled Agile", title:"SAFe for Teams", desc:"Applying Scaled Agile practices across multi-team programs.", hours:8, price:299, ai:false },
+  { id:4, code:"PUB-DV-004", access:"Public", resale:"Direct", track:"DevOps", title:"CI/CD Pipeline Foundations", desc:"Building automated build, test, and release pipelines.", hours:7, price:279, ai:true },
+  { id:5, code:"PRI-CL-005", access:"Private", resale:"Client-only", track:"Cloud", title:"Cloud Architecture Basics", desc:"Core patterns for resilient, cost-aware cloud systems.", hours:9, price:319, ai:false },
+  { id:6, code:"RES-PM-006", access:"Reseller", resale:"Partner", track:"Product Management", title:"Roadmapping & Prioritization", desc:"Translating strategy into a roadmap stakeholders trust.", hours:5, price:239, ai:false },
+  { id:7, code:"PUB-AG-007", access:"Public", resale:"Direct", track:"Agile", title:"Agile Coaching Practicum", desc:"Coaching stances, facilitation, and team-level change.", hours:10, price:349, ai:true },
+  { id:8, code:"PRI-DV-008", access:"Private", resale:"Client-only", track:"DevOps", title:"Site Reliability Fundamentals", desc:"SLIs, SLOs, and error budgets for reliable systems.", hours:6, price:259, ai:false },
+  { id:9, code:"RES-CL-009", access:"Reseller", resale:"Partner", track:"Cloud", title:"Cloud Security Essentials", desc:"Identity, network, and data controls in the cloud.", hours:7, price:289, ai:true },
 ];
 
 let deals = [
@@ -889,6 +893,7 @@ function courseCardHTML(c){
       <span class="cc-track">${c.track}</span>${c.ai?'<span class="tag tag-new">AI-generated</span>':''}
     </div>
     <div class="cc-title">${c.title}</div>
+    <div class="cc-desc"><b>${c.code}</b> · ${c.access} · ${c.resale}</div>
     <div class="cc-desc">${c.desc}</div>
     <div class="cc-foot"><span>${c.hours} hrs</span><span>$${c.price}</span></div>
   </div>`;
@@ -913,7 +918,7 @@ function renderQuote(){
     <label class="list-row" style="cursor:pointer;">
       <div style="display:flex;gap:10px;align-items:flex-start;">
         <input type="checkbox" style="margin-top:3px;" onchange="toggleQuoteItem(${c.id}, this.checked)">
-        <div><div class="lr-title">${c.title}</div><div class="lr-sub">${c.track} · ${c.hours} hrs</div></div>
+        <div><div class="lr-title">${c.title}</div><div class="lr-sub">${c.code} · ${c.access} · ${c.resale} · ${c.track} · ${c.hours} hrs</div></div>
       </div>
       <div class="lr-right"><span style="font-weight:800;">$${c.price}</span></div>
     </label>`).join('');
@@ -928,17 +933,15 @@ function updateQuoteTotal(){
   const seats = +(document.getElementById('quoteSeats').value || 1);
   const items = courses.filter(c=>quoteItems.includes(c.id));
   let subtotal = items.reduce((s,c)=>s+c.price,0) * (seats||1);
-  let discountPct = 0;
-  if (seats >= 30) discountPct = 15;
-  else if (seats >= 15) discountPct = 10;
-  else if (seats >= 8) discountPct = 5;
-  const discount = subtotal * (discountPct/100);
+  const discountPct = +(document.getElementById('quoteDiscountPct').value || 0);
+  const discountAmt = +(document.getElementById('quoteDiscountAmt').value || 0);
+  const discount = discountPct > 0 ? subtotal * (discountPct/100) : discountAmt;
   const total = subtotal - discount;
   document.getElementById('quoteLines').innerHTML = items.map(c=>`
     <div class="quote-line"><span>${c.title} × ${seats}</span><span>$${(c.price*seats).toLocaleString()}</span></div>`).join('') +
-    (discountPct ? `<div class="quote-line"><span>Volume discount (${discountPct}%)</span><span>-$${discount.toLocaleString()}</span></div>` : '');
+    (discount ? `<div class="quote-line"><span>Manual discount ${discountPct ? `(${discountPct}%)` : "(amount)"}</span><span>-$${discount.toLocaleString()}</span></div>` : '');
   document.getElementById('quoteTotal').textContent = money(Math.round(total));
-  document.getElementById('quoteDiscountNote').textContent = discountPct ? `${discountPct}% volume discount applied for ${seats} seats.` : 'Discounts apply at 8+, 15+, and 30+ seats.';
+  document.getElementById('quoteDiscountNote').textContent = 'Sales may override discount as a percentage or fixed amount based on client relationship.';
 }
 document.addEventListener('input', function(e){ if(e.target && e.target.id==='quoteSeats') updateQuoteTotal(); });
 function generateQuote(){

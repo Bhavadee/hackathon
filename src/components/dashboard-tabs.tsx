@@ -46,6 +46,7 @@ type CuratorResponse = {
 
 type PersonaId = "admin" | "sales" | "trainer" | "learner" | "executive";
 type TrainerView = "home" | "network" | "curator" | "content";
+type DashboardMode = "default" | "custom";
 
 const personas: { id: PersonaId; label: string; title: string; description: string; Icon: LucideIcon }[] = [
   { id: "admin", label: "Admin", title: "Governance and Operations Console", description: "Control content freshness, role access, catalog standards, and system integrations.", Icon: Settings2 },
@@ -92,14 +93,68 @@ function PrototypeFrame({ src, title }: { src: string; title: string }) {
   </section>;
 }
 
+function CustomDashboardBuilder({ persona }: { persona: Exclude<PersonaId, "trainer"> }) {
+  return <Card className="space-y-4">
+    <div>
+      <p className="text-xs font-bold uppercase tracking-[.16em] text-slate-500">Custom dashboard</p>
+      <h3 className="mt-1 text-lg font-semibold text-slate-950">Build a role-specific view for {persona}.</h3>
+      <p className="mt-1 text-sm leading-6 text-slate-500">Use this as the default dashboard alternative when the persona needs a focused operating view instead of the prototype shell.</p>
+    </div>
+    <div className="grid gap-3 md:grid-cols-2">
+      {[
+        "KPI tiles",
+        "Work queue",
+        "Calendar or schedule",
+        "Revenue or demand chart",
+        "Approval stream",
+        "Library or content panel",
+      ].map((item) => (
+        <div key={item} className="rounded-lg border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm font-semibold text-slate-700">{item}</div>
+      ))}
+    </div>
+    <div className="grid gap-3 md:grid-cols-3">
+      <label className="block text-sm">
+        <span className="text-xs font-bold uppercase tracking-wide text-slate-500">Primary focus</span>
+        <input className="mt-2 w-full rounded-lg border border-slate-200 bg-white px-3 py-2.5" placeholder="Operations, revenue, learning, or delivery" />
+      </label>
+      <label className="block text-sm">
+        <span className="text-xs font-bold uppercase tracking-wide text-slate-500">Metric source</span>
+        <input className="mt-2 w-full rounded-lg border border-slate-200 bg-white px-3 py-2.5" placeholder="Dashboards, pipeline, sessions, or content" />
+      </label>
+      <label className="block text-sm">
+        <span className="text-xs font-bold uppercase tracking-wide text-slate-500">Refresh cadence</span>
+        <input className="mt-2 w-full rounded-lg border border-slate-200 bg-white px-3 py-2.5" placeholder="Hourly, daily, or weekly" />
+      </label>
+    </div>
+    <button className="rounded-lg bg-slate-950 px-4 py-2.5 text-sm font-bold text-white">Save custom dashboard</button>
+  </Card>;
+}
+
+function PersonaModeShell({ title, description, customLabel, customView, children }: { title: string; description: string; customLabel: string; customView: React.ReactNode; children: React.ReactNode }) {
+  const [mode, setMode] = useState<DashboardMode>("default");
+  return <div className="space-y-4">
+    <div className="flex items-center justify-between gap-3 rounded-lg border border-slate-200 bg-white px-4 py-3 shadow-sm">
+      <div>
+        <p className="text-xs font-bold uppercase tracking-[.16em] text-slate-500">{title}</p>
+        <h2 className="mt-1 text-base font-semibold text-slate-950">{description}</h2>
+      </div>
+      <div className="flex gap-2">
+        <button onClick={() => setMode("default")} className={`rounded-lg px-3 py-2 text-sm font-bold ${mode === "default" ? "bg-slate-950 text-white" : "border border-slate-200 bg-white text-slate-700"}`}>Default</button>
+        <button onClick={() => setMode("custom")} className={`rounded-lg px-3 py-2 text-sm font-bold ${mode === "custom" ? "bg-slate-950 text-white" : "border border-slate-200 bg-white text-slate-700"}`}>{customLabel}</button>
+      </div>
+    </div>
+    {mode === "default" ? children : customView}
+  </div>;
+}
+
 function AdminPersona({ data }: { data: DashboardData }) {
   void data;
-  return <PrototypeFrame src="/personas/taas_admin_view.html?v=20260727-reference-global-map" title="Admin console" />;
+  return <PersonaModeShell title="Admin persona" description="Dashboard mode" customLabel="Custom" customView={<CustomDashboardBuilder persona="admin" />}><PrototypeFrame src="/personas/taas_admin_view.html?v=20260727-reference-global-map" title="Admin console" /></PersonaModeShell>;
 }
 
 function SalesPersona({ data }: { data: DashboardData }) {
   void data;
-  return <PrototypeFrame src="/personas/taas_sales_view.html" title="Sales console" />;
+  return <PersonaModeShell title="Sales persona" description="Dashboard mode" customLabel="Custom" customView={<CustomDashboardBuilder persona="sales" />}><PrototypeFrame src="/personas/taas_sales_view.html" title="Sales console" /></PersonaModeShell>;
 }
 
 function TrainerAvailabilityCard() {
@@ -173,7 +228,7 @@ function TrainerShell({ activeView, onViewChange, children }: { activeView: Trai
     { id: "curator", label: "Course Curator", Icon: Sparkles },
     { id: "content", label: "Content Library", Icon: Library },
   ];
-  return <div className="grid overflow-hidden rounded-lg border border-slate-200 bg-white shadow-sm xl:grid-cols-[240px_1fr]">
+  return <div className="grid overflow-hidden rounded-lg border border-slate-200 bg-white shadow-sm xl:grid-cols-[220px_1fr]">
     <aside className="border-b border-slate-200 bg-slate-50 p-3 xl:border-b-0 xl:border-r">
       <nav className="flex gap-2 overflow-x-auto xl:block xl:space-y-1">
         {views.map(({ id, label, Icon }) => <button key={id} type="button" onClick={() => onViewChange(id)} className={`flex shrink-0 items-center gap-2 rounded-lg px-3 py-2.5 text-sm font-semibold xl:w-full ${activeView === id ? "bg-slate-950 text-white" : "text-slate-600 hover:bg-white"}`}>
@@ -194,7 +249,6 @@ function TrainerHome({ data }: { data: DashboardData }) {
     <Card className="border-blue-100 bg-blue-50/70">
       <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
         <div>
-          <p className="text-xs font-bold uppercase tracking-[.16em] text-blue-700">Trainer scenario</p>
           <h2 className="mt-2 text-lg font-semibold text-slate-950">Accept Northstar assignment and prepare the kickoff session.</h2>
           <p className="mt-1 text-sm text-slate-600">Trainer sees fit score, delivery date, calendar setup, latest approved content, and AI prep notes.</p>
         </div>
@@ -202,7 +256,7 @@ function TrainerHome({ data }: { data: DashboardData }) {
       </div>
       {prepGenerated && <div className="mt-4 rounded-lg bg-white p-3 text-sm text-blue-900"><b>AI prep:</b> Focus on SAFe DevOps value stream mapping, include GitLab CI lab, and reserve 15 minutes for learner Q&A.</div>}
     </Card>
-    <div className="grid gap-4 md:grid-cols-3">
+    <div className="grid gap-4 xl:grid-cols-[.8fr_1.2fr_.8fr]">
       <MetricCard Icon={BadgeCheck} label="My credentials" value="3 active" detail="SAFe SPC, CSP-SM, ICAgile" tone="bg-blue-50 text-blue-700" />
       <TrainerAvailabilityCard />
       <MetricCard Icon={LineChart} label="Network utilization" value={`${avgUtilization}%`} detail="Average utilization across trainer pool" tone="bg-amber-50 text-amber-700" />
@@ -228,35 +282,27 @@ function TrainerPersona({ data }: { data: DashboardData }) {
   const [view, setView] = useState<TrainerView>("home");
   return <TrainerShell activeView={view} onViewChange={setView}>
     {view === "home" && <TrainerHome data={data} />}
-    {view === "network" && <div><SectionTitle eyebrow="Trainer feature" title="Trainer network and action management" description="This is the existing complete trainer feature, placed inside the Trainer persona." /><TrainerNetwork trainers={data.trainers} /></div>}
+    {view === "network" && <div><SectionTitle eyebrow="Trainer network" title="Trainer network and action management" description="This is the existing complete trainer network, placed inside the Trainer persona." /><TrainerNetwork trainers={data.trainers} /></div>}
     {view === "curator" && <TrainerCourseCurator data={data} />}
     {view === "content" && <TrainerContent data={data} />}
   </TrainerShell>;
 }
 
 function TrainerCourseCurator({ data }: { data: DashboardData }) {
-  const [selectedCourseId, setSelectedCourseId] = useState(data.courses[0]?.id ?? "");
   const [isCurating, setIsCurating] = useState(false);
   const [curatorResult, setCuratorResult] = useState<CuratorResponse | null>(null);
   const [curatorError, setCuratorError] = useState("");
-  const selectedCourse = data.courses.find((course) => course.id === selectedCourseId) ?? data.courses[0];
-  const defaultInputs = selectedCourse ? [
-    `Approved course: ${selectedCourse.title}`,
-    `Source version: ${selectedCourse.sourceVersion}`,
-    `Freshness score: ${selectedCourse.freshness}%`,
-    "Assignment context: Northstar private cohort",
-    "Learner profile: product and platform leads",
-    "Delivery mode: blended instructor-led class",
-  ] : [];
   const pack = curatorResult?.pack;
-  const [trainerPrompt, setTrainerPrompt] = useState("Create a blended instructor-led course that helps product owners and platform leads apply SAFe DevOps practices using a realistic value stream and CI/CD lab.");
-  const [courseGoal, setCourseGoal] = useState("Learners can map a delivery value stream, identify bottlenecks, and plan one improvement experiment.");
-  const [draftDuration, setDraftDuration] = useState("2 hours");
-  const [draftSyllabus, setDraftSyllabus] = useState("1. Outcomes and learner baseline\n2. Value stream mapping walkthrough\n3. CI/CD improvement lab\n4. Team debrief and action plan\n5. Assessment and follow-up resources");
+  const [trainerPrompt, setTrainerPrompt] = useState("");
+  const [courseGoal, setCourseGoal] = useState("");
+  const [draftDuration, setDraftDuration] = useState("");
+  const [draftSyllabus, setDraftSyllabus] = useState("");
+  const [courseTitle, setCourseTitle] = useState("");
+  const [courseContext, setCourseContext] = useState("");
+  const [learnerNeed, setLearnerNeed] = useState("");
   const [savedDraft, setSavedDraft] = useState(false);
 
   async function generateCuratorPack() {
-    if (!selectedCourse) return;
     setIsCurating(true);
     setCuratorError("");
     try {
@@ -264,11 +310,16 @@ function TrainerCourseCurator({ data }: { data: DashboardData }) {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          course: selectedCourse,
-          assignmentContext: "Northstar private cohort preparing for an applied delivery session",
-          learnerProfile: "Product owners, platform leads, and delivery managers with mixed agile experience",
-          deliveryMode: "Blended instructor-led",
-          classLength: draftDuration,
+          course: {
+            title: courseTitle || "Untitled course",
+            status: "draft",
+            freshness: 100,
+            sourceVersion: "new",
+          },
+          assignmentContext: courseContext || "Create from scratch",
+          learnerProfile: learnerNeed || "Learner-defined need",
+          deliveryMode: "Custom",
+          classLength: draftDuration || "Custom duration",
           trainerPrompt,
           courseGoal,
           syllabusDraft: draftSyllabus,
@@ -287,8 +338,8 @@ function TrainerCourseCurator({ data }: { data: DashboardData }) {
   return <div className="space-y-5">
     <SectionTitle
       eyebrow="AI course curator"
-      title="Create a course from a trainer prompt"
-      description="Trainer enters the course idea, goal, draft syllabus, audience, and duration. AI turns that into a teachable course pack with timings, activities, materials, and trainer notes."
+      title="Create a course from scratch"
+      description="Trainer enters the need, course idea, goal, draft syllabus, and timing. AI turns that into a teachable course pack with timings, activities, materials, and trainer notes."
     />
     <Card className="border-violet-100 bg-violet-50/60">
       <div className="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
@@ -301,38 +352,48 @@ function TrainerCourseCurator({ data }: { data: DashboardData }) {
       </div>
       <div className="mt-4 grid gap-3 lg:grid-cols-[1.25fr_.75fr]">
         <label className="block">
-          <span className="text-xs font-bold uppercase tracking-wide text-violet-700">Trainer prompt</span>
-          <textarea value={trainerPrompt} onChange={(e) => setTrainerPrompt(e.target.value)} className="mt-2 h-32 w-full rounded-lg border border-violet-100 bg-white p-3 text-sm leading-6 outline-none focus:border-violet-500" placeholder="Example: Create a two-hour instructor-led course for product owners..." />
+          <span className="text-xs font-bold uppercase tracking-wide text-violet-700">Need statement</span>
+          <textarea value={trainerPrompt} onChange={(e) => setTrainerPrompt(e.target.value)} className="mt-2 h-32 w-full rounded-lg border border-violet-100 bg-white p-3 text-sm leading-6 outline-none focus:border-violet-500" placeholder="Describe the need in plain language..." />
         </label>
         <div className="grid gap-3">
           <label className="block">
-            <span className="text-xs font-bold uppercase tracking-wide text-violet-700">Course goal</span>
-            <textarea value={courseGoal} onChange={(e) => setCourseGoal(e.target.value)} className="mt-2 h-20 w-full rounded-lg border border-violet-100 bg-white p-3 text-sm leading-6 outline-none focus:border-violet-500" />
+            <span className="text-xs font-bold uppercase tracking-wide text-violet-700">Course title</span>
+            <input value={courseTitle} onChange={(e) => setCourseTitle(e.target.value)} className="mt-2 w-full rounded-lg border border-violet-100 bg-white px-3 py-2.5 text-sm outline-none focus:border-violet-500" placeholder="Name the course" />
           </label>
           <label className="block">
-            <span className="text-xs font-bold uppercase tracking-wide text-violet-700">Duration</span>
-            <select value={draftDuration} onChange={(e) => setDraftDuration(e.target.value)} className="mt-2 w-full rounded-lg border border-violet-100 bg-white px-3 py-2.5 text-sm outline-none focus:border-violet-500">
-              <option>90 minutes</option><option>2 hours</option><option>Half day</option><option>1 day</option><option>2 days</option><option>3 days</option><option>Custom duration</option>
-            </select>
+            <span className="text-xs font-bold uppercase tracking-wide text-violet-700">Course goal</span>
+            <textarea value={courseGoal} onChange={(e) => setCourseGoal(e.target.value)} className="mt-2 h-20 w-full rounded-lg border border-violet-100 bg-white p-3 text-sm leading-6 outline-none focus:border-violet-500" placeholder="Describe the outcome the learner should reach." />
           </label>
         </div>
         <label className="block lg:col-span-2">
+          <span className="text-xs font-bold uppercase tracking-wide text-violet-700">Context and need</span>
+          <textarea value={courseContext} onChange={(e) => setCourseContext(e.target.value)} className="mt-2 h-20 w-full rounded-lg border border-violet-100 bg-white p-3 text-sm leading-6 outline-none focus:border-violet-500" placeholder="What is the need, situation, or opportunity?" />
+        </label>
+        <label className="block lg:col-span-2">
+          <span className="text-xs font-bold uppercase tracking-wide text-violet-700">Learner outcome notes</span>
+          <textarea value={learnerNeed} onChange={(e) => setLearnerNeed(e.target.value)} className="mt-2 h-20 w-full rounded-lg border border-violet-100 bg-white p-3 text-sm leading-6 outline-none focus:border-violet-500" placeholder="What should the learner be able to do after this?" />
+        </label>
+        <label className="block lg:col-span-2">
           <span className="text-xs font-bold uppercase tracking-wide text-violet-700">Draft syllabus or topics</span>
-          <textarea value={draftSyllabus} onChange={(e) => setDraftSyllabus(e.target.value)} className="mt-2 h-28 w-full rounded-lg border border-violet-100 bg-white p-3 text-sm leading-6 outline-none focus:border-violet-500" />
+          <textarea value={draftSyllabus} onChange={(e) => setDraftSyllabus(e.target.value)} className="mt-2 h-28 w-full rounded-lg border border-violet-100 bg-white p-3 text-sm leading-6 outline-none focus:border-violet-500" placeholder="Leave blank and let the curator build from the need." />
+        </label>
+        <label className="block lg:col-span-2">
+          <span className="text-xs font-bold uppercase tracking-wide text-violet-700">Duration</span>
+          <input value={draftDuration} onChange={(e) => setDraftDuration(e.target.value)} className="mt-2 w-full rounded-lg border border-violet-100 bg-white px-3 py-2.5 text-sm outline-none focus:border-violet-500" placeholder="Optional custom duration" />
         </label>
       </div>
     </Card>
     <Card className="border-blue-100 bg-blue-50/70">
       <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
-        <label className="block min-w-0 flex-1">
-          <span className="text-xs font-bold uppercase tracking-wide text-blue-700">Course</span>
-          <select value={selectedCourseId} onChange={(event) => { setSelectedCourseId(event.target.value); setCuratorResult(null); setCuratorError(""); }} className="mt-2 w-full rounded-lg border border-blue-100 bg-white px-4 py-3 text-sm font-semibold text-slate-950 outline-none focus:border-blue-500">
-            {data.courses.map((course) => <option key={course.id} value={course.id}>{course.title}</option>)}
-          </select>
-        </label>
-        <button onClick={generateCuratorPack} disabled={isCurating || !selectedCourse || !trainerPrompt.trim()} className="rounded-lg bg-slate-950 px-4 py-3 text-sm font-bold text-white disabled:cursor-not-allowed disabled:bg-slate-400">{isCurating ? "Generating..." : pack ? "Regenerate course pack" : "Generate course pack"}</button>
+        <div className="grid flex-1 gap-3 md:grid-cols-3">
+          {data.courses.slice(0, 3).map((course) => <div key={course.id} className="rounded-lg border border-blue-100 bg-white p-3">
+            <p className="text-xs font-bold uppercase tracking-wide text-blue-700">{course.title}</p>
+            <p className="mt-1 text-xs text-slate-500">v{course.sourceVersion} · freshness {course.freshness}%</p>
+          </div>)}
+        </div>
+        <button onClick={generateCuratorPack} disabled={isCurating || !trainerPrompt.trim()} className="rounded-lg bg-slate-950 px-4 py-3 text-sm font-bold text-white disabled:cursor-not-allowed disabled:bg-slate-400">{isCurating ? "Generating..." : pack ? "Regenerate course pack" : "Generate course pack"}</button>
       </div>
-      {selectedCourse && <p className="mt-3 text-sm leading-6 text-blue-900">Selected course: <b>{selectedCourse.title}</b>. Source v{selectedCourse.sourceVersion}, freshness {selectedCourse.freshness}%.</p>}
+      <p className="mt-3 text-sm leading-6 text-blue-900">Create a fresh course without selecting a preset catalog item.</p>
       {curatorResult && <div className="mt-3 rounded-lg border border-blue-100 bg-white p-3 text-xs font-semibold text-blue-900">Generated by {curatorResult.mode === "openai" ? "OpenAI" : "TaaS fallback AI"} using {curatorResult.model}. {curatorResult.notice}</div>}
       {curatorError && <div className="mt-3 rounded-lg border border-red-100 bg-red-50 p-3 text-sm font-semibold text-red-700">{curatorError}</div>}
     </Card>
@@ -343,7 +404,7 @@ function TrainerCourseCurator({ data }: { data: DashboardData }) {
         <StatusPill tone={pack ? "green" : "amber"}>{pack ? "Generated" : "Ready"}</StatusPill>
       </div>
       <div className="mt-5 grid gap-3 md:grid-cols-3">
-        {(pack?.aiInputs ?? defaultInputs).map((input) => <div key={input} className="rounded-lg border border-slate-100 bg-slate-50 p-4 text-sm font-semibold leading-6 text-slate-700">{input}</div>)}
+        {(pack?.aiInputs ?? [trainerPrompt, courseGoal, courseContext, learnerNeed].filter(Boolean)).map((input) => <div key={input} className="rounded-lg border border-slate-100 bg-slate-50 p-4 text-sm font-semibold leading-6 text-slate-700">{input}</div>)}
       </div>
     </Card>
 
@@ -364,8 +425,8 @@ function TrainerCourseCurator({ data }: { data: DashboardData }) {
         </div>
       </Card>
 
-      <Card>
-        <h2 className="font-semibold text-slate-950">AI Trainer Notes</h2>
+    <Card>
+      <h2 className="font-semibold text-slate-950">AI Trainer Notes</h2>
         <div className="mt-5 space-y-3">
           {(pack?.trainerNotes ?? []).length ? pack?.trainerNotes.map((note, index) => <div key={note} className="rounded-lg border border-emerald-100 bg-emerald-50 p-3 text-sm leading-6 text-emerald-900">
             <span className="mr-2 font-bold">{index + 1}.</span>{note}
@@ -401,6 +462,14 @@ function TrainerCourseCurator({ data }: { data: DashboardData }) {
           { name: "Lab guide", use: "Generated after AI curation." },
         ]).map((item) => <div key={item.name} className={`rounded-lg border p-4 text-sm leading-6 ${pack ? "border-emerald-100 bg-emerald-50 text-emerald-800" : "border-slate-100 bg-slate-50 text-slate-700"}`}><p className="font-bold">{item.name}</p><p className="mt-1 text-xs">{item.use}</p></div>)}
       </div>
+      <div className="mt-4 rounded-lg border border-slate-200 bg-slate-50 p-4">
+        <h3 className="font-semibold text-slate-950">Content library</h3>
+        <p className="mt-1 text-xs text-slate-500">Delivery documentation for past, present, and upcoming events, with prep note generation.</p>
+        <div className="mt-3 grid gap-2 md:grid-cols-3">
+          {["Past events", "Current events", "Upcoming events"].map((item) => <div key={item} className="rounded-lg bg-white px-3 py-2.5 text-sm font-semibold text-slate-700">{item}</div>)}
+        </div>
+        <button className="mt-3 rounded-lg bg-white px-4 py-2.5 text-sm font-bold text-slate-700 border border-slate-200">Generate prep notes</button>
+      </div>
       {pack?.smeReviewNotice && <p className="mt-4 rounded-lg bg-slate-50 p-3 text-xs leading-5 text-slate-500">{pack.smeReviewNotice}</p>}
     </Card>
   </div>;
@@ -430,12 +499,12 @@ function TrainerContent({ data }: { data: DashboardData }) {
 
 function LearnerPersona({ data }: { data: DashboardData }) {
   void data;
-  return <PrototypeFrame src="/personas/taas_learner_view.html" title="Learner console" />;
+  return <PersonaModeShell title="Learner persona" description="Dashboard mode" customLabel="Custom" customView={<CustomDashboardBuilder persona="learner" />}><PrototypeFrame src="/personas/taas_learner_view.html" title="Learner console" /></PersonaModeShell>;
 }
 
 function ExecutivePersona({ data }: { data: DashboardData }) {
   void data;
-  return <PrototypeFrame src="/personas/taas_executive_view.html" title="Executive console" />;
+  return <PersonaModeShell title="Executive persona" description="Dashboard mode" customLabel="Custom" customView={<CustomDashboardBuilder persona="executive" />}><PrototypeFrame src="/personas/taas_executive_view.html" title="Executive console" /></PersonaModeShell>;
 }
 
 function SectionTitle({ eyebrow, title, description }: { eyebrow: string; title: string; description: string }) {
