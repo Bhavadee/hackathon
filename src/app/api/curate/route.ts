@@ -14,6 +14,9 @@ const inputSchema = z.object({
   learnerProfile: z.string().trim().max(300).default("Mixed experience enterprise learners"),
   deliveryMode: z.string().trim().max(80).default("Blended instructor-led"),
   classLength: z.string().trim().max(80).default("2 hours"),
+  trainerPrompt: z.string().trim().max(1200).optional(),
+  courseGoal: z.string().trim().max(300).optional(),
+  syllabusDraft: z.string().trim().max(800).optional(),
 });
 
 const curatorPackSchema = z.object({
@@ -40,20 +43,20 @@ type CuratorPack = z.infer<typeof curatorPackSchema>;
 
 const CURATOR_PROMPT = `You are the Cprime TaaS Trainer Course Curator Agent.
 
-Your job is to help a trainer prepare before teaching an already-approved course. Do not create a new course. Curate the approved course into a practical delivery pack.
+Your job is to help a Cprime trainer curate an existing approved course or create a practical first draft of a trainer-owned course from the trainer's prompt.
 
-Use the provided course metadata, assignment context, learner profile, delivery mode, class length, and content freshness signal.
+Use the provided course metadata, trainer prompt, course goal, syllabus draft, assignment context, learner profile, delivery mode, class length, and content freshness signal.
 
 Generate:
 - the AI inputs used
-- a class-ready teaching structure
-- trainer speaking and facilitation notes
+- a class-ready teaching structure with timings
+- trainer speaking, facilitation, and activity notes
 - classroom prompts
 - materials to prepare
 - risk checks before teaching
 - an SME review notice
 
-Keep the output practical and concise. Focus on what the trainer should do before and during class. Do not reproduce proprietary certification content or exam questions.`;
+Keep the output practical and concise. Make it useful for a trainer who needs to turn an idea into a teachable course plan. Do not reproduce proprietary certification content or exam questions.`;
 
 function fallbackPack(input: CuratorInput): CuratorPack {
   const topic = input.course.title;
@@ -63,10 +66,13 @@ function fallbackPack(input: CuratorInput): CuratorPack {
       `Approved course: ${topic}`,
       `Content status: ${input.course.status}, source v${input.course.sourceVersion}`,
       `Freshness signal: ${input.course.freshness}%`,
+      input.trainerPrompt ? `Trainer prompt: ${input.trainerPrompt}` : "Trainer prompt: Create a practical delivery-ready course plan",
+      input.courseGoal ? `Course goal: ${input.courseGoal}` : "Course goal: Build learner capability through concepts, practice, and debrief",
+      input.syllabusDraft ? `Syllabus draft: ${input.syllabusDraft}` : "Syllabus draft: Outcomes, concepts, activity, debrief, assessment",
       `Assignment context: ${input.assignmentContext}`,
       `Learner profile: ${input.learnerProfile}`,
       `Delivery mode and class length: ${input.deliveryMode}, ${input.classLength}`,
-    ],
+    ].slice(0, 8),
     teachingStructure: [
       { step: "Context setup", purpose: "Connect the course to the client problem.", trainerAction: `Open with a short ${topic} scenario and define the outcomes learners should reach.`, duration: "10 min" },
       { step: "Core concepts", purpose: "Build shared vocabulary without overloading learners.", trainerAction: "Explain each concept with one practical example and one visual.", duration: "25 min" },

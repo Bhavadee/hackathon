@@ -204,7 +204,6 @@ button{font-family:inherit;cursor:pointer;}
   </div>
   <div class="topbar-right">
     <span class="badge-pill">Demo data</span>
-    <span class="badge-pill blue">Postgres + pgvector</span>
     <span class="badge-pill admin-tag">Admin session</span>
 
     <div class="dropdown-wrap" id="notifWrap">
@@ -426,8 +425,45 @@ button{font-family:inherit;cursor:pointer;}
 .tc-skills{display:flex;gap:5px;flex-wrap:wrap;margin-top:8px;}
 .skill-chip{font-size:10.5px;font-weight:600;padding:3px 8px;border-radius:999px;background:var(--artifact-surface-2);border:1px solid var(--artifact-border);color:var(--artifact-muted);}
 
-.map-wrap{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:16px;}
-@media (max-width:1100px){.map-wrap{grid-template-columns:repeat(2,1fr);}}
+.map-wrap{display:none;}
+#tnMapView>.card:nth-child(-n+2),#tnMapView>.card:has(#regionTrainerGrid){display:none;}
+.global-map-card{padding:16px 18px 18px;}
+.world-map{position:relative;height:445px;border-radius:13px;overflow:hidden;background:#fbfdff;border:1px solid var(--artifact-border);}
+.world-map-image{position:absolute;left:3%;top:7px;width:94%;height:405px;object-fit:fill;opacity:.72;filter:sepia(.08) saturate(1.65) hue-rotate(172deg) brightness(1.08);clip-path:inset(0 0 14% 0);pointer-events:none;user-select:none;}
+.map-geography-label{position:absolute;color:#516481;font-size:11px;font-weight:800;letter-spacing:.035em;transform:translate(-50%,-50%);pointer-events:none;}
+.map-geography-label.ocean{color:#91a4c1;font-size:10.5px;}
+.map-marker{position:absolute;z-index:3;width:72px;height:57px;border:0;border-radius:12px;color:#fff;box-shadow:0 10px 18px rgba(15,23,42,.19);font-size:11px;font-weight:800;line-height:1.15;transform:translate(-50%,-50%);transition:transform .16s,box-shadow .16s;}
+.map-marker strong{display:block;font-size:19px;margin-top:3px;}
+.map-marker:hover,.map-marker.active{transform:translate(-50%,-56%);box-shadow:0 13px 24px rgba(15,23,42,.28);}
+.map-marker.amer{left:17%;top:39%;background:#2563eb;}
+.map-marker.latam{left:28%;top:68%;background:#f59e0b;}
+.map-marker.emea{left:55%;top:38%;background:#10b981;}
+.map-marker.apac{left:78%;top:45%;background:#7c3aed;}
+.map-tooltip{position:absolute;z-index:6;width:315px;padding:14px 16px;border:1px solid #d2dbe8;border-radius:11px;background:#fff;box-shadow:0 12px 30px rgba(15,23,42,.18);opacity:0;visibility:hidden;transform:translateY(5px);transition:opacity .12s,transform .12s;pointer-events:none;}
+.map-tooltip.show{opacity:1;visibility:visible;transform:translateY(0);}
+.map-tooltip::after{content:"";position:absolute;left:calc(var(--arrow-left,50%) - 8px);bottom:-8px;width:16px;height:16px;background:#fff;border-right:1px solid #d2dbe8;border-bottom:1px solid #d2dbe8;transform:rotate(45deg);}
+.map-tooltip-title{font-size:13px;font-weight:800;margin-bottom:9px;}
+.skill-mix-bar{display:flex;height:13px;border-radius:3px;overflow:hidden;margin-bottom:8px;}
+.skill-mix-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;color:var(--artifact-muted);font-size:10px;line-height:1.35;}
+.skill-mix-grid b{display:block;color:#45566f;font-size:10.5px;}
+.map-tooltip-session{display:flex;align-items:center;gap:6px;margin-top:12px;font-size:11.5px;font-weight:650;color:#34445d;}
+.map-bottom{position:absolute;left:18px;right:18px;bottom:14px;}
+.map-caption{font-size:10.5px;color:var(--artifact-muted);margin-bottom:7px;}
+.map-legend{display:flex;align-items:center;gap:22px;flex-wrap:wrap;font-size:10.5px;color:var(--artifact-muted);}
+.map-legend span{display:inline-flex;align-items:center;gap:6px;}
+.map-legend .dot{width:9px;height:9px;border-radius:50%;}
+.global-summary-shell{margin-top:12px;border:1px solid var(--artifact-border);border-radius:11px;overflow:auto;background:#fff;}
+.global-ops-table{width:100%;min-width:940px;border-collapse:collapse;font-size:11.5px;}
+.global-ops-table th{text-align:left;font-size:10px;letter-spacing:.04em;color:var(--artifact-muted-2);font-weight:800;padding:10px 12px;border-bottom:1px solid var(--artifact-border);text-transform:uppercase;background:#fbfcfe;}
+.global-ops-table td{padding:10px 12px;border-bottom:1px solid var(--artifact-border);vertical-align:top;line-height:1.35;}
+.global-ops-table tr:last-child td{border-bottom:none;}
+.global-ops-table tbody tr{cursor:pointer;transition:background .12s;}
+.global-ops-table tbody tr:hover{background:#f8fbff;}
+.region-pill{display:inline-flex;align-items:center;border-radius:999px;padding:4px 8px;font-size:10.5px;font-weight:800;color:#fff;}
+.table-meta{color:var(--artifact-muted);margin-top:4px;}
+.availability-bar{height:7px;width:145px;max-width:100%;border-radius:999px;background:#e4eaf2;overflow:hidden;margin-top:6px;}
+.availability-bar span{display:block;height:100%;border-radius:999px;background:var(--artifact-success);}
+@media (max-width:1100px){.world-map{height:400px}.world-map-image{height:365px}.map-marker{width:64px;height:52px}.map-tooltip{width:280px}.map-legend{gap:12px}}
 .region-card{border:1px solid var(--artifact-border);border-radius:var(--artifact-radius);padding:18px;text-align:center;cursor:pointer;background:var(--artifact-surface);transition:border-color .15s,transform .15s;}
 .region-card:hover{transform:translateY(-2px);}
 .region-card.active{border-color:var(--artifact-accent);background:var(--artifact-accent-soft);}
@@ -491,6 +527,7 @@ button{font-family:inherit;cursor:pointer;}
     <div class="role-summary-grid" id="roleSummaryGrid"></div>
     <div class="card">
       <div class="card-head"><h3>All Platform Accounts</h3>
+        <button class="btn sm primary" onclick="openModal('addUserModal')">+ Add user</button>
         <div class="search-box" style="width:240px;padding:6px 12px;">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.3-4.3"/></svg>
           <input type="text" placeholder="Search users..." oninput="filterUsersTable(this.value)">
@@ -510,19 +547,80 @@ button{font-family:inherit;cursor:pointer;}
     <div class="tn-toolbar">
       <div class="chip-filter" id="tnRegionChips"></div>
       <div class="viewtoggle">
-        <button class="active" id="tnViewListBtn" onclick="setTrainerView('list')">
+        <button id="tnViewListBtn" onclick="setTrainerView('list')">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01"/></svg>List
         </button>
-        <button id="tnViewMapBtn" onclick="setTrainerView('map')">
+        <button class="active" id="tnViewMapBtn" onclick="setTrainerView('map')">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 6v16l7-4 8 4 7-4V2l-7 4-8-4z"/><path d="M8 2v16M16 6v16"/></svg>Global Map
         </button>
       </div>
     </div>
 
-    <div id="tnListView">
+    <div id="tnListView" style="display:none;">
       <div class="trainer-grid" id="trainerGrid"></div>
     </div>
-    <div id="tnMapView" style="display:none;">
+    <div id="tnMapView">
+      <div class="card" style="margin-bottom:16px;"><div class="card-head"><h3>Global trainer coverage</h3><span class="tag tag-approved">10 trainers · hover a region</span></div><div class="world-map" role="img" aria-label="World map showing trainer coverage"><span class="map-pin amer" title="AMER · SAFe, Leadership, Kanban · 3 trainers">AMER<br><b>3</b></span><span class="map-pin latam" title="LATAM · ICAgile, Coaching · 1 trainer">LATAM<br><b>1</b></span><span class="map-pin emea" title="EMEA · DevOps, Product · 3 trainers">EMEA<br><b>3</b></span><span class="map-pin apac" title="APAC · SAFe, Scrum · 3 trainers">APAC<br><b>3</b></span></div><div class="cal-legend"><span><span class="dot" style="background:#2f5fef"></span>SAFe / Agile</span><span><span class="dot" style="background:#10b981"></span>DevOps / Technical</span><span><span class="dot" style="background:#f59e0b"></span>Leadership / Coaching</span></div></div>
+      <div class="card" style="margin-bottom:16px;">
+        <div class="card-head"><h3>Global trainer coverage</h3><span class="tag tag-approved">10 trainers - hover a marker</span></div>
+        <div class="world-map" role="img" aria-label="World map showing trainer coverage by region">
+          <svg viewBox="0 0 1000 330" aria-hidden="true">
+            <rect x="18" y="18" width="964" height="294" rx="8" fill="#f8fbff" stroke="#c9d7e8"/>
+            <text class="world-label" x="520" y="52">ARCTIC OCEAN</text>
+            <text class="world-label" x="315" y="170">ATLANTIC OCEAN</text>
+            <text class="world-label" x="900" y="170">PACIFIC OCEAN</text>
+            <text class="world-label" x="710" y="250">INDIAN OCEAN</text>
+            <path class="world-land" d="M54 104 C83 79 129 83 151 86 L195 73 L244 66 L292 75 L321 97 L312 126 L278 145 L254 174 L244 203 L210 184 L188 149 L154 134 L120 139 L88 130 Z"/>
+            <path class="world-land" d="M270 181 C300 194 329 219 342 255 L326 298 L296 276 L279 237 Z"/>
+            <path class="world-land" d="M393 104 L441 82 L500 90 L532 118 L506 146 L452 145 L407 129 Z"/>
+            <path class="world-land" d="M470 145 L523 153 L558 193 L548 255 L513 300 L480 268 L462 210 Z"/>
+            <path class="world-land" d="M521 98 L604 67 L746 66 L865 99 L933 139 L900 186 L814 205 L734 184 L650 154 L571 134 Z"/>
+            <path class="world-land" d="M820 222 L876 209 L935 236 L953 277 L913 303 L857 286 Z"/>
+            <path class="world-land" d="M331 75 L368 60 L401 70 L387 96 L345 99 Z"/>
+            <path class="world-land" d="M860 131 L887 108 L905 124 L889 151 Z"/>
+            <path class="world-land" d="M892 294 L927 282 L938 303 L908 315 Z"/>
+            <path class="world-grid" d="M94 104 L151 86M154 134 L195 73M244 66 L278 145M407 129 L452 145M506 146 L523 153M571 134 L650 154M734 184 L814 205M296 276 L326 298M480 268 L548 255"/>
+            <text class="world-label" x="136" y="110">USA</text>
+            <text class="world-label" x="214" y="106">CANADA</text>
+            <text class="world-label" x="310" y="252">BRAZIL</text>
+            <text class="world-label" x="446" y="122">EUROPE</text>
+            <text class="world-label" x="513" y="214">AFRICA</text>
+            <text class="world-label" x="735" y="125">ASIA</text>
+            <text class="world-label" x="893" y="264">AUSTRALIA</text>
+            <g class="world-pin" onclick="selectRegionMap('AMER')"><title>AMER: 3 trainers, 2 available this week, 4 booked sessions, SAFe / Agile / Kanban</title><rect x="135" y="145" width="74" height="58" rx="12" fill="#2f5fef"/><text x="172" y="169">AMER</text><text class="count" x="172" y="192">3</text></g>
+            <g class="world-pin" onclick="selectRegionMap('LATAM')"><title>LATAM: 1 trainer, 1 available this week, 1 booked session, ICAgile / Coaching</title><rect x="285" y="230" width="78" height="58" rx="12" fill="#f59e0b"/><text x="324" y="254">LATAM</text><text class="count" x="324" y="277">1</text></g>
+            <g class="world-pin" onclick="selectRegionMap('EMEA')"><title>EMEA: 3 trainers, 2 available this week, 3 booked sessions, DevOps / Product / SAFe</title><rect x="515" y="122" width="78" height="58" rx="12" fill="#10b981"/><text x="554" y="146">EMEA</text><text class="count" x="554" y="169">3</text></g>
+            <g class="world-pin" onclick="selectRegionMap('APAC')"><title>APAC: 3 trainers, 1 available this week, 4 booked sessions, Scrum / SAFe / DevOps</title><rect x="785" y="152" width="76" height="58" rx="12" fill="#7c5cf0"/><text x="823" y="176">APAC</text><text class="count" x="823" y="199">3</text></g>
+          </svg>
+        </div>
+        <div class="cal-legend"><span><span class="dot" style="background:#2f5fef"></span>SAFe / Agile</span><span><span class="dot" style="background:#10b981"></span>DevOps / Technical</span><span><span class="dot" style="background:#f59e0b"></span>Leadership / Coaching</span><span><span class="dot" style="background:#7c5cf0"></span>Scrum / Product</span></div>
+        <div id="globalTrainerSummary"></div>
+      </div>
+      <div class="card global-map-card">
+        <div class="card-head"><h3>Global trainer coverage</h3><span class="tag tag-approved">10 trainers - hover a marker</span></div>
+        <div class="world-map" role="img" aria-label="World map showing trainer coverage by region">
+          <!-- Local open-source SVG world map, styled to match the supplied reference. -->
+          <img class="world-map-image" src="/world-map.svg" alt="" aria-hidden="true">
+          <span class="map-geography-label ocean" style="left:50%;top:11%;">ARCTIC OCEAN</span>
+          <span class="map-geography-label ocean" style="left:39%;top:43%;">ATLANTIC OCEAN</span>
+          <span class="map-geography-label ocean" style="left:67%;top:73%;">INDIAN OCEAN</span>
+          <span class="map-geography-label" style="left:17%;top:25%;">USA</span>
+          <span class="map-geography-label" style="left:45%;top:34%;">EUROPE</span>
+          <span class="map-geography-label" style="left:47%;top:65%;">AFRICA</span>
+          <span class="map-geography-label" style="left:68%;top:32%;">ASIA</span>
+          <span class="map-geography-label" style="left:84%;top:72%;">AUSTRALIA</span>
+          <button class="map-marker amer" data-region="AMER" onclick="selectRegionMap('AMER')" onmouseenter="showMapTooltip('AMER',this)" onmouseleave="hideMapTooltip()" aria-label="AMER, 3 trainers">AMER<strong>3</strong></button>
+          <button class="map-marker latam" data-region="LATAM" onclick="selectRegionMap('LATAM')" onmouseenter="showMapTooltip('LATAM',this)" onmouseleave="hideMapTooltip()" aria-label="LATAM, 1 trainer">LATAM<strong>1</strong></button>
+          <button class="map-marker emea" data-region="EMEA" onclick="selectRegionMap('EMEA')" onmouseenter="showMapTooltip('EMEA',this)" onmouseleave="hideMapTooltip()" aria-label="EMEA, 3 trainers">EMEA<strong>3</strong></button>
+          <button class="map-marker apac" data-region="APAC" onclick="selectRegionMap('APAC')" onmouseenter="showMapTooltip('APAC',this)" onmouseleave="hideMapTooltip()" aria-label="APAC, 3 trainers">APAC<strong>3</strong></button>
+          <div class="map-tooltip" id="mapTooltip" aria-live="polite"></div>
+          <div class="map-bottom">
+            <div class="map-caption">Marker color = region's dominant skillset</div>
+            <div class="map-legend"><span><i class="dot" style="background:#2563eb"></i>SAFe / Agile</span><span><i class="dot" style="background:#10b981"></i>DevOps / Technical</span><span><i class="dot" style="background:#f59e0b"></i>Leadership / Coaching</span><span><i class="dot" style="background:#7c3aed"></i>Scrum / Product</span></div>
+          </div>
+        </div>
+        <div class="global-summary-shell" id="globalTrainerSummaryReference"></div>
+      </div>
       <div class="map-wrap" id="regionMapGrid"></div>
       <div class="card">
         <div class="card-head"><h3 id="regionListTitle">All Regions — Trainers</h3></div>
@@ -599,7 +697,7 @@ button{font-family:inherit;cursor:pointer;}
 <!-- ================= REPOSITORY VIEW ================= -->
 <div class="view" id="view-repository">
   <div class="page-title">Content Repository</div>
-  <div class="page-sub">Governed source of truth for every course, organized by category with version and sync status.</div>
+  <div class="page-sub">Governed source of truth for every Cprime course, organized by audience, delivery model, version and sync status.</div>
 
   <div class="repo-summary" id="repoSummaryGrid"></div>
 
@@ -749,7 +847,7 @@ button{font-family:inherit;cursor:pointer;}
 <!-- ================= SYSTEM CONFIG VIEW ================= -->
 <div class="view" id="view-sysconfig">
   <div class="page-title">System Config</div>
-  <div class="page-sub">Roles, integrations, and platform environment settings admins need to keep TaaS running smoothly.</div>
+  <div class="page-sub">Roles, Salesforce-owned training data, connected work tools, and automation settings for Cprime delivery operations.</div>
 
   <div class="grid g2" style="margin-bottom:18px;">
     <div class="card">
@@ -769,6 +867,7 @@ button{font-family:inherit;cursor:pointer;}
     <div class="card-head"><h3>System Integrations</h3></div>
     <div id="integrationList"></div>
   </div>
+  <div class="card" style="margin-top:18px;"><div class="card-head"><h3>Automation showcase</h3><span class="tag tag-neutral">Prototype workflow</span></div><p style="font-size:12px;color:var(--artifact-muted);">Simulate a SharePoint course update. The platform alerts admins and trainers, lets the admin customize the Outlook message, and records the send event.</p><div id="automationSteps" style="margin-top:12px;font-size:12px;color:var(--artifact-muted-2);">1. Waiting for course update</div><button class="btn primary" style="margin-top:12px;" onclick="runAutomationDemo()">Simulate course update</button></div>
 </div>
 
 <style>
@@ -857,6 +956,19 @@ button{font-family:inherit;cursor:pointer;}
   </div>
 </div>
 
+<div class="modal-mask" id="addUserModal">
+  <div class="modal-box">
+    <div class="modal-head"><h3>Add platform user</h3><button class="modal-close" onclick="closeModal('addUserModal')">×</button></div>
+    <div class="modal-body">
+      <div class="form-row"><label>Full name</label><input type="text" placeholder="e.g. Taylor Morgan"></div>
+      <div class="form-row"><label>Work email</label><input type="email" placeholder="name@cprime.com"></div>
+      <div class="form-row"><label>Persona / role</label><select><option>Admin</option><option>Sales</option><option>Trainer</option><option>Learner</option><option>Executive</option></select></div>
+      <div class="form-row"><label>Source system</label><select><option>Salesforce</option><option>Manual invite</option></select></div>
+    </div>
+    <div class="modal-footer"><button class="btn" onclick="closeModal('addUserModal')">Cancel</button><button class="btn primary" onclick="saveDemo('addUserModal','User invited and Salesforce profile linked')">Invite user</button></div>
+  </div>
+</div>
+
 <div class="modal-mask" id="uploadDiffModal">
   <div class="modal-box">
     <div class="modal-head"><h3>Upload PDF Diff</h3><button class="modal-close" onclick="closeModal('uploadDiffModal')">✕</button></div>
@@ -933,7 +1045,7 @@ const REGIONS = [
 
 const CATEGORIES = [
  {name:"SAFe (Scaled Agile)",color:"accent",courses:[
-   {title:"SAFe DevOps Practitioner",version:"v6.2",lastSync:"2 hrs ago",files:18,status:"needs-review"},
+   {title:"SAFe DevOps Practitioner",version:"v6.2",lastSync:"2 hrs ago",files:18,status:"ok"},
    {title:"SAFe Practitioner",version:"v6.1",lastSync:"4 days ago",files:22,status:"ok"},
    {title:"SAFe Scrum Master",version:"v6.1",lastSync:"4 days ago",files:15,status:"ok"},
    {title:"SAFe Product Owner / PM",version:"v6.1",lastSync:"5 days ago",files:19,status:"ok"},
@@ -943,7 +1055,7 @@ const CATEGORIES = [
    {title:"SAFe Government",version:"v5.9",lastSync:"20 days ago",files:16,status:"ok"}
  ]},
  {name:"Scrum & Agile",color:"purple",courses:[
-   {title:"Scrum Master Certification",version:"v3.4",lastSync:"5 hrs ago",files:14,status:"needs-review"},
+   {title:"Scrum Master Certification",version:"v3.4",lastSync:"5 hrs ago",files:14,status:"ok"},
    {title:"Certified Scrum Master",version:"v3.3",lastSync:"3 days ago",files:11,status:"ok"},
    {title:"Advanced CSM",version:"v2.1",lastSync:"6 days ago",files:13,status:"ok"},
    {title:"Certified Product Owner",version:"v3.0",lastSync:"7 days ago",files:12,status:"ok"},
@@ -958,7 +1070,7 @@ const CATEGORIES = [
    {title:"Container Orchestration",version:"v1.6",lastSync:"11 days ago",files:17,status:"ok"}
  ]},
  {name:"Leadership & Management",color:"warning",courses:[
-   {title:"Leadership Fundamentals",version:"v2.3",lastSync:"1 day ago",files:12,status:"needs-review"},
+   {title:"Leadership Fundamentals",version:"v2.3",lastSync:"1 day ago",files:12,status:"ok"},
    {title:"Change Management",version:"v1.9",lastSync:"9 days ago",files:10,status:"ok"},
    {title:"Coaching for Managers",version:"v1.4",lastSync:"15 days ago",files:9,status:"ok"},
    {title:"Executive Agile Leadership",version:"v1.7",lastSync:"10 days ago",files:11,status:"ok"},
@@ -966,7 +1078,7 @@ const CATEGORIES = [
  ]},
  {name:"IC Agile",color:"success",courses:[
    {title:"ICAgile Certified Professional",version:"v3.1",lastSync:"2 days ago",files:13,status:"ok"},
-   {title:"ICP-ACC Agile Coaching",version:"v2.9",lastSync:"2 days ago",files:15,status:"needs-review"},
+   {title:"ICP-ACC Agile Coaching",version:"v2.9",lastSync:"2 days ago",files:15,status:"ok"},
    {title:"ICP-CAT Coaching Transitions",version:"v2.2",lastSync:"8 days ago",files:12,status:"ok"},
    {title:"ICP-APM Agile Project Mgmt",version:"v2.0",lastSync:"9 days ago",files:11,status:"ok"},
    {title:"ICP-BAF Business Agility",version:"v1.6",lastSync:"13 days ago",files:9,status:"ok"}
@@ -1164,7 +1276,7 @@ function renderDashboard(){
 <script>
 /* ================= RENDER: USER MANAGEMENT ================= */
 let currentRegionFilter = "all";
-let currentTrainerView = "list";
+let currentTrainerView = "map";
 let activeTrainerId = null;
 let activeCalDay = null;
 const bookedSlots = {}; // trainerId-day -> slot index taken
@@ -1214,6 +1326,7 @@ function filterTrainersByRegion(code){
   currentRegionFilter = code;
   document.querySelectorAll('#tnRegionChips .chip').forEach((c,i) => c.classList.toggle('active', (i===0&&code==='all')|| c.textContent.trim()===code));
   renderTrainerGrid();
+  renderRegionMap();
 }
 
 function renderTrainerGrid(){
@@ -1236,19 +1349,67 @@ function trainerCardHTML(t){
     </div>`;
 }
 
+const REGION_OPERATIONS = {
+  AMER:{sessions:4,courses:'SAFe DevOps, Leadership, Kanban',mix:[['SAFe/Agile',55,'#2563eb'],['DevOps/Technical',20,'#10b981'],['Leadership/Coaching',25,'#f59e0b']]},
+  EMEA:{sessions:3,courses:'GitLab CI/CD, Product Owner, DevOps',mix:[['DevOps/Technical',60,'#10b981'],['SAFe/Agile',25,'#2563eb'],['Leadership/Coaching',15,'#f59e0b']]},
+  APAC:{sessions:4,courses:'Scrum, SAFe DevOps, Facilitation',mix:[['Scrum/Product',50,'#7c3aed'],['SAFe/Agile',30,'#2563eb'],['DevOps/Technical',20,'#10b981']]},
+  LATAM:{sessions:1,courses:'ICAgile Coaching',mix:[['Leadership/Coaching',65,'#f59e0b'],['SAFe/Agile',20,'#2563eb'],['Scrum/Product',15,'#7c3aed']]}
+};
+
+function regionSummary(code){
+  const list = TRAINERS.filter(t=>t.region===code);
+  const available = list.filter(t=>['Jul 26','Jul 27','Jul 28','Jul 29','Jul 30','Jul 31','Aug 1','Aug 2'].includes(t.available)).length;
+  return {list,available,...REGION_OPERATIONS[code]};
+}
+
 function renderRegionMap(){
-  document.getElementById('regionMapGrid').innerHTML = REGIONS.map(r => {
-    const cnt = TRAINERS.filter(t=>t.region===r.code).length;
-    const avgUtil = Math.round(TRAINERS.filter(t=>t.region===r.code).reduce((a,t)=>a+t.util,0)/Math.max(cnt,1));
-    return `<div class="region-card ${currentRegionFilter===r.code?'active':''}" onclick="selectRegionMap('${r.code}')">
-      <div class="region-flag">${r.flag}</div><div class="region-name">${r.name}</div>
-      <div class="region-count">${cnt}</div><div class="region-sub">Avg. utilization ${avgUtil}%</div></div>`;
-  }).join('');
-  renderRegionTrainerList();
+  document.querySelectorAll('.map-marker').forEach(marker => marker.classList.toggle('active', currentRegionFilter===marker.dataset.region));
+  renderGlobalTrainerSummary();
 }
 function selectRegionMap(code){
   currentRegionFilter = currentRegionFilter===code ? 'all' : code;
+  document.querySelectorAll('#tnRegionChips .chip').forEach((chip,i) => chip.classList.toggle('active', (i===0&&currentRegionFilter==='all') || chip.textContent.trim()===currentRegionFilter));
+  renderTrainerGrid();
   renderRegionMap();
+}
+function showMapTooltip(code,marker){
+  const data = regionSummary(code);
+  const tooltip = document.getElementById('mapTooltip');
+  tooltip.innerHTML = `<div class="map-tooltip-title">${code} — ${data.list.length} trainer${data.list.length===1?'':'s'}</div>
+    <div class="skill-mix-bar">${data.mix.map(m=>`<span style="width:${m[1]}%;background:${m[2]}"></span>`).join('')}</div>
+    <div class="skill-mix-grid">${data.mix.map(m=>`<span>${m[0]}<b>${m[1]}%</b></span>`).join('')}</div>
+    <div class="map-tooltip-session">▣ ${data.sessions} booked session${data.sessions===1?'':'s'} this week</div>`;
+  tooltip.classList.add('show');
+  const desiredLeft = marker.offsetLeft + marker.offsetWidth/2 - tooltip.offsetWidth/2;
+  const left = Math.max(12,Math.min(marker.parentElement.clientWidth-tooltip.offsetWidth-12,desiredLeft));
+  const top = Math.max(12,marker.offsetTop-tooltip.offsetHeight-18);
+  tooltip.style.left = left+'px';
+  tooltip.style.top = top+'px';
+  tooltip.style.setProperty('--arrow-left',(marker.offsetLeft-left)+'px');
+}
+function hideMapTooltip(){
+  document.getElementById('mapTooltip').classList.remove('show');
+}
+function renderGlobalTrainerSummary(){
+  const summary = REGIONS.map(r => {
+    const list = TRAINERS.filter(t=>t.region===r.code);
+    const avgUtil = Math.round(list.reduce((a,t)=>a+t.util,0)/Math.max(list.length,1));
+    const {available,sessions,courses} = regionSummary(r.code);
+    const color = r.code==='AMER' ? '#2f5fef' : r.code==='APAC' ? '#7c5cf0' : r.code==='EMEA' ? '#10b981' : '#f59e0b';
+    return {...r,list,avgUtil,available,sessions,courses,color};
+  }).filter(r => currentRegionFilter==='all' || r.code===currentRegionFilter);
+  document.getElementById('globalTrainerSummaryReference').innerHTML = `<table class="global-ops-table">
+    <thead><tr><th>Region</th><th>Trainers</th><th>Availability</th><th>Booked sessions</th><th>Course coverage</th><th>Open actions</th></tr></thead>
+    <tbody>${summary.map(r => `
+      <tr onclick="selectRegionMap('${r.code}')">
+        <td><span class="region-pill" style="background:${r.color};">${r.code}</span></td>
+        <td><b>${r.list.length}</b><div class="table-meta">${r.list.map(t=>t.name).join(', ')}</div></td>
+        <td><b>${r.available} available this week</b><div class="availability-bar"><span style="width:${Math.min(100,Math.round((r.available/Math.max(r.list.length,1))*100))}%"></span></div><div class="table-meta">Avg utilization ${r.avgUtil}%</div></td>
+        <td><b>${r.sessions}</b><div class="table-meta">Public, private and reseller sessions</div></td>
+        <td>${r.courses}</td>
+        <td><b>${r.list.reduce((a,t)=>a+t.todos.length,0)}</b><div class="table-meta">content, profile and booking follow-ups</div></td>
+      </tr>`).join('')}</tbody>
+  </table>`;
 }
 function renderRegionTrainerList(){
   const list = currentRegionFilter==='all' ? TRAINERS : TRAINERS.filter(t=>t.region===currentRegionFilter);
@@ -1538,6 +1699,10 @@ function generateReport(type){ pendingReportType = type; document.getElementById
 function finishReport(){ closeModal('reportModal'); toast(pendingReportType+' report generated and ready to download (demo)'); }
 
 /* ================= RENDER: SYSTEM CONFIG ================= */
+function runAutomationDemo(){
+  const el=document.getElementById('automationSteps');
+  el.innerHTML='✓ SharePoint detected: SAFe DevOps Practitioner v6.2.1<br>✓ Admin + assigned trainers notified<br><label style="display:block;margin-top:8px;">Customize Outlook message<textarea id="demoMessage" style="width:100%;min-height:64px;margin-top:5px;padding:8px;border:1px solid var(--artifact-border);border-radius:8px;">Course update: SAFe DevOps Practitioner v6.2.1 is ready. Please review the updated learning outcomes before your next session.</textarea></label><button class="btn sm primary" style="margin-top:8px;" onclick="toast(\'Outlook email sent to 14 recipients · audit log updated\')">Send via Outlook</button>';
+}
 function renderSysConfig(){
   const perms = [
     {name:"View Dashboard",admin:1,sales:1,trainer:1,learner:1},
@@ -1551,18 +1716,26 @@ function renderSysConfig(){
   ];
   document.getElementById('permTableBody').innerHTML = perms.map(p => `
     <tr><td style="font-weight:600;">${p.name}</td>
-    ${[p.admin,p.sales,p.trainer,p.learner].map(v=>`<td>${v?`<span class="perm-check">${ICONS.check}</span>`:`<span class="perm-cross">${ICONS.cross}</span>`}</td>`).join('')}
+    ${[p.admin,p.sales,p.trainer,p.learner].map(v=>`<td><input type="checkbox" ${v?'checked':''} aria-label="permission" onchange="toast('Permission updated for this demo session')"></td>`).join('')}
     </tr>`).join('');
 
   const env = [
-    {l:"Data Source",v:"Production Postgres"},
-    {l:"Vector Store",v:"pgvector v0.7.1"},
+    {l:"System of record",v:"Salesforce Training Cloud"},
+    {l:"Content source",v:"SharePoint Cprime Academy"},
     {l:"API Version",v:"v2.4.1"},
     {l:"Environment",v:"Production"},
     {l:"Last Deployment",v:"Jul 21, 2026 · 6:42 PM"},
     {l:"Last Backup",v:"3 hrs ago · 3.2GB · No errors"}
   ];
-  document.getElementById('envList').innerHTML = env.map(e => `<div class="env-row"><span class="el">${e.l}</span><span class="ev">${e.v}</span></div>`).join('');
+  const configuredEnv = [
+    {l:"System of record",v:"Salesforce Training Cloud"},
+    {l:"Content source",v:"SharePoint Cprime Academy"},
+    {l:"Collaboration",v:"Microsoft Teams"},
+    {l:"Calendar and mail",v:"Outlook"},
+    {l:"Trainer delivery system",v:"Cprime Instructor Platform"},
+    {l:"Prototype mode",v:"Demo connectors with simulated sync events"}
+  ];
+  document.getElementById('envList').innerHTML = configuredEnv.map(e => `<div class="env-row"><span class="el">${e.l}</span><span class="ev">${e.v}</span></div>`).join('');
 
   const integrations = [
     {name:"Salesforce (CRM sync)",icon:"☁️",status:"success",statusText:"Connected",meta:"Synced 10 min ago · 0 errors"},
@@ -1572,7 +1745,17 @@ function renderSysConfig(){
     {name:"Vendor API — SAFe",icon:"🔗",status:"success",statusText:"Connected",meta:"Synced 2 hrs ago · 0 errors"},
     {name:"Vendor Webhook — GitLab",icon:"🔗",status:"success",statusText:"Connected",meta:"Synced 20 min ago · 0 errors"}
   ];
-  document.getElementById('integrationList').innerHTML = integrations.map(i => `
+  const configuredIntegrations = [
+    {name:"Salesforce Training Cloud",icon:"SF",status:"success",statusText:"Connected",meta:"Training catalog, learners, users, orders and bookings are the system of record"},
+    {name:"SharePoint Cprime Academy",icon:"SP",status:"success",statusText:"Connected",meta:"Course files, syllabi, decks and update detection for automation workflows"},
+    {name:"Microsoft Teams",icon:"TM",status:"success",statusText:"Connected",meta:"Trainer channels, class collaboration spaces and meeting links"},
+    {name:"Outlook Calendar + Mail",icon:"OL",status:"success",statusText:"Connected",meta:"Trainer availability, booking holds, notifications and admin mailers"},
+    {name:"Cprime Instructor Platform",icon:"IP",status:"success",statusText:"Connected",meta:"Instructor roster, delivery notes, past sessions and trainer documentation"},
+    {name:"Cprime Training API",icon:"API",status:"success",statusText:"Connected",meta:"Course catalog, session, booking and learner feedback endpoints for platform services"},
+    {name:"Course Update Webhooks",icon:"WH",status:"success",statusText:"Connected",meta:"SharePoint course changes trigger admin/trainer alerts and automation mailer drafts"},
+    {name:"Vendor Certification APIs",icon:"VA",status:"success",statusText:"Connected",meta:"SAFe, Scrum and DevOps provider metadata for approved course version checks"}
+  ];
+  document.getElementById('integrationList').innerHTML = configuredIntegrations.map(i => `
     <div class="integration-row"><div class="int-left"><div class="int-icon">${i.icon}</div>
       <div><div class="int-name">${i.name}</div><div class="int-meta">${i.meta}</div></div></div>
       <div style="display:flex;align-items:center;gap:10px;">

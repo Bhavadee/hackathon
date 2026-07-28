@@ -94,7 +94,7 @@ function PrototypeFrame({ src, title }: { src: string; title: string }) {
 
 function AdminPersona({ data }: { data: DashboardData }) {
   void data;
-  return <PrototypeFrame src="/personas/taas_admin_view.html" title="Admin console" />;
+  return <PrototypeFrame src="/personas/taas_admin_view.html?v=20260727-reference-global-map" title="Admin console" />;
 }
 
 function SalesPersona({ data }: { data: DashboardData }) {
@@ -249,6 +249,11 @@ function TrainerCourseCurator({ data }: { data: DashboardData }) {
     "Delivery mode: blended instructor-led class",
   ] : [];
   const pack = curatorResult?.pack;
+  const [trainerPrompt, setTrainerPrompt] = useState("Create a blended instructor-led course that helps product owners and platform leads apply SAFe DevOps practices using a realistic value stream and CI/CD lab.");
+  const [courseGoal, setCourseGoal] = useState("Learners can map a delivery value stream, identify bottlenecks, and plan one improvement experiment.");
+  const [draftDuration, setDraftDuration] = useState("2 hours");
+  const [draftSyllabus, setDraftSyllabus] = useState("1. Outcomes and learner baseline\n2. Value stream mapping walkthrough\n3. CI/CD improvement lab\n4. Team debrief and action plan\n5. Assessment and follow-up resources");
+  const [savedDraft, setSavedDraft] = useState(false);
 
   async function generateCuratorPack() {
     if (!selectedCourse) return;
@@ -263,7 +268,10 @@ function TrainerCourseCurator({ data }: { data: DashboardData }) {
           assignmentContext: "Northstar private cohort preparing for an applied delivery session",
           learnerProfile: "Product owners, platform leads, and delivery managers with mixed agile experience",
           deliveryMode: "Blended instructor-led",
-          classLength: "2 hours",
+          classLength: draftDuration,
+          trainerPrompt,
+          courseGoal,
+          syllabusDraft: draftSyllabus,
         }),
       });
       const payload = await response.json();
@@ -279,9 +287,41 @@ function TrainerCourseCurator({ data }: { data: DashboardData }) {
   return <div className="space-y-5">
     <SectionTitle
       eyebrow="AI course curator"
-      title="Generate the trainer delivery pack"
-      description="AI uses approved course metadata, learner context, delivery mode, content freshness, and assignment details to produce trainer notes and class structure."
+      title="Create a course from a trainer prompt"
+      description="Trainer enters the course idea, goal, draft syllabus, audience, and duration. AI turns that into a teachable course pack with timings, activities, materials, and trainer notes."
     />
+    <Card className="border-violet-100 bg-violet-50/60">
+      <div className="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
+        <div>
+          <p className="text-xs font-bold uppercase tracking-[.16em] text-violet-700">Prompt-based course creator</p>
+          <h2 className="mt-2 text-lg font-semibold text-slate-950">Tell the curator what you want to teach.</h2>
+          <p className="mt-1 text-sm leading-6 text-slate-600">The trainer prompt becomes the source for the generated syllabus, session flow, facilitator notes, exercises, and material checklist.</p>
+        </div>
+        <button onClick={() => setSavedDraft(true)} className="rounded-lg bg-violet-700 px-4 py-2.5 text-sm font-bold text-white">{savedDraft ? "Prompt saved" : "Save prompt"}</button>
+      </div>
+      <div className="mt-4 grid gap-3 lg:grid-cols-[1.25fr_.75fr]">
+        <label className="block">
+          <span className="text-xs font-bold uppercase tracking-wide text-violet-700">Trainer prompt</span>
+          <textarea value={trainerPrompt} onChange={(e) => setTrainerPrompt(e.target.value)} className="mt-2 h-32 w-full rounded-lg border border-violet-100 bg-white p-3 text-sm leading-6 outline-none focus:border-violet-500" placeholder="Example: Create a two-hour instructor-led course for product owners..." />
+        </label>
+        <div className="grid gap-3">
+          <label className="block">
+            <span className="text-xs font-bold uppercase tracking-wide text-violet-700">Course goal</span>
+            <textarea value={courseGoal} onChange={(e) => setCourseGoal(e.target.value)} className="mt-2 h-20 w-full rounded-lg border border-violet-100 bg-white p-3 text-sm leading-6 outline-none focus:border-violet-500" />
+          </label>
+          <label className="block">
+            <span className="text-xs font-bold uppercase tracking-wide text-violet-700">Duration</span>
+            <select value={draftDuration} onChange={(e) => setDraftDuration(e.target.value)} className="mt-2 w-full rounded-lg border border-violet-100 bg-white px-3 py-2.5 text-sm outline-none focus:border-violet-500">
+              <option>90 minutes</option><option>2 hours</option><option>Half day</option><option>1 day</option><option>2 days</option><option>3 days</option><option>Custom duration</option>
+            </select>
+          </label>
+        </div>
+        <label className="block lg:col-span-2">
+          <span className="text-xs font-bold uppercase tracking-wide text-violet-700">Draft syllabus or topics</span>
+          <textarea value={draftSyllabus} onChange={(e) => setDraftSyllabus(e.target.value)} className="mt-2 h-28 w-full rounded-lg border border-violet-100 bg-white p-3 text-sm leading-6 outline-none focus:border-violet-500" />
+        </label>
+      </div>
+    </Card>
     <Card className="border-blue-100 bg-blue-50/70">
       <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
         <label className="block min-w-0 flex-1">
@@ -290,7 +330,7 @@ function TrainerCourseCurator({ data }: { data: DashboardData }) {
             {data.courses.map((course) => <option key={course.id} value={course.id}>{course.title}</option>)}
           </select>
         </label>
-        <button onClick={generateCuratorPack} disabled={isCurating || !selectedCourse} className="rounded-lg bg-slate-950 px-4 py-3 text-sm font-bold text-white disabled:cursor-not-allowed disabled:bg-slate-400">{isCurating ? "Generating..." : pack ? "Regenerate AI pack" : "Generate AI curator pack"}</button>
+        <button onClick={generateCuratorPack} disabled={isCurating || !selectedCourse || !trainerPrompt.trim()} className="rounded-lg bg-slate-950 px-4 py-3 text-sm font-bold text-white disabled:cursor-not-allowed disabled:bg-slate-400">{isCurating ? "Generating..." : pack ? "Regenerate course pack" : "Generate course pack"}</button>
       </div>
       {selectedCourse && <p className="mt-3 text-sm leading-6 text-blue-900">Selected course: <b>{selectedCourse.title}</b>. Source v{selectedCourse.sourceVersion}, freshness {selectedCourse.freshness}%.</p>}
       {curatorResult && <div className="mt-3 rounded-lg border border-blue-100 bg-white p-3 text-xs font-semibold text-blue-900">Generated by {curatorResult.mode === "openai" ? "OpenAI" : "TaaS fallback AI"} using {curatorResult.model}. {curatorResult.notice}</div>}
@@ -368,7 +408,8 @@ function TrainerCourseCurator({ data }: { data: DashboardData }) {
 
 function TrainerContent({ data }: { data: DashboardData }) {
   const [downloaded, setDownloaded] = useState<string[]>([]);
-  return <Card>
+  const [logSaved, setLogSaved] = useState(false);
+  return <div className="space-y-5"><Card>
     <h2 className="font-semibold text-slate-950">Content Library</h2>
     <p className="mt-1 text-xs text-slate-500">Download the latest approved material for assigned sessions.</p>
     <div className="mt-5 space-y-3">
@@ -380,7 +421,11 @@ function TrainerContent({ data }: { data: DashboardData }) {
         </div>;
       })}
     </div>
-  </Card>;
+  </Card><Card>
+    <div className="flex items-center justify-between"><div><h2 className="font-semibold text-slate-950">Delivery documentation</h2><p className="mt-1 text-xs text-slate-500">Record past outcomes and prepare upcoming sessions for the shared Salesforce training record.</p></div><StatusPill tone={logSaved ? "green" : "amber"}>{logSaved ? "Saved" : "Draft"}</StatusPill></div>
+    <div className="mt-4 grid gap-3 md:grid-cols-2"><select className="rounded-lg border border-slate-200 bg-white px-3 py-2.5 text-sm"><option>Upcoming — Northstar SAFe DevOps cohort</option><option>Past — Acme Health private cohort</option></select><input className="rounded-lg border border-slate-200 bg-white px-3 py-2.5 text-sm" placeholder="Attendance, outcomes, risks or follow-ups" /></div>
+    <textarea className="mt-3 h-20 w-full rounded-lg border border-slate-200 bg-white p-3 text-sm" placeholder="Session notes and learner/user updates..." /><button onClick={() => setLogSaved(true)} className="mt-3 rounded-lg bg-slate-950 px-4 py-2.5 text-xs font-bold text-white">Save session record</button>
+  </Card></div>;
 }
 
 function LearnerPersona({ data }: { data: DashboardData }) {
@@ -409,7 +454,7 @@ export function DashboardTabs({ data }: { data: DashboardData }) {
     return personas.some((persona) => persona.id === hash) ? hash as PersonaId : "admin";
   });
 
-  function loginAs(persona: PersonaId) {
+  function loginAs(persona: PersonaId = "admin") {
     setActivePersona(persona);
     window.history.replaceState(null, "", `#${persona}`);
     setIsAuthenticated(true);
@@ -419,6 +464,13 @@ export function DashboardTabs({ data }: { data: DashboardData }) {
 
   return <main className="min-h-screen bg-[#f5f7fb] text-[#17233b]">
     <section className="mx-auto max-w-[1520px] px-4 py-4 md:px-6 md:py-6">
+      <div className="mb-3 flex items-center justify-end gap-2">
+        <label htmlFor="persona-switcher" className="text-[10px] font-bold uppercase tracking-[.14em] text-slate-400">Demo persona</label>
+        <select id="persona-switcher" value={activePersona} onChange={(event) => loginAs(event.target.value as PersonaId)} className="rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs font-bold text-slate-700 shadow-sm outline-none focus:border-blue-500">
+          {personas.map((persona) => <option key={persona.id} value={persona.id}>{persona.label}</option>)}
+        </select>
+        <span className="grid size-9 place-items-center rounded-full bg-slate-950 text-xs font-extrabold text-white" aria-label="Current user">JR</span>
+      </div>
       {activePersona === "admin" && <AdminPersona data={data} />}
       {activePersona === "sales" && <SalesPersona data={data} />}
       {activePersona === "trainer" && <TrainerPersona data={data} />}
@@ -428,8 +480,7 @@ export function DashboardTabs({ data }: { data: DashboardData }) {
   </main>;
 }
 
-function LoginScreen({ onLogin }: { onLogin: (persona: PersonaId) => void }) {
-  const [persona, setPersona] = useState<PersonaId>("admin");
+function LoginScreen({ onLogin }: { onLogin: () => void }) {
   return <main className="grid min-h-screen place-items-center bg-[#f5f7fb] px-4 py-10 text-[#17233b]">
     <section className="w-full max-w-md rounded-lg border border-slate-200 bg-white p-6 shadow-xl shadow-slate-200/70 md:p-8">
       <div className="mb-8 flex items-center gap-3">
@@ -443,16 +494,10 @@ function LoginScreen({ onLogin }: { onLogin: (persona: PersonaId) => void }) {
       <div className="mb-6">
         <p className="text-xs font-bold uppercase tracking-[.16em] text-blue-600">Login</p>
         <h1 className="mt-2 text-3xl font-semibold tracking-tight text-slate-950">Sign in to continue</h1>
-        <p className="mt-2 text-sm leading-6 text-slate-500">Use any email and password for this prototype.</p>
+        <p className="mt-2 text-sm leading-6 text-slate-500">Sign in with your Cprime credentials to continue.</p>
       </div>
 
-      <form onSubmit={(event) => { event.preventDefault(); onLogin(persona); }} className="space-y-4">
-        <label className="block">
-          <span className="text-xs font-bold uppercase tracking-wide text-slate-500">Role</span>
-          <select value={persona} onChange={(event) => setPersona(event.target.value as PersonaId)} className="mt-2 w-full rounded-lg border border-slate-200 bg-slate-50 px-4 py-3 text-sm font-semibold text-slate-950 outline-none transition focus:border-blue-500 focus:bg-white">
-            {personas.map((item) => <option key={item.id} value={item.id}>{item.label}</option>)}
-          </select>
-        </label>
+      <form onSubmit={(event) => { event.preventDefault(); onLogin(); }} className="space-y-4">
         <label className="block">
           <span className="text-xs font-bold uppercase tracking-wide text-slate-500">Email</span>
           <input type="email" required placeholder="you@company.com" className="mt-2 w-full rounded-lg border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-950 outline-none transition focus:border-blue-500 focus:bg-white" />
