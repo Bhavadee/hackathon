@@ -44,8 +44,6 @@ type CuratorResponse = {
 
 type PersonaId = "admin" | "sales" | "trainer" | "learner" | "executive";
 type TrainerView = "home" | "network" | "curator" | "content";
-type DashboardMode = "default" | "custom";
-
 const personas: { id: PersonaId; label: string; title: string; description: string; Icon: LucideIcon }[] = [
   { id: "admin", label: "Admin", title: "Governance and Operations Console", description: "Control content freshness, role access, catalog standards, and system integrations.", Icon: Settings2 },
   { id: "sales", label: "Sales", title: "Demand, Quoting, and Collections Portal", description: "Validate readiness, model margin, package offers, and track quote-to-cash.", Icon: Banknote },
@@ -116,31 +114,28 @@ function CustomDashboardBuilder({ persona }: { persona: Exclude<PersonaId, "trai
   </Card>;
 }
 
-function PersonaModeShell({ title, description, customLabel, customView, children }: { title: string; description: string; customLabel: string; customView: React.ReactNode; children: React.ReactNode }) {
-  const [mode, setMode] = useState<DashboardMode>("default");
-  return <div className="space-y-4">
-    <div className="flex items-center justify-between gap-3 rounded-lg border border-slate-200 bg-white px-4 py-3 shadow-sm">
-      <div>
-        <p className="text-xs font-bold uppercase tracking-[.16em] text-slate-500">{title}</p>
-        <h2 className="mt-1 text-base font-semibold text-slate-950">{description}</h2>
-      </div>
-      <div className="flex gap-2">
-        <button onClick={() => setMode("default")} className={`rounded-lg px-3 py-2 text-sm font-bold ${mode === "default" ? "bg-slate-950 text-white" : "border border-slate-200 bg-white text-slate-700"}`}>Default</button>
-        <button onClick={() => setMode("custom")} className={`rounded-lg px-3 py-2 text-sm font-bold ${mode === "custom" ? "bg-slate-950 text-white" : "border border-slate-200 bg-white text-slate-700"}`}>{customLabel}</button>
-      </div>
-    </div>
-    {mode === "default" ? children : customView}
-  </div>;
-}
-
 function AdminPersona({ data }: { data: DashboardData }) {
   void data;
-  return <PersonaModeShell title="Admin persona" description="Dashboard mode" customLabel="Custom" customView={<CustomDashboardBuilder persona="admin" />}><PrototypeFrame src="/personas/taas_admin_view.html?v=20260727-reference-global-map" title="Admin console" /></PersonaModeShell>;
+  const [mode, setMode] = useState<"default" | "custom">("default");
+  return <div className="space-y-4">
+    <div className="flex items-center justify-end gap-2">
+      <button onClick={() => setMode("default")} className={`rounded-lg px-3 py-2 text-sm font-bold ${mode === "default" ? "bg-slate-950 text-white" : "border border-slate-200 bg-white text-slate-700"}`}>Default</button>
+      <button onClick={() => setMode("custom")} className={`rounded-lg px-3 py-2 text-sm font-bold ${mode === "custom" ? "bg-slate-950 text-white" : "border border-slate-200 bg-white text-slate-700"}`}>Custom</button>
+    </div>
+    {mode === "default" ? <PrototypeFrame src="/personas/taas_admin_view.html?v=20260727-reference-global-map" title="Admin console" /> : <CustomDashboardBuilder persona="admin" />}
+  </div>;
 }
 
 function SalesPersona({ data }: { data: DashboardData }) {
   void data;
-  return <PersonaModeShell title="Sales persona" description="Dashboard mode" customLabel="Custom" customView={<CustomDashboardBuilder persona="sales" />}><PrototypeFrame src="/personas/taas_sales_view.html" title="Sales console" /></PersonaModeShell>;
+  const [mode, setMode] = useState<"default" | "custom">("default");
+  return <div className="space-y-4">
+    <div className="flex items-center justify-end gap-2">
+      <button onClick={() => setMode("default")} className={`rounded-lg px-3 py-2 text-sm font-bold ${mode === "default" ? "bg-slate-950 text-white" : "border border-slate-200 bg-white text-slate-700"}`}>Default</button>
+      <button onClick={() => setMode("custom")} className={`rounded-lg px-3 py-2 text-sm font-bold ${mode === "custom" ? "bg-slate-950 text-white" : "border border-slate-200 bg-white text-slate-700"}`}>Custom</button>
+    </div>
+    {mode === "default" ? <PrototypeFrame src="/personas/taas_sales_view.html" title="Sales console" /> : <CustomDashboardBuilder persona="sales" />}
+  </div>;
 }
 
 function TrainerAvailabilityCard({ className = "" }: { className?: string }) {
@@ -595,12 +590,21 @@ function TrainerContent({ data }: { data: DashboardData }) {
 
 function LearnerPersona({ data }: { data: DashboardData }) {
   void data;
-  return <PersonaModeShell title="Learner persona" description="Dashboard mode" customLabel="Custom" customView={<CustomDashboardBuilder persona="learner" />}><PrototypeFrame src="/personas/taas_learner_view.html" title="Learner console" /></PersonaModeShell>;
+  return <PrototypeFrame src="/personas/taas_learner_view.html" title="Learner console" />;
 }
 
 function ExecutivePersona({ data }: { data: DashboardData }) {
   void data;
-  return <PersonaModeShell title="Executive persona" description="Dashboard mode" customLabel="Custom" customView={<CustomDashboardBuilder persona="executive" />}><PrototypeFrame src="/personas/taas_executive_view.html" title="Executive console" /></PersonaModeShell>;
+  const [mode, setMode] = useState<"default" | "custom">("default");
+  return <div className="relative space-y-4">
+    <div className="absolute -top-2 right-0 z-10 flex items-center gap-2">
+      <button onClick={() => setMode("default")} className={`rounded-lg px-3 py-2 text-sm font-bold ${mode === "default" ? "bg-slate-950 text-white" : "border border-slate-200 bg-white text-slate-700"}`}>Default</button>
+      <button onClick={() => setMode("custom")} className={`rounded-lg px-3 py-2 text-sm font-bold ${mode === "custom" ? "bg-slate-950 text-white" : "border border-slate-200 bg-white text-slate-700"}`}>Custom</button>
+    </div>
+    <div className="pt-12">
+      {mode === "default" ? <PrototypeFrame src="/personas/taas_executive_view.html" title="Executive console" /> : <CustomDashboardBuilder persona="executive" />}
+    </div>
+  </div>;
 }
 
 function SectionTitle({ eyebrow, title, description }: { eyebrow: string; title: string; description: string }) {

@@ -602,8 +602,11 @@ button{font-family:inherit;cursor:pointer;}
   </div>
   <div class="topbar-right">
     <span class="badge-pill">Demo data</span>
-    <span class="badge-pill blue">Postgres + pgvector</span>
     <span class="badge-pill admin-tag" style="background:var(--artifact-teal-soft);color:var(--artifact-teal);">Executive session</span>
+    <div class="viewtoggle" style="margin-left:8px;">
+      <button class="active" type="button">Default</button>
+      <button type="button">Custom</button>
+    </div>
 
     <div class="dropdown-wrap" id="notifWrap">
       <button class="icon-btn" onclick="toggleDropdown('notifPanel')" aria-label="Notifications">
