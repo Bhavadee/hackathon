@@ -45,8 +45,8 @@ type CuratorResponse = {
 type PersonaId = "admin" | "sales" | "trainer" | "learner" | "executive";
 type TrainerView = "home" | "network" | "curator" | "content";
 const personas: { id: PersonaId; label: string; title: string; description: string; Icon: LucideIcon }[] = [
-  { id: "admin", label: "Admin", title: "Governance and Operations Console", description: "Control content freshness, role access, catalog standards, and system integrations.", Icon: Settings2 },
   { id: "sales", label: "Sales", title: "Demand, Quoting, and Collections Portal", description: "Validate readiness, model margin, package offers, and track quote-to-cash.", Icon: Banknote },
+  { id: "admin", label: "Admin", title: "Governance and Operations Console", description: "Control content freshness, role access, catalog standards, and system integrations.", Icon: Settings2 },
   { id: "trainer", label: "Trainer", title: "Assignment and Delivery Portal", description: "Manage availability, assignments, current content, and course creation workflows.", Icon: UserRoundCheck },
   { id: "learner", label: "Learner", title: "Discovery, Learning, and Copilot Portal", description: "Generate a learning path, continue modules, and ask grounded learning questions.", Icon: GraduationCap },
   { id: "executive", label: "Executive", title: "Analytics and Orchestration Dashboard", description: "Track demand, margin, operating health, and agent impact across TaaS.", Icon: Gauge },
@@ -122,7 +122,7 @@ function AdminPersona({ data }: { data: DashboardData }) {
       <button onClick={() => setMode("default")} className={`rounded-lg px-3 py-2 text-sm font-bold ${mode === "default" ? "bg-slate-950 text-white" : "border border-slate-200 bg-white text-slate-700"}`}>Default</button>
       <button onClick={() => setMode("custom")} className={`rounded-lg px-3 py-2 text-sm font-bold ${mode === "custom" ? "bg-slate-950 text-white" : "border border-slate-200 bg-white text-slate-700"}`}>Custom</button>
     </div>
-    {mode === "default" ? <PrototypeFrame src="/personas/taas_admin_view.html?v=20260727-reference-global-map" title="Admin console" /> : <CustomDashboardBuilder persona="admin" />}
+    {mode === "default" ? <PrototypeFrame src="/personas/taas_admin_view.html?v=20260729-topright-switch" title="Admin console" /> : <CustomDashboardBuilder persona="admin" />}
   </div>;
 }
 
@@ -134,7 +134,7 @@ function SalesPersona({ data }: { data: DashboardData }) {
       <button onClick={() => setMode("default")} className={`rounded-lg px-3 py-2 text-sm font-bold ${mode === "default" ? "bg-slate-950 text-white" : "border border-slate-200 bg-white text-slate-700"}`}>Default</button>
       <button onClick={() => setMode("custom")} className={`rounded-lg px-3 py-2 text-sm font-bold ${mode === "custom" ? "bg-slate-950 text-white" : "border border-slate-200 bg-white text-slate-700"}`}>Custom</button>
     </div>
-    {mode === "default" ? <PrototypeFrame src="/personas/taas_sales_view.html" title="Sales console" /> : <CustomDashboardBuilder persona="sales" />}
+    {mode === "default" ? <PrototypeFrame src="/personas/taas_sales_view.html?v=20260729-topright-switch" title="Sales console" /> : <CustomDashboardBuilder persona="sales" />}
   </div>;
 }
 
@@ -602,7 +602,7 @@ function ExecutivePersona({ data }: { data: DashboardData }) {
       <button onClick={() => setMode("custom")} className={`rounded-lg px-3 py-2 text-sm font-bold ${mode === "custom" ? "bg-slate-950 text-white" : "border border-slate-200 bg-white text-slate-700"}`}>Custom</button>
     </div>
     <div className="pt-12">
-      {mode === "default" ? <PrototypeFrame src="/personas/taas_executive_view.html" title="Executive console" /> : <CustomDashboardBuilder persona="executive" />}
+    {mode === "default" ? <PrototypeFrame src="/personas/taas_executive_view.html?v=20260729-topright-switch" title="Executive console" /> : <CustomDashboardBuilder persona="executive" />}
     </div>
   </div>;
 }
