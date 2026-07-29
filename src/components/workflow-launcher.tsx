@@ -1,12 +1,17 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useSyncExternalStore } from "react";
 import { useRouter } from "next/navigation";
 import {
   ArrowRight, BookOpen, Bot, Check, CheckCircle2, Clock3, FlaskConical,
   LoaderCircle, Sparkles, Target, Users,
 } from "lucide-react";
 import { COURSE_STORAGE_KEY } from "@/lib/learning";
+
+const MY_LEARNING_STORAGE_KEY = "cprime-my-learning-courses";
+const MY_LEARNING_STORAGE_EVENT = "cprime-my-learning-courses-updated";
+const ACTIVE_ROADMAP_STORAGE_KEY = "cprime-active-learning-roadmap";
+const ACTIVE_ROADMAP_STORAGE_EVENT = "cprime-active-learning-roadmap-updated";
 
 type Result = {
   id: string;
@@ -44,7 +49,101 @@ type Result = {
   };
 };
 
-function CourseRoadmap({ result }: { result: Result }) {
+type SavedLearningCourse = {
+  id: string;
+  savedAt: string;
+  course: Result["course"];
+  result?: Result;
+};
+
+let cachedSavedCoursesSnapshot = "";
+let cachedSavedCourses: SavedLearningCourse[] = [];
+const emptySavedCourses: SavedLearningCourse[] = [];
+let cachedActiveRoadmapSnapshot = "";
+let cachedActiveRoadmap: Result | null = null;
+
+function readSavedCourses(): SavedLearningCourse[] {
+  if (typeof window === "undefined") return [];
+  try {
+    const snapshot = localStorage.getItem(MY_LEARNING_STORAGE_KEY) ?? "[]";
+    if (snapshot === cachedSavedCoursesSnapshot) return cachedSavedCourses;
+    cachedSavedCoursesSnapshot = snapshot;
+    const parsed = JSON.parse(snapshot) as SavedLearningCourse[];
+    cachedSavedCourses = Array.isArray(parsed) ? parsed.filter((item) => item.course?.modules?.length) : [];
+    return cachedSavedCourses;
+  } catch {
+    return [];
+  }
+}
+
+function writeSavedCourses(courses: SavedLearningCourse[]) {
+  localStorage.setItem(MY_LEARNING_STORAGE_KEY, JSON.stringify(courses));
+  window.dispatchEvent(new Event(MY_LEARNING_STORAGE_EVENT));
+}
+
+function readActiveRoadmap(): Result | null {
+  if (typeof window === "undefined") return null;
+  try {
+    const snapshot = localStorage.getItem(ACTIVE_ROADMAP_STORAGE_KEY) ?? "";
+    if (snapshot === cachedActiveRoadmapSnapshot) return cachedActiveRoadmap;
+    cachedActiveRoadmapSnapshot = snapshot;
+    cachedActiveRoadmap = JSON.parse(snapshot || "null") as Result | null;
+    return cachedActiveRoadmap?.course?.modules?.length ? cachedActiveRoadmap : null;
+  } catch {
+    return null;
+  }
+}
+
+function writeActiveRoadmap(result: Result) {
+  localStorage.setItem(ACTIVE_ROADMAP_STORAGE_KEY, JSON.stringify(result));
+  localStorage.setItem(COURSE_STORAGE_KEY, JSON.stringify(result.course));
+  window.dispatchEvent(new Event(ACTIVE_ROADMAP_STORAGE_EVENT));
+}
+
+function subscribeToSavedCourses(onStoreChange: () => void) {
+  function handleStorage(event: StorageEvent) {
+    if (event.key === MY_LEARNING_STORAGE_KEY) onStoreChange();
+  }
+  window.addEventListener("storage", handleStorage);
+  window.addEventListener(MY_LEARNING_STORAGE_EVENT, onStoreChange);
+  return () => {
+    window.removeEventListener("storage", handleStorage);
+    window.removeEventListener(MY_LEARNING_STORAGE_EVENT, onStoreChange);
+  };
+}
+
+function subscribeToActiveRoadmap(onStoreChange: () => void) {
+  function handleStorage(event: StorageEvent) {
+    if (event.key === ACTIVE_ROADMAP_STORAGE_KEY) onStoreChange();
+  }
+  window.addEventListener("storage", handleStorage);
+  window.addEventListener(ACTIVE_ROADMAP_STORAGE_EVENT, onStoreChange);
+  return () => {
+    window.removeEventListener("storage", handleStorage);
+    window.removeEventListener(ACTIVE_ROADMAP_STORAGE_EVENT, onStoreChange);
+  };
+}
+
+function courseId(course: Result["course"]) {
+  return course.title.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "") || "generated-course";
+}
+
+function resultFromSavedCourse(item: SavedLearningCourse): Result {
+  return item.result ?? {
+    id: item.id,
+    mode: "taas",
+    model: "Saved My Learning course",
+    stages: [
+      { name: "Saved course", status: "complete", output: "Loaded from My Learning." },
+      { name: "Curriculum", status: "complete", output: `${item.course.modules.length} modules ready.` },
+      { name: "Learning path", status: "complete", output: "Roadmap restored from local storage." },
+      { name: "Ready", status: "complete", output: "Select a module to continue." },
+    ],
+    course: item.course,
+  };
+}
+
+function CourseRoadmap({ result, isSaved, onAddToMyLearning }: { result: Result; isSaved: boolean; onAddToMyLearning: () => void }) {
   const router = useRouter();
   const [selectedModule, setSelectedModule] = useState(0);
   const selected = result.course.modules[selectedModule];
@@ -55,7 +154,7 @@ function CourseRoadmap({ result }: { result: Result }) {
     router.push(`/learn/module/${index}`);
   }
 
-  return <div className="border-t border-slate-200 bg-[#f8f9fb] p-5 text-[#17233b] md:p-8 lg:p-10">
+  return <div id="generated-roadmap" className="border-t border-slate-200 bg-[#f8f9fb] p-5 text-[#17233b] md:p-8 lg:p-10">
     <div className="mx-auto max-w-6xl">
       <div className="flex flex-col justify-between gap-5 md:flex-row md:items-start">
         <div>
@@ -69,6 +168,9 @@ function CourseRoadmap({ result }: { result: Result }) {
         <div className="flex shrink-0 flex-wrap gap-2 text-xs font-semibold text-slate-600">
           <span className="flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3 py-2"><BookOpen size={14} />{result.course.format}</span>
           <span className="flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3 py-2"><Clock3 size={14} />{result.course.duration}</span>
+          <button onClick={onAddToMyLearning} className={`flex items-center gap-1.5 rounded-lg px-3 py-2 text-xs font-bold ${isSaved ? "bg-emerald-50 text-emerald-700" : "bg-[#17233b] text-white"}`}>
+            <CheckCircle2 size={14} />{isSaved ? "Added to My Learning" : "Add to My Learning"}
+          </button>
         </div>
       </div>
 
@@ -142,15 +244,91 @@ function CourseRoadmap({ result }: { result: Result }) {
   </div>;
 }
 
+function RoadmapLoadingState() {
+  return <section className="border-t border-slate-200 bg-[#f8f9fb] p-5 text-[#17233b] md:p-8 lg:p-10">
+    <div className="mx-auto max-w-6xl rounded-lg border border-blue-100 bg-white p-6 shadow-sm">
+      <div className="flex flex-col gap-5 md:flex-row md:items-center md:justify-between">
+        <div className="flex items-start gap-4">
+          <span className="grid size-12 shrink-0 place-items-center rounded-lg bg-blue-50 text-blue-700">
+            <LoaderCircle size={22} className="animate-spin" />
+          </span>
+          <div>
+            <p className="text-xs font-bold uppercase tracking-[.16em] text-blue-600">Generating new roadmap</p>
+            <h3 className="mt-1 text-xl font-semibold text-slate-950">Building course structure, modules, labs, and assessments.</h3>
+            <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-500">This view will update when the new roadmap is ready.</p>
+          </div>
+        </div>
+        <div className="grid w-full gap-2 md:w-64">
+          <div className="h-2 overflow-hidden rounded-full bg-slate-100">
+            <div className="h-full w-2/3 animate-pulse rounded-full bg-blue-500" />
+          </div>
+          <p className="text-xs font-semibold text-slate-400">Agent workflow running</p>
+        </div>
+      </div>
+    </div>
+  </section>;
+}
+
+function MyLearningCourses({ courses, onOpenRoadmap }: { courses: SavedLearningCourse[]; onOpenRoadmap: (item: SavedLearningCourse) => void }) {
+  return <section className="mt-5 rounded-lg border border-slate-200 bg-white p-5 shadow-sm md:p-6">
+    <div className="flex flex-col gap-2 md:flex-row md:items-end md:justify-between">
+      <div>
+        <p className="text-xs font-bold uppercase tracking-[.16em] text-blue-600">My Learning</p>
+        <h2 className="mt-1 text-xl font-semibold text-slate-950">Saved courses</h2>
+      </div>
+      <span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-bold text-slate-500">{courses.length} saved</span>
+    </div>
+    {courses.length ? <div className="mt-4 grid gap-3 md:grid-cols-2">
+      {courses.map((item) => (
+        <article key={item.id} className="rounded-lg border border-slate-200 bg-slate-50 p-4">
+          <div className="flex items-start justify-between gap-3">
+            <div>
+              <h3 className="text-sm font-bold text-slate-950">{item.course.title}</h3>
+              <p className="mt-1 line-clamp-2 text-xs leading-5 text-slate-500">{item.course.description}</p>
+            </div>
+            <span className="shrink-0 rounded-md bg-white px-2 py-1 text-[10px] font-bold text-slate-500">{item.course.modules.length} modules</span>
+          </div>
+          <div className="mt-4 flex flex-wrap items-center justify-between gap-3">
+            <span className="text-xs font-semibold text-slate-400">Saved {new Date(item.savedAt).toLocaleDateString()}</span>
+            <button onClick={() => onOpenRoadmap(item)} className="rounded-lg bg-blue-600 px-3 py-2 text-xs font-bold text-white">Start course</button>
+          </div>
+        </article>
+      ))}
+    </div> : <div className="mt-4 rounded-lg border border-dashed border-slate-200 bg-slate-50 p-5 text-sm leading-6 text-slate-500">
+      Generated courses you add will appear here.
+    </div>}
+  </section>;
+}
+
 export function WorkflowLauncher() {
   const [objective, setObjective] = useState("Run a SAFe DevOps course next month");
   const [loading, setLoading] = useState(false);
-  const [result, setResult] = useState<Result | null>(null);
+  const [generatedResult, setGeneratedResult] = useState<Result | null>(null);
   const [error, setError] = useState("");
+  const savedCourses = useSyncExternalStore(subscribeToSavedCourses, readSavedCourses, () => emptySavedCourses);
+  const activeRoadmap = useSyncExternalStore(subscribeToActiveRoadmap, readActiveRoadmap, () => null);
+  const result = generatedResult ?? activeRoadmap;
+  const generatedCourseId = result ? courseId(result.course) : "";
+  const isGeneratedCourseSaved = Boolean(generatedCourseId && savedCourses.some((item) => item.id === generatedCourseId));
+
+  function addToMyLearning() {
+    if (!result) return;
+    const id = courseId(result.course);
+    const nextCourse = { id, savedAt: new Date().toISOString(), course: result.course, result };
+    const otherCourses = readSavedCourses().filter((item) => item.id !== id);
+    writeSavedCourses([nextCourse, ...otherCourses].slice(0, 12));
+    writeActiveRoadmap(result);
+  }
+
+  function openSavedRoadmap(item: SavedLearningCourse) {
+    const roadmap = resultFromSavedCourse(item);
+    setGeneratedResult(roadmap);
+    writeActiveRoadmap(roadmap);
+    window.setTimeout(() => document.getElementById("generated-roadmap")?.scrollIntoView({ behavior: "smooth", block: "start" }), 0);
+  }
 
   async function run() {
     setLoading(true);
-    setResult(null);
     setError("");
     try {
       const response = await fetch("/api/orchestrate", {
@@ -160,7 +338,9 @@ export function WorkflowLauncher() {
       });
       const body = await response.json();
       if (!response.ok) throw new Error(body.error ?? "Course generation failed.");
-      setResult(body);
+      const generated = body as Result;
+      setGeneratedResult(generated);
+      writeActiveRoadmap(generated);
     } catch (requestError) {
       setError(requestError instanceof Error ? requestError.message : "Course generation failed.");
     } finally {
@@ -168,21 +348,57 @@ export function WorkflowLauncher() {
     }
   }
 
-  return <div>
-    <div className="grid lg:grid-cols-[1.05fr_.95fr]">
-      <div className="p-7 md:p-10 lg:p-11">
-        <span className="inline-flex items-center gap-2 rounded-full bg-white/10 px-3 py-1.5 text-xs font-semibold text-blue-100"><Bot size={14} /> AI training operations</span>
-        <h2 className="mt-6 max-w-xl text-3xl font-bold leading-tight md:text-4xl">From learning request to visual roadmap.</h2>
-        <p className="mt-4 max-w-xl text-sm leading-6 text-slate-300">Describe the outcome you need. The agent team will build a connected, step-by-step learning path that is ready for review.</p>
+  return <div className="bg-[#f5f7fb] text-[#17233b]">
+    <section className="rounded-lg border border-slate-200 bg-white shadow-sm">
+      <div className="grid gap-0 lg:grid-cols-[.9fr_1.1fr]">
+        <div className="border-b border-slate-200 p-5 md:p-6 lg:border-b-0 lg:border-r">
+          <div className="flex items-center gap-3">
+            <span className="grid size-10 place-items-center rounded-lg bg-blue-50 text-blue-700"><Bot size={18} /></span>
+            <div>
+              <p className="text-xs font-bold uppercase tracking-[.16em] text-blue-600">AI training operations</p>
+              <h2 className="mt-1 text-xl font-semibold text-slate-950">Build a learning roadmap</h2>
+            </div>
+          </div>
+          <p className="mt-4 text-sm leading-6 text-slate-600">
+            Enter a training need and the agent workflow creates a course outline, timeline, modules, labs, and assessment plan for review.
+          </p>
+          <div className="mt-5 grid gap-2">
+            {[
+              "Capture learning objective",
+              "Generate course structure",
+              "Create visual learner roadmap",
+            ].map((step, index) => (
+              <div key={step} className="flex items-center gap-3 rounded-lg border border-slate-200 bg-slate-50 px-3 py-2.5">
+                <span className="grid size-7 place-items-center rounded-full bg-slate-950 text-xs font-bold text-white">{index + 1}</span>
+                <span className="text-sm font-semibold text-slate-700">{step}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+        <div className="p-5 md:p-6">
+          <div className="mb-4 flex items-center justify-between gap-3">
+            <div className="flex items-center gap-2 text-sm font-bold text-slate-950"><Sparkles size={16} className="text-[#ff5b49]" />Course generator</div>
+            <span className="rounded-full bg-emerald-50 px-3 py-1 text-[10px] font-bold uppercase tracking-wide text-emerald-700">Ready</span>
+          </div>
+          <label className="block">
+            <span className="text-xs font-bold uppercase tracking-wide text-slate-500">Learning objective or topic</span>
+            <textarea
+              value={objective}
+              onChange={(event) => setObjective(event.target.value)}
+              className="mt-2 h-28 w-full resize-none rounded-lg border border-slate-200 bg-slate-50 p-3 text-sm leading-6 text-slate-950 outline-none transition placeholder:text-slate-400 focus:border-blue-500 focus:bg-white focus:ring-4 focus:ring-blue-50"
+              aria-label="Learning objective"
+              placeholder="e.g. DevOps for enterprise delivery teams"
+            />
+          </label>
+          <div className="mt-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <p className="text-xs leading-5 text-slate-500">The response is validated before the roadmap appears.</p>
+            <button onClick={run} disabled={loading || !objective.trim()} className="inline-flex min-h-11 items-center justify-center gap-2 rounded-lg bg-[#ff5b49] px-5 py-3 text-sm font-bold text-white shadow-sm transition hover:bg-[#e94d3d] disabled:cursor-not-allowed disabled:bg-slate-300">{loading ? <LoaderCircle size={16} className="animate-spin" /> : <ArrowRight size={16} />} {loading ? "Building roadmap..." : "Generate roadmap"}</button>
+          </div>
+          {error && <div className="mt-4 rounded-lg border border-red-100 bg-red-50 p-3 text-sm font-semibold text-red-700">{error}</div>}
+        </div>
       </div>
-      <div className="border-t border-white/10 bg-white/[.06] p-7 md:p-9 lg:border-l lg:border-t-0">
-        <div className="mb-3 flex items-center gap-2 text-sm font-semibold"><Sparkles size={16} className="text-[#ff8b7e]" />Launch an agent workflow</div>
-        <label className="text-[11px] font-semibold text-slate-300">Learning objective or topic</label>
-        <textarea value={objective} onChange={(event) => setObjective(event.target.value)} className="mt-1.5 h-20 w-full resize-none rounded-xl border border-white/10 bg-[#0e192d] p-3 text-sm text-white outline-none placeholder:text-slate-500 focus:border-blue-400" aria-label="Learning objective" placeholder="e.g. DevOps for enterprise delivery teams" />
-        <button onClick={run} disabled={loading || !objective.trim()} className="mt-4 flex w-full items-center justify-center gap-2 rounded-xl bg-[#ff5b49] px-4 py-3 text-sm font-bold shadow-lg shadow-red-950/30 transition hover:bg-[#ff6c5b] disabled:opacity-60">{loading ? <LoaderCircle size={16} className="animate-spin" /> : <ArrowRight size={16} />} {loading ? "Building your roadmap..." : "Generate roadmap"}</button>
-        {error && <div className="mt-3 rounded-xl border border-red-400/30 bg-red-500/10 p-3 text-xs leading-5 text-red-100">{error}</div>}
-      </div>
-    </div>
-    {result && <CourseRoadmap result={result} />}
+    </section>
+    <MyLearningCourses courses={savedCourses} onOpenRoadmap={openSavedRoadmap} />
+    {loading ? <RoadmapLoadingState /> : result && <CourseRoadmap result={result} isSaved={isGeneratedCourseSaved} onAddToMyLearning={addToMyLearning} />}
   </div>;
 }

@@ -670,7 +670,59 @@ function renderDashboard(){
 }
 </script>
 <script>
+function readGeneratedLearningCourses(){
+  try{
+    const saved = JSON.parse(localStorage.getItem('cprime-my-learning-courses') || '[]');
+    return Array.isArray(saved) ? saved.filter(item=>item && item.id && item.course && item.course.modules && item.course.modules.length) : [];
+  }catch(e){
+    return [];
+  }
+}
+function startGeneratedLearningCourse(id){
+  const match = readGeneratedLearningCourses().find(item=>item.id===id);
+  if(!match) {
+    showToast('Saved generated course was not found');
+    return;
+  }
+  localStorage.setItem('cprime-learning-course', JSON.stringify(match.course));
+  localStorage.setItem('cprime-active-learning-roadmap', JSON.stringify(match.result || {
+    id: match.id,
+    mode: 'taas',
+    model: 'Saved My Learning course',
+    stages: [
+      {name:'Saved course', status:'complete', output:'Loaded from My Learning.'},
+      {name:'Curriculum', status:'complete', output:(match.course.modules || []).length + ' modules ready.'},
+      {name:'Learning path', status:'complete', output:'Roadmap restored from local storage.'},
+      {name:'Ready', status:'complete', output:'Select a module to continue.'}
+    ],
+    course: match.course
+  }));
+  showToast('Opening generated roadmap...');
+  window.location.href = '/learner-generator#generated-roadmap';
+}
+function deleteGeneratedLearningCourse(id){
+  const remaining = readGeneratedLearningCourses().filter(item=>item.id!==id);
+  localStorage.setItem('cprime-my-learning-courses', JSON.stringify(remaining));
+  showToast('Generated course removed from My Learning');
+  renderMyLearning();
+}
 function renderMyLearning(){
+  const generatedCourses = readGeneratedLearningCourses();
+  const generatedInProgress = generatedCourses.map(item=>`
+    <div class="list-row">
+      <div class="ic" style="background:var(--accent-dim);color:var(--accent);">✨</div>
+      <div style="flex:1;">
+        <div style="font-weight:700;font-size:13px;">${item.course.title}</div>
+        <div style="font-size:11px;color:var(--text-dim);margin:2px 0 6px;">${item.course.modules.length} modules · <span class="tag tag-blue">AI generated</span> · Saved ${new Date(item.savedAt).toLocaleDateString()}</div>
+        <div class="progress-track"><div class="progress-fill" style="width:0%;"></div></div>
+      </div>
+      <div style="font-weight:700;font-size:13px;width:40px;text-align:right;">0%</div>
+      <div style="display:flex;gap:6px;">
+        <button class="btn btn-primary btn-sm" onclick="startGeneratedLearningCourse('${item.id}')">Resume</button>
+        <button class="btn btn-ghost btn-sm" onclick="deleteGeneratedLearningCourse('${item.id}')">Delete</button>
+      </div>
+    </div>`).join('');
+
   const inProg = DATA.myLearning.inProgress.map(c=>`
     <div class="list-row">
       <div class="ic" style="background:var(--accent-dim);color:var(--accent);">📘</div>
@@ -698,7 +750,7 @@ function renderMyLearning(){
 
   document.getElementById('mylearning-content').innerHTML = `
     <div class="grid grid-2" style="align-items:start;">
-      <div class="card"><div class="card-title">In Progress (3)</div>${inProg}</div>
+      <div class="card"><div class="card-title">In Progress (${DATA.myLearning.inProgress.length + generatedCourses.length})</div>${generatedInProgress}${inProg}</div>
       <div>
         <div class="card" style="margin-bottom:16px;"><div class="card-title">Completed (2)</div>${completed}</div>
         <div class="card"><div class="card-title">Saved for Later (2)</div>${saved}</div>

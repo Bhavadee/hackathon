@@ -24,7 +24,7 @@ function LearningHeader({ course, progress }: { course: LearningCourse; progress
   return <>
     <header className="sticky top-0 z-30 border-b border-slate-200 bg-white/95 backdrop-blur">
       <div className="mx-auto flex h-16 max-w-[1440px] items-center gap-4 px-4 md:px-8">
-        <Link href="/#course-generator" className="flex items-center gap-2 font-bold text-[#17233b]"><span className="grid size-9 place-items-center rounded-xl bg-[#ff5b49] text-white"><GraduationCap size={19} /></span><span className="hidden sm:inline">Cprime Learning</span></Link>
+        <Link href="/learner-generator" className="flex items-center gap-2 font-bold text-[#17233b]"><span className="grid size-9 place-items-center rounded-xl bg-[#ff5b49] text-white"><GraduationCap size={19} /></span><span className="hidden sm:inline">Cprime Learning</span></Link>
         <div className="h-6 w-px bg-slate-200" />
         <p className="min-w-0 flex-1 truncate text-sm font-semibold text-slate-600">{course.title}</p>
         <div className="hidden items-center gap-3 sm:flex"><span className="text-xs font-semibold text-slate-500">Course progress</span><div className="h-2 w-28 overflow-hidden rounded-full bg-slate-100"><div className="h-full rounded-full bg-emerald-500 transition-all" style={{ width: `${progress}%` }} /></div><span className="text-xs font-bold">{progress}%</span></div>
@@ -35,7 +35,7 @@ function LearningHeader({ course, progress }: { course: LearningCourse; progress
 }
 
 function MissingCourse() {
-  return <main className="grid min-h-screen place-items-center bg-[#f5f7fb] p-6"><div className="max-w-md rounded-3xl border border-slate-200 bg-white p-8 text-center shadow-sm"><BookOpen className="mx-auto text-blue-600" size={36} /><h1 className="mt-5 text-xl font-bold">Open a module from your roadmap</h1><p className="mt-2 text-sm leading-6 text-slate-500">This learning page is connected to the course you generate. Return to the roadmap and select any module to begin.</p><Link href="/#course-generator" className="mt-6 inline-flex items-center gap-2 rounded-xl bg-[#17233b] px-5 py-3 text-sm font-bold text-white"><ArrowLeft size={16} />Return to roadmap</Link></div></main>;
+  return <main className="grid min-h-screen place-items-center bg-[#f5f7fb] p-6"><div className="max-w-md rounded-3xl border border-slate-200 bg-white p-8 text-center shadow-sm"><BookOpen className="mx-auto text-blue-600" size={36} /><h1 className="mt-5 text-xl font-bold">Generate a roadmap first</h1><p className="mt-2 text-sm leading-6 text-slate-500">This learning page needs a generated course. Go back to the course generator and create a new roadmap.</p><Link href="/learner-generator" className="mt-6 inline-flex items-center gap-2 rounded-xl bg-[#17233b] px-5 py-3 text-sm font-bold text-white"><ArrowLeft size={16} />Open course generator</Link></div></main>;
 }
 
 function ProgressBadge({ done }: { done: boolean }) {
@@ -48,7 +48,7 @@ function ModuleView({ course, moduleId, progress }: { course: LearningCourse; mo
   const percent = Math.round((completed / currentModule.lessons.length) * 100);
   const active = Math.min(completed, currentModule.lessons.length - 1);
   return <div className="mx-auto max-w-6xl px-4 py-8 md:px-8 md:py-12">
-    <Link href="/#course-generator" className="inline-flex items-center gap-2 text-sm font-semibold text-slate-500 hover:text-blue-700"><ChevronLeft size={17} />Back to learning roadmap</Link>
+    <Link href="/learner-generator" className="inline-flex items-center gap-2 text-sm font-semibold text-slate-500 hover:text-blue-700"><ChevronLeft size={17} />Back to learning roadmap</Link>
     <section className="mt-7 overflow-hidden rounded-3xl bg-gradient-to-br from-[#17233b] via-[#1d3153] to-[#294a7a] text-white shadow-xl shadow-slate-300/50">
       <div className="grid gap-8 p-7 md:p-10 lg:grid-cols-[1fr_330px]">
         <div><span className="text-xs font-bold uppercase tracking-[.18em] text-blue-200">Module {moduleId + 1} of {course.modules.length}</span><h1 className="mt-3 max-w-3xl text-3xl font-bold leading-tight md:text-4xl">{currentModule.title}</h1><p className="mt-4 max-w-3xl text-sm leading-7 text-slate-300">{currentModule.description}</p><div className="mt-6 flex flex-wrap gap-4 text-xs font-semibold text-slate-200"><span className="flex items-center gap-2"><Clock3 size={16} />{moduleMinutes(currentModule)} minutes</span><span className="flex items-center gap-2"><BookOpen size={16} />{currentModule.lessons.length} lessons</span><span className="flex items-center gap-2"><CheckCircle2 size={16} />{completed} completed</span></div></div>
