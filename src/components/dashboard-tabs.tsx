@@ -77,65 +77,14 @@ function PrototypeFrame({ src, title }: { src: string; title: string }) {
   </section>;
 }
 
-function CustomDashboardBuilder({ persona }: { persona: Exclude<PersonaId, "trainer"> }) {
-  return <Card className="space-y-4">
-    <div>
-      <p className="text-xs font-bold uppercase tracking-[.16em] text-slate-500">Custom dashboard</p>
-      <h3 className="mt-1 text-lg font-semibold text-slate-950">Build a role-specific view for {persona}.</h3>
-      <p className="mt-1 text-sm leading-6 text-slate-500">Use this as the default dashboard alternative when the persona needs a focused operating view instead of the prototype shell.</p>
-    </div>
-    <div className="grid gap-3 md:grid-cols-2">
-      {[
-        "KPI tiles",
-        "Work queue",
-        "Calendar or schedule",
-        "Revenue or demand chart",
-        "Approval stream",
-        "Library or content panel",
-      ].map((item) => (
-        <div key={item} className="rounded-lg border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm font-semibold text-slate-700">{item}</div>
-      ))}
-    </div>
-    <div className="grid gap-3 md:grid-cols-3">
-      <label className="block text-sm">
-        <span className="text-xs font-bold uppercase tracking-wide text-slate-500">Primary focus</span>
-        <input className="mt-2 w-full rounded-lg border border-slate-200 bg-white px-3 py-2.5" placeholder="Operations, revenue, learning, or delivery" />
-      </label>
-      <label className="block text-sm">
-        <span className="text-xs font-bold uppercase tracking-wide text-slate-500">Metric source</span>
-        <input className="mt-2 w-full rounded-lg border border-slate-200 bg-white px-3 py-2.5" placeholder="Dashboards, pipeline, sessions, or content" />
-      </label>
-      <label className="block text-sm">
-        <span className="text-xs font-bold uppercase tracking-wide text-slate-500">Refresh cadence</span>
-        <input className="mt-2 w-full rounded-lg border border-slate-200 bg-white px-3 py-2.5" placeholder="Hourly, daily, or weekly" />
-      </label>
-    </div>
-    <button className="rounded-lg bg-slate-950 px-4 py-2.5 text-sm font-bold text-white">Save custom dashboard</button>
-  </Card>;
-}
-
 function AdminPersona({ data }: { data: DashboardData }) {
   void data;
-  const [mode, setMode] = useState<"default" | "custom">("default");
-  return <div className="space-y-4">
-    <div className="flex items-center justify-end gap-2">
-      <button onClick={() => setMode("default")} className={`rounded-lg px-3 py-2 text-sm font-bold ${mode === "default" ? "bg-slate-950 text-white" : "border border-slate-200 bg-white text-slate-700"}`}>Default</button>
-      <button onClick={() => setMode("custom")} className={`rounded-lg px-3 py-2 text-sm font-bold ${mode === "custom" ? "bg-slate-950 text-white" : "border border-slate-200 bg-white text-slate-700"}`}>Custom</button>
-    </div>
-    {mode === "default" ? <PrototypeFrame src="/personas/taas_admin_view.html?v=20260729-topright-switch" title="Admin console" /> : <CustomDashboardBuilder persona="admin" />}
-  </div>;
+  return <PrototypeFrame src="/personas/taas_admin_view.html?v=20260729-topright-switch" title="Admin console" />;
 }
 
 function SalesPersona({ data }: { data: DashboardData }) {
   void data;
-  const [mode, setMode] = useState<"default" | "custom">("default");
-  return <div className="space-y-4">
-    <div className="flex items-center justify-end gap-2">
-      <button onClick={() => setMode("default")} className={`rounded-lg px-3 py-2 text-sm font-bold ${mode === "default" ? "bg-slate-950 text-white" : "border border-slate-200 bg-white text-slate-700"}`}>Default</button>
-      <button onClick={() => setMode("custom")} className={`rounded-lg px-3 py-2 text-sm font-bold ${mode === "custom" ? "bg-slate-950 text-white" : "border border-slate-200 bg-white text-slate-700"}`}>Custom</button>
-    </div>
-    {mode === "default" ? <PrototypeFrame src="/personas/taas_sales_view.html?v=20260729-topright-switch" title="Sales console" /> : <CustomDashboardBuilder persona="sales" />}
-  </div>;
+  return <PrototypeFrame src="/personas/taas_sales_view.html?v=20260729-topright-switch" title="Sales console" />;
 }
 
 function TrainerAvailabilityCard({ className = "" }: { className?: string }) {
@@ -595,16 +544,7 @@ function LearnerPersona({ data }: { data: DashboardData }) {
 
 function ExecutivePersona({ data }: { data: DashboardData }) {
   void data;
-  const [mode, setMode] = useState<"default" | "custom">("default");
-  return <div className="relative space-y-4">
-    <div className="absolute -top-2 right-0 z-10 flex items-center gap-2">
-      <button onClick={() => setMode("default")} className={`rounded-lg px-3 py-2 text-sm font-bold ${mode === "default" ? "bg-slate-950 text-white" : "border border-slate-200 bg-white text-slate-700"}`}>Default</button>
-      <button onClick={() => setMode("custom")} className={`rounded-lg px-3 py-2 text-sm font-bold ${mode === "custom" ? "bg-slate-950 text-white" : "border border-slate-200 bg-white text-slate-700"}`}>Custom</button>
-    </div>
-    <div className="pt-12">
-    {mode === "default" ? <PrototypeFrame src="/personas/taas_executive_view.html?v=20260729-topright-switch" title="Executive console" /> : <CustomDashboardBuilder persona="executive" />}
-    </div>
-  </div>;
+  return <PrototypeFrame src="/personas/taas_executive_view.html?v=20260729-topright-switch" title="Executive console" />;
 }
 
 function SectionTitle({ eyebrow, title, description }: { eyebrow: string; title: string; description: string }) {

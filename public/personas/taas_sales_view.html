@@ -66,6 +66,11 @@ button{font-family:inherit;cursor:pointer;}
 .brand-text .name{font-size:14.5px;font-weight:700;letter-spacing:-.01em;line-height:1.2;}
 .brand-text .sub{font-size:10px;letter-spacing:.08em;color:var(--artifact-muted-2);font-weight:600;}
 .topbar-right{display:flex;align-items:center;gap:10px;}
+.topbar-stack{display:flex;flex-direction:column;align-items:flex-end;gap:8px;}
+.dashboard-view-switch{display:flex;gap:6px;background:var(--artifact-surface-2);border:1px solid var(--artifact-border);border-radius:10px;padding:3px;}
+.dashboard-view-switch button{padding:6px 13px;font-size:12px;font-weight:700;border-radius:7px;border:none;background:none;color:var(--artifact-muted);display:flex;align-items:center;gap:6px;}
+.dashboard-view-switch button.active{background:var(--artifact-surface);color:var(--artifact-accent);box-shadow:var(--artifact-shadow);}
+.dashboard-view-switch svg{width:14px;height:14px;}
 .badge-pill{font-size:11.5px;font-weight:600;padding:5px 10px;border-radius:999px;background:var(--artifact-warning-soft);color:var(--artifact-warning);border:1px solid transparent;}
 .badge-pill.blue{background:var(--artifact-accent-soft);color:var(--artifact-accent);}
 .badge-pill.admin-tag{background:var(--artifact-purple-soft);color:var(--artifact-purple);}
@@ -243,7 +248,12 @@ table.data-table tr:last-child td{border-bottom:none;}
       <div class="sub">SALES CONSOLE</div>
     </div>
   </div>
-  <div class="topbar-right">
+  <div class="topbar-right topbar-stack">
+    <div class="dashboard-view-switch" data-dashboard-switch="sales">
+      <button class="active" type="button" onclick="setDashboardMode('sales','default')">Default</button>
+      <button type="button" onclick="setDashboardMode('sales','custom')">Custom</button>
+    </div>
+    <div style="display:flex;align-items:center;gap:10px;">
     <span class="badge-pill">Demo data</span>
     <span class="badge-pill blue">Demo data</span>
     <span class="badge-pill admin-tag">Sales session</span>
@@ -295,6 +305,7 @@ table.data-table tr:last-child td{border-bottom:none;}
         </a>
       </div>
     </div>
+    </div>
   </div>
 </div>
 
@@ -333,11 +344,6 @@ table.data-table tr:last-child td{border-bottom:none;}
   </div>
 
   <div class="main">
-    <div class="viewtoggle" style="margin:0 0 14px auto;">
-      <button class="active" type="button">Default</button>
-      <button type="button">Custom</button>
-    </div>
-
 <style>
 .sparkline-card{display:flex;flex-direction:column;gap:8px;}
 .donut-legend{display:flex;flex-direction:column;gap:8px;flex:1;}
@@ -364,7 +370,20 @@ table.data-table tr:last-child td{border-bottom:none;}
 <div class="view active" id="view-dashboard">
   <div class="page-title">Good morning, Taylor</div>
   <div class="page-sub">Here's what's happening across your pipeline and courses today, July 23 2026.</div>
-
+  <div class="view" id="sales-custom-dashboard" style="display:none;">
+    <div class="eyebrow">CUSTOM SALES DASHBOARD</div>
+    <div class="grid g4" style="margin-bottom:18px;">
+      <div class="card kpi"><div class="kpi-top"><span class="kpi-ico">$</span><span class="kpi-delta up">▲ 12%</span></div><div class="kpi-val">$38,038</div><div class="kpi-label">Pipeline value</div></div>
+      <div class="card kpi"><div class="kpi-top"><span class="kpi-ico">Q</span><span class="kpi-delta up">▲ 6%</span></div><div class="kpi-val">14</div><div class="kpi-label">Quotes sent</div></div>
+      <div class="card kpi"><div class="kpi-top"><span class="kpi-ico">M</span><span class="kpi-delta up">▲ 4 pts</span></div><div class="kpi-val">58%</div><div class="kpi-label">Average deal margin</div></div>
+      <div class="card kpi"><div class="kpi-top"><span class="kpi-ico">C</span><span class="kpi-delta up">▲ 3</span></div><div class="kpi-val">9</div><div class="kpi-label">Courses ready to sell</div></div>
+    </div>
+    <div class="grid g211" style="margin-bottom:18px;">
+      <div class="card"><div class="card-head"><h3>Sales focus</h3></div><div class="mini-list"><div class="mini-row"><span>Open opportunities</span><strong>3</strong></div><div class="mini-row"><span>Discount approval queue</span><strong>4</strong></div><div class="mini-row"><span>Renewals due</span><strong>7</strong></div><div class="mini-row"><span>Quote aging</span><strong>2.1 days</strong></div></div></div>
+      <div class="card"><div class="card-head"><h3>Client health</h3></div><div class="mini-list"><div class="mini-row"><span>Strategic accounts</span><strong>92%</strong></div><div class="mini-row"><span>At-risk deals</span><strong>2</strong></div><div class="mini-row"><span>Upsell opportunities</span><strong>11</strong></div><div class="mini-row"><span>Collections risk</span><strong>Low</strong></div></div></div>
+      <div class="card"><div class="card-head"><h3>Action queue</h3></div><div class="mini-list"><div class="mini-row"><span>Review discounts</span><strong>6</strong></div><div class="mini-row"><span>Generate quotes</span><strong>8</strong></div><div class="mini-row"><span>Follow up invoices</span><strong>2</strong></div><div class="mini-row"><span>Update course pricing</span><strong>5</strong></div></div></div>
+    </div>
+  </div>
   <div class="grid g6" id="kpiRow" style="margin-bottom:16px;"></div>
 
   <div class="grid g-31" style="margin-bottom:16px;">
@@ -1101,6 +1120,13 @@ function showView(view){
   document.querySelectorAll('.side-item').forEach(s => s.classList.toggle('active', s.dataset.view===view));
   closeAllDropdowns();
   window.scrollTo({top:0,behavior:'smooth'});
+}
+function setDashboardMode(mode){
+  const custom = document.getElementById('sales-custom-dashboard');
+  if (!custom) return;
+  const buttons = document.querySelectorAll('[data-dashboard-switch="sales"] button');
+  buttons.forEach((button) => button.classList.toggle('active', button.textContent === (mode === 'custom' ? 'Custom' : 'Default')));
+  custom.style.display = mode === 'custom' ? 'block' : 'none';
 }
 
 /* ================= DROPDOWNS ================= */

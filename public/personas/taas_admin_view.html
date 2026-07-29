@@ -66,6 +66,11 @@ button{font-family:inherit;cursor:pointer;}
 .brand-text .name{font-size:14.5px;font-weight:700;letter-spacing:-.01em;line-height:1.2;}
 .brand-text .sub{font-size:10px;letter-spacing:.08em;color:var(--artifact-muted-2);font-weight:600;}
 .topbar-right{display:flex;align-items:center;gap:10px;}
+.topbar-stack{display:flex;flex-direction:column;align-items:flex-end;gap:8px;}
+.dashboard-view-switch{display:flex;gap:6px;background:var(--artifact-surface-2);border:1px solid var(--artifact-border);border-radius:10px;padding:3px;}
+.dashboard-view-switch button{padding:6px 13px;font-size:12px;font-weight:700;border-radius:7px;border:none;background:none;color:var(--artifact-muted);display:flex;align-items:center;gap:6px;}
+.dashboard-view-switch button.active{background:var(--artifact-surface);color:var(--artifact-accent);box-shadow:var(--artifact-shadow);}
+.dashboard-view-switch svg{width:14px;height:14px;}
 .badge-pill{font-size:11.5px;font-weight:600;padding:5px 10px;border-radius:999px;background:var(--artifact-warning-soft);color:var(--artifact-warning);border:1px solid transparent;}
 .badge-pill.blue{background:var(--artifact-accent-soft);color:var(--artifact-accent);}
 .badge-pill.admin-tag{background:var(--artifact-purple-soft);color:var(--artifact-purple);}
@@ -202,7 +207,12 @@ button{font-family:inherit;cursor:pointer;}
       <div class="sub">ADMIN CONSOLE</div>
     </div>
   </div>
-  <div class="topbar-right">
+  <div class="topbar-right topbar-stack">
+    <div class="dashboard-view-switch" data-dashboard-switch="admin">
+      <button class="active" type="button" onclick="setDashboardMode('admin','default')">Default</button>
+      <button type="button" onclick="setDashboardMode('admin','custom')">Custom</button>
+    </div>
+    <div style="display:flex;align-items:center;gap:10px;">
     <span class="badge-pill">Demo data</span>
     <span class="badge-pill admin-tag">Admin session</span>
 
@@ -253,6 +263,7 @@ button{font-family:inherit;cursor:pointer;}
         </a>
       </div>
     </div>
+    </div>
   </div>
 </div>
 
@@ -287,11 +298,6 @@ button{font-family:inherit;cursor:pointer;}
   </div>
 
   <div class="main">
-    <div class="viewtoggle" style="margin:0 0 14px auto;">
-      <button class="active" type="button">Default</button>
-      <button type="button">Custom</button>
-    </div>
-
 <style>
 /* Dashboard specific */
 .sparkline-card{display:flex;flex-direction:column;gap:8px;}
@@ -329,7 +335,20 @@ button{font-family:inherit;cursor:pointer;}
 <div class="view active" id="view-dashboard">
   <div class="page-title">Good morning, Jordan</div>
   <div class="page-sub">Here's what's happening across the TaaS platform today, July 23 2026.</div>
-
+  <div class="view" id="admin-custom-dashboard" style="display:none;">
+    <div class="eyebrow">CUSTOM ADMIN DASHBOARD</div>
+    <div class="grid g4" style="margin-bottom:18px;">
+      <div class="card kpi"><div class="kpi-top"><span class="kpi-ico">T</span><span class="kpi-delta up">▲ 8%</span></div><div class="kpi-val">10</div><div class="kpi-label">Trainers active</div></div>
+      <div class="card kpi"><div class="kpi-top"><span class="kpi-ico">C</span><span class="kpi-delta up">▲ 11%</span></div><div class="kpi-val">34</div><div class="kpi-label">Courses current</div></div>
+      <div class="card kpi"><div class="kpi-top"><span class="kpi-ico">R</span><span class="kpi-delta up">▲ 4%</span></div><div class="kpi-val">91%</div><div class="kpi-label">Repository health</div></div>
+      <div class="card kpi"><div class="kpi-top"><span class="kpi-ico">U</span><span class="kpi-delta up">▲ 6%</span></div><div class="kpi-val">67%</div><div class="kpi-label">Avg. utilization</div></div>
+    </div>
+    <div class="grid g211" style="margin-bottom:18px;">
+      <div class="card"><div class="card-head"><h3>Admin focus</h3></div><div class="mini-list"><div class="mini-row"><span>Content freshness</span><strong>98%</strong></div><div class="mini-row"><span>Policy compliance</span><strong>96%</strong></div><div class="mini-row"><span>Open reviews</span><strong>4</strong></div><div class="mini-row"><span>Audit exceptions</span><strong>1</strong></div></div></div>
+      <div class="card"><div class="card-head"><h3>Team metrics</h3></div><div class="mini-list"><div class="mini-row"><span>Trainer assignments</span><strong>22</strong></div><div class="mini-row"><span>Active learners</span><strong>1,842</strong></div><div class="mini-row"><span>Upcoming sessions</span><strong>14</strong></div><div class="mini-row"><span>Critical alerts</span><strong>3</strong></div></div></div>
+      <div class="card"><div class="card-head"><h3>Action queue</h3></div><div class="mini-list"><div class="mini-row"><span>Approve content updates</span><strong>5</strong></div><div class="mini-row"><span>Resolve audit items</span><strong>2</strong></div><div class="mini-row"><span>Refresh dashboard widgets</span><strong>6</strong></div><div class="mini-row"><span>Review role access</span><strong>8</strong></div></div></div>
+    </div>
+  </div>
   <div class="search-row">
     <div class="search-box">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.3-4.3"/></svg>
@@ -1778,6 +1797,13 @@ function showView(view){
   document.querySelectorAll('.side-item').forEach(s => s.classList.toggle('active', s.dataset.view===view));
   closeAllDropdowns();
   window.scrollTo({top:0,behavior:'smooth'});
+}
+function setDashboardMode(mode){
+  const custom = document.getElementById('admin-custom-dashboard');
+  if (!custom) return;
+  const buttons = document.querySelectorAll('[data-dashboard-switch="admin"] button');
+  buttons.forEach((button) => button.classList.toggle('active', button.textContent === (mode === 'custom' ? 'Custom' : 'Default')));
+  custom.style.display = mode === 'custom' ? 'block' : 'none';
 }
 function showSubtab(group, tab){
   const prefix = group; // 'um' or 'cr'

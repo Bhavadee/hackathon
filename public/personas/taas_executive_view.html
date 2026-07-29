@@ -67,6 +67,16 @@ button{font-family:inherit;cursor:pointer;}
 .brand-text .name{font-size:14.5px;font-weight:700;letter-spacing:-.01em;line-height:1.2;}
 .brand-text .sub{font-size:10px;letter-spacing:.08em;color:var(--artifact-muted-2);font-weight:600;}
 .topbar-right{display:flex;align-items:center;gap:10px;}
+.topbar-stack{display:flex;flex-direction:column;align-items:flex-end;gap:8px;}
+.dashboard-view-switch{display:flex;gap:6px;background:var(--artifact-surface-2);border:1px solid var(--artifact-border);border-radius:10px;padding:3px;}
+.dashboard-view-switch button{padding:6px 13px;font-size:12px;font-weight:700;border-radius:7px;border:none;background:none;color:var(--artifact-muted);display:flex;align-items:center;gap:6px;}
+.dashboard-view-switch button.active{background:var(--artifact-surface);color:var(--artifact-accent);box-shadow:var(--artifact-shadow);}
+.dashboard-view-switch svg{width:14px;height:14px;}
+.topbar-stack{display:flex;flex-direction:column;align-items:flex-end;gap:8px;}
+.dashboard-view-switch{display:flex;gap:6px;background:var(--artifact-surface-2);border:1px solid var(--artifact-border);border-radius:10px;padding:3px;}
+.dashboard-view-switch button{padding:6px 13px;font-size:12px;font-weight:700;border-radius:7px;border:none;background:none;color:var(--artifact-muted);display:flex;align-items:center;gap:6px;}
+.dashboard-view-switch button.active{background:var(--artifact-surface);color:var(--artifact-accent);box-shadow:var(--artifact-shadow);}
+.dashboard-view-switch svg{width:14px;height:14px;}
 .badge-pill{font-size:11.5px;font-weight:600;padding:5px 10px;border-radius:999px;background:var(--artifact-warning-soft);color:var(--artifact-warning);border:1px solid transparent;}
 .badge-pill.blue{background:var(--artifact-accent-soft);color:var(--artifact-accent);}
 .badge-pill.admin-tag{background:var(--artifact-purple-soft);color:var(--artifact-purple);}
@@ -600,7 +610,12 @@ button{font-family:inherit;cursor:pointer;}
       <div class="sub">EXECUTIVE CONSOLE</div>
     </div>
   </div>
-  <div class="topbar-right">
+  <div class="topbar-right topbar-stack">
+    <div class="dashboard-view-switch" data-dashboard-switch="executive">
+      <button class="active" type="button" onclick="setDashboardMode('default')">Default</button>
+      <button type="button" onclick="setDashboardMode('custom')">Custom</button>
+    </div>
+    <div style="display:flex;align-items:center;gap:10px;">
     <span class="badge-pill">Demo data</span>
     <span class="badge-pill admin-tag" style="background:var(--artifact-teal-soft);color:var(--artifact-teal);">Executive session</span>
 
@@ -626,14 +641,14 @@ button{font-family:inherit;cursor:pointer;}
       <button class="profile-chip" onclick="toggleDropdown('profilePanel')">
         <span class="avatar" style="background:var(--artifact-teal);">ME</span>
         <span class="profile-meta">
-          <div class="pname">Morgan Ellis</div>
+          <div class="pname">Vinod Eswaran</div>
           <div class="prole">Chief Learning Officer</div>
         </span>
         <svg class="chip-caret" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M6 9l6 6 6-6"/></svg>
       </button>
       <div class="dropdown-panel" id="profilePanel" style="min-width:230px;">
         <div class="dd-header">
-          <div class="dname">Morgan Ellis</div>
+          <div class="dname">Vinod Eswaran</div>
           <div class="demail">morgan.ellis@cprime.com · Role: Executive</div>
         </div>
         <a class="dd-item" onclick="openModal('profileModal')">
@@ -650,6 +665,7 @@ button{font-family:inherit;cursor:pointer;}
           Log out
         </a>
       </div>
+    </div>
     </div>
   </div>
 </div>
@@ -696,13 +712,8 @@ button{font-family:inherit;cursor:pointer;}
 
 <!-- ================= EXECUTIVE SUMMARY ================= -->
 <div class="view active" id="view-summary">
-  <div class="viewtoggle" style="margin:0 0 14px auto;">
-    <button class="active" type="button">Default</button>
-    <button type="button">Custom</button>
-  </div>
   <div class="page-title">Good morning, Morgan</div>
   <div class="page-sub">Here's how the training business is performing across every persona right now.</div>
-
   <div class="grid g4" style="margin-bottom:18px;" id="summaryKpiGrid"></div>
 
   <div class="grid g211" style="margin-bottom:18px;">
@@ -768,6 +779,22 @@ button{font-family:inherit;cursor:pointer;}
         <div class="qa-sub">PDF for board deck</div>
       </div>
     </div>
+  </div>
+</div>
+
+<div class="view" id="view-summary-custom" style="display:none;">
+  <div class="page-title">Executive custom dashboard</div>
+  <div class="page-sub">Focused KPIs and metrics to help Vinod Eswaran excel in the role.</div>
+  <div class="grid g4" style="margin-bottom:18px;">
+    <div class="card kpi"><div class="kpi-top"><span class="kpi-ico" style="background:#eaf0ff;color:#2f5fef;">$</span><span class="kpi-delta up">▲ 14%</span></div><div class="kpi-val">$3.14M</div><div class="kpi-label">Revenue collected</div></div>
+    <div class="card kpi"><div class="kpi-top"><span class="kpi-ico" style="background:#ecfdf5;color:#16a34a;">%</span><span class="kpi-delta up">▲ 3 pts</span></div><div class="kpi-val">61%</div><div class="kpi-label">Average deal margin</div></div>
+    <div class="card kpi"><div class="kpi-top"><span class="kpi-ico" style="background:#f5f3ff;color:#7c3aed;">↗</span><span class="kpi-delta up">▲ 5 pts</span></div><div class="kpi-val">89%</div><div class="kpi-label">Trainer network health</div></div>
+    <div class="card kpi"><div class="kpi-top"><span class="kpi-ico" style="background:#ecfeff;color:#0f766e;">◎</span><span class="kpi-delta up">▲ 2 pts</span></div><div class="kpi-val">84%</div><div class="kpi-label">Learner completion rate</div></div>
+  </div>
+  <div class="grid g211" style="margin-bottom:18px;">
+    <div class="card"><div class="card-head"><h3>Executive KPIs</h3></div><div class="mini-list"><div class="mini-row"><span>Pipeline health</span><strong>92%</strong></div><div class="mini-row"><span>Quote turnaround</span><strong>1.8 days</strong></div><div class="mini-row"><span>Coach utilization</span><strong>77%</strong></div><div class="mini-row"><span>Open risks</span><strong>6</strong></div></div></div>
+    <div class="card"><div class="card-head"><h3>Decision metrics</h3></div><div class="mini-list"><div class="mini-row"><span>Top growth course</span><strong>SAFe DevOps</strong></div><div class="mini-row"><span>Largest deal at risk</span><strong>Northwind</strong></div><div class="mini-row"><span>Capacity buffer</span><strong>18%</strong></div><div class="mini-row"><span>Renewal coverage</span><strong>81%</strong></div></div></div>
+    <div class="card"><div class="card-head"><h3>Action queue</h3></div><div class="mini-list"><div class="mini-row"><span>Review discounted quotes</span><strong>5</strong></div><div class="mini-row"><span>Approve new course offers</span><strong>3</strong></div><div class="mini-row"><span>Escalate overdue invoices</span><strong>2</strong></div><div class="mini-row"><span>Refresh trainer coverage</span><strong>4</strong></div></div></div>
   </div>
 </div>
 
@@ -1817,6 +1844,12 @@ function showView(view){
   document.querySelectorAll('.side-item').forEach(s => s.classList.toggle('active', s.dataset.view===view));
   closeAllDropdowns();
   window.scrollTo({top:0,behavior:'smooth'});
+}
+function setDashboardMode(mode){
+  const custom = document.getElementById('view-summary-custom');
+  const buttons = document.querySelectorAll('[data-dashboard-switch="executive"] button');
+  buttons.forEach((button) => button.classList.toggle('active', button.textContent === (mode === 'custom' ? 'Custom' : 'Default')));
+  if (custom) custom.style.display = mode === 'custom' ? 'block' : 'none';
 }
 
 /* ================= DROPDOWNS ================= */
