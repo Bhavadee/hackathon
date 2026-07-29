@@ -5,17 +5,16 @@ import {
   BadgeCheck,
   Banknote,
   CalendarDays,
+  Download,
   Gauge,
   GraduationCap,
   Library,
   LineChart,
-  Network,
   Settings2,
   Sparkles,
   UserRoundCheck,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
-import { TrainerNetwork } from "@/components/trainer-network";
 
 export type DashboardData = {
   courses: { id: string; title: string; status: string; freshness: number; sourceVersion: string }[];
@@ -211,7 +210,7 @@ function TrainerAvailabilityCard({ className = "" }: { className?: string }) {
 function TrainerShell({ activeView, onViewChange, children }: { activeView: TrainerView; onViewChange: (view: TrainerView) => void; children: React.ReactNode }) {
   const views: { id: TrainerView; label: string; Icon: LucideIcon }[] = [
     { id: "home", label: "My Profile", Icon: UserRoundCheck },
-    { id: "network", label: "Trainer Network", Icon: Network },
+    { id: "network", label: "Sessions", Icon: CalendarDays },
     { id: "curator", label: "Course Curator", Icon: Sparkles },
     { id: "content", label: "Content Library", Icon: Library },
   ];
@@ -291,10 +290,87 @@ function TrainerPersona({ data }: { data: DashboardData }) {
   const [view, setView] = useState<TrainerView>("home");
   return <TrainerShell activeView={view} onViewChange={setView}>
     {view === "home" && <TrainerHome data={data} />}
-    {view === "network" && <div><SectionTitle eyebrow="Trainer network" title="Trainer network and action management" description="Search trainers, review availability, and close assignment-readiness actions." /><TrainerNetwork trainers={data.trainers} /></div>}
+    {view === "network" && <TrainerSessionWorkspace data={data} />}
     {view === "curator" && <TrainerCourseCurator data={data} />}
     {view === "content" && <TrainerContent data={data} />}
   </TrainerShell>;
+}
+
+function TrainerSessionWorkspace({ data }: { data: DashboardData }) {
+  const session = data.requests[0];
+  const attendees = [
+    { name: "Bidyashree Parhi", company: "Cprime", email: "bidyashree.parhi@cprime.com" },
+    { name: "Chanel Bhalla", company: "Cprime", email: "chanel.bhalla@cprime.com" },
+    { name: "Eric Martin", company: "Cprime", email: "eric.martin@cprime.com" },
+    { name: "Hamchajini Balasundram", company: "Cprime", email: "hamchajini.balasundram@cprime.com" },
+    { name: "Joseph Bamisiaye", company: "Cprime", email: "joseph.bamisaiye@cprime.com" },
+    { name: "Kayley Newman", company: "Cprime", email: "kayley.newman@cprime.com" },
+  ];
+
+  return <div className="space-y-5">
+    <SectionTitle
+      eyebrow="Sessions"
+      title="Trainer session workspace"
+      description="Quick-access files, roster actions, and attendance tracking."
+    />
+
+    <Card className="space-y-4">
+      <div className="flex flex-wrap gap-3">
+        {["Download Instructor Materials", "Download Student Materials", "Printable Roster", "Download CSV", "Email all students"].map((label) => (
+          <button key={label} type="button" className="inline-flex items-center gap-2 rounded-lg border border-slate-300 bg-slate-100 px-4 py-2.5 text-sm font-medium text-slate-700 shadow-sm hover:bg-slate-200">
+            <Download size={16} />
+            {label}
+          </button>
+        ))}
+      </div>
+      <div className="rounded-lg bg-slate-50 px-4 py-3 text-sm font-medium text-slate-500">
+        Use these buttons to quickly get access to all instructor and student materials and files.
+      </div>
+    </Card>
+
+    <Card className="space-y-4">
+      <div>
+        <h3 className="text-3xl font-semibold tracking-tight text-slate-950">{session?.topic ?? "Introduction to DevOps"}</h3>
+        <p className="mt-2 text-sm text-slate-500">{session?.customer ?? "606508VCL03"}</p>
+        <p className="mt-3 text-sm text-slate-500">{session?.deliveryMode ?? "Live Online Training"} | Jun 24</p>
+      </div>
+
+      <div className="overflow-hidden rounded-xl border border-slate-200">
+        <table className="w-full border-collapse text-left text-sm">
+          <thead className="bg-pink-600 text-white">
+            <tr>
+              <th className="px-4 py-3 font-semibold">Name</th>
+              <th className="px-4 py-3 font-semibold">Email</th>
+              <th className="px-4 py-3 font-semibold">Company</th>
+              <th className="px-4 py-3 font-semibold">Attendance</th>
+              <th className="px-4 py-3 font-semibold">Follow Up Opportunity?</th>
+            </tr>
+          </thead>
+          <tbody>
+            {attendees.map((attendee, index) => (
+              <tr key={attendee.name} className={index % 2 === 1 ? "bg-slate-100" : "bg-white"}>
+                <td className="px-4 py-4 text-slate-700">{attendee.name}</td>
+                <td className="px-4 py-4 text-slate-700">
+                  <button type="button" className="rounded border border-slate-300 bg-white px-3 py-1.5 text-xs text-slate-600">edit email</button>
+                </td>
+                <td className="px-4 py-4 text-slate-700">{attendee.company}</td>
+                <td className="px-4 py-4">
+                  <select className="rounded border border-slate-300 bg-white px-2 py-1 text-sm text-slate-600" defaultValue="Attended">
+                    <option>Attended</option>
+                    <option>Absent</option>
+                    <option>Late</option>
+                  </select>
+                </td>
+                <td className="px-4 py-4">
+                  <button type="button" className="inline-flex size-10 items-center justify-center rounded border border-slate-300 bg-white text-lg text-slate-600">+</button>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </Card>
+  </div>;
 }
 
 function TrainerCourseCurator({ data }: { data: DashboardData }) {
